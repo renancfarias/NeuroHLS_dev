@@ -1318,8 +1318,9 @@ void max_pool_spike_2d(bit_t input[c_in][in_h][in_w], bit_t result[c_in][in_h / 
 
     bit_t max_value[c_in];
 
-    // #pragma HLS ARRAY_PARTITION variable=max_value dim=1 type=complete
-    // #pragma HLS ARRAY_PARTITION variable=result dim=1 type=complete
+    #pragma HLS ARRAY_PARTITION variable=max_value dim=1 type=complete
+    #pragma HLS ARRAY_PARTITION variable=result dim=1 type=complete
+    #pragma HLS ARRAY_PARTITION variable=input dim=1 type=complete
 
     max_pool_lines:
     for (int start_line = 0; start_line < out_h; start_line++)
@@ -1333,8 +1334,8 @@ void max_pool_spike_2d(bit_t input[c_in][in_h][in_w], bit_t result[c_in][in_h / 
 
             for (int ch = 0; ch < c_in; ch++)
             {
-                #pragma HLS PIPELINE off
-                // #pragma HLS UNROLL
+                // #pragma HLS PIPELINE off
+                #pragma HLS UNROLL
                 max_value[ch] = 0;
             }
 
@@ -1354,8 +1355,8 @@ void max_pool_spike_2d(bit_t input[c_in][in_h][in_w], bit_t result[c_in][in_h / 
                     max_ch_in:
                     for (int ch = 0; ch < c_in; ch++)
                     {
-                        #pragma HLS PIPELINE off
-                        // #pragma HLS UNROLL
+                        // #pragma HLS PIPELINE off
+                        #pragma HLS UNROLL
                         max_value[ch] |= input[ch][start_line * ker_h + kh][start_col * ker_w + kw];
                     }
                 }
@@ -1363,6 +1364,7 @@ void max_pool_spike_2d(bit_t input[c_in][in_h][in_w], bit_t result[c_in][in_h / 
 
             for (int ch = 0; ch < c_in; ch++)
             {
+                #pragma HLS UNROLL
                 result[ch][start_line][start_col] = max_value[ch];
             }
         }
