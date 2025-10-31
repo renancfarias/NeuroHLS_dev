@@ -37,7 +37,7 @@ void dense(input_type input [n_inputs],
            weight_t weights [n_neurons][n_inputs],
            weight_t bias[n_neurons])
 {
-    potential_t aux[unroll_factor];
+    potential_type aux[unroll_factor];
 
     #pragma HLS ARRAY_PARTITION variable=potentials dim=1 type=complete
     #pragma HLS ARRAY_PARTITION variable=bias dim=1 type=complete
