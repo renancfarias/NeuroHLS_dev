@@ -1,84 +1,64 @@
 #ifndef _LAYER_READY_H_
 #define _LAYER_READY_H_
 
-#include "parameters.h"
-
-template<int n_neurons, int fire_unroll_factor, typename potential_type>
-void leaky_fire_array(potential_type potentials[n_neurons], bit_t output[n_neurons])
+template<int n_neurons, int unroll_factor, typename potential_type>
+void leaky_fire_dense(potential_type potentials[n_neurons], bit_t output[n_neurons])
 {
-    #pragma HLS inline
+    #pragma HLS INLINE
     #pragma HLS BIND_OP variable=potentials op=mul impl=dsp
 
-    leaky_fire_array:
+    leaky_fire_dense_apply_decay:
     for (int n = 0; n < n_neurons; n++)
     {
-        #pragma HLS UNROLL factor=fire_unroll_factor
+        #pragma HLS UNROLL factor=unroll_factor
+        potentials[n] *= layer::decay;
+    }
 
-        if (potentials[n] >= net::threshold)
+    leaky_fire_dense_check_threshold:
+    for (int n = 0; n < n_neurons; n++)
+    {
+        #pragma HLS UNROLL factor=unroll_factor
+
+        if (potentials[n] >= 1)
         {
             output[n] = 1;
-            potentials[n] = 0.0;
+            potentials[n] -= layer::threshold; ///// POR ENQUANTO, SUPORTE APENAS PARA SUBTRACT EM CASO DE FIRE
         }
         else
         {
             output[n] = 0;
-            potentials[n] *= net::decay;
         }
     }
 }
 
-/*
-    Latency-optimized implementation of a dense (fully-connected) 
-    Leaky Integrate-and-Fire (LIF) layer.
-
-    Overview:
-        - This version processes all inputs, even if they are not spikes.
-        - The benefit is higher parallelism, but it uses more hardware resources.
-
-    Parameters:
-        - n_neurons: number of neurons in this layer.
-        - n_inputs: number of inputs (neurons from the previous layer).
-        - accum_unroll_factor: how many input-accumulation steps run in parallel.
-        - fire_unroll_factor: how many firing steps run in parallel.
-
-    Notes:
-        - The unroll factors control loop replication: Higher values -> lower latency, higher resource usage.
-        - accum_unroll_factor must be a divisor of n_inputs.
-        - fire_unroll_factor must be a divisor of n_neurons.
-        - On some FPGA devices, the pipeline initiation interval (II) 
-          may need to be set greater than 1.
-*/
-template<int n_neurons, int n_inputs, int accum_unroll_factor, int fire_unroll_factor, typename input_type, typename weight_type>
-void dense_LIF_latency_optimized(input_type input[n_inputs],
-                                 bit_t output[n_neurons],
-                                 weight_type weights[n_neurons][n_inputs])
+template<int n_neurons, int n_inputs, int unroll_factor, typename input_type, typename potential_type>
+void dense(input_type input [n_inputs],
+           potential_type potentials [n_neurons],
+           weight_t weights [n_neurons][n_inputs],
+           weight_t bias[n_neurons])
 {
-    #pragma HLS function_instantiate variable=input
-
-    static potential_t potentials[n_neurons] = {};
-
-    potential_t aux[accum_unroll_factor];
+    potential_t aux[unroll_factor];
 
     #pragma HLS ARRAY_PARTITION variable=potentials dim=1 type=complete
-    #pragma HLS ARRAY_PARTITION variable=output dim=1 type=complete
+    #pragma HLS ARRAY_PARTITION variable=bias dim=1 type=complete
 
-    #pragma HLS ARRAY_PARTITION variable=input factor=accum_unroll_factor dim=1 type=cyclic
-    #pragma HLS ARRAY_PARTITION variable=aux factor=accum_unroll_factor dim=1 type=cyclic
+    #pragma HLS ARRAY_PARTITION variable=input factor=unroll_factor dim=1 type=cyclic
+    #pragma HLS ARRAY_PARTITION variable=aux factor=unroll_factor dim=1 type=cyclic
 
-    leaky_fire_array<n_neurons, fire_unroll_factor>(potentials, output);
+    // OBS: unroll_factor precisa dividir n_inputs
 
-    itter_inputs:
-    for (int i = 0; i < n_inputs; i += accum_unroll_factor)
+    dense_inputs:
+    for (int i = 0; i < n_inputs; i += unroll_factor)
     {
-        #pragma HLS PIPELINE II=2
+    #pragma HLS PIPELINE off
         
-        itter_neurons:
+        dense_neurons:
         for (int n = 0; n < n_neurons; n++)
         {
-            #pragma HLS UNROLL
+            #pragma HLS PIPELINE off
 
-            mult_batch:
-            for (int k = 0; k < accum_unroll_factor; k++)
+            dense_mult_batch:
+            for (int k = 0; k < unroll_factor; k++)
             {
                 #pragma HLS UNROLL
 
@@ -86,6 +66,13 @@ void dense_LIF_latency_optimized(input_type input[n_inputs],
                 potentials[n] += aux[k];
             }
         }
+    }
+
+    dense_bias:
+    for (int n = 0; n < n_neurons; n++)
+    {
+        #pragma HLS UNROLL factor=unroll_factor
+        potentials[n] += bias[n];
     }
 };
 
