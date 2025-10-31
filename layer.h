@@ -961,34 +961,30 @@ void fire_conv_old(input_type potentials[c_in][in_h][in_w], bit_t output[c_in][i
 template<int c_in, int in_h, int in_w, typename input_type>
 void fire_conv(input_type potentials[c_in][in_h][in_w], bit_t output[c_in][in_h][in_w])
 {
-    // #pragma HLS ARRAY_PARTITION variable=potentials dim=1 type=complete
-    // #pragma HLS ARRAY_PARTITION variable=output dim=1 type=complete
+    #pragma HLS ARRAY_PARTITION variable=potentials dim=1 type=complete
+    #pragma HLS ARRAY_PARTITION variable=output dim=1 type=complete
 
     fire_conv_lines:
     for (int l = 0; l < in_h; l++)
     {
         #pragma HLS PIPELINE off
-        // #pragma HLS UNROLL
 
         fire_conv_cols:
         for (int c = 0; c < in_w; c++)
         {
-            // #pragma HLS UNROLL
             #pragma HLS PIPELINE off
 
             fire_conv_decay:
             for (int ch = 0; ch < c_in; ch++)
             {
-                #pragma HLS PIPELINE off
-                // #pragma HLS UNROLL
+                #pragma HLS UNROLL
                 potentials[ch][l][c] *= layer::decay;
             }
 
             fire_conv_check_threshold:
             for (int ch = 0; ch < c_in; ch++)
             {
-                #pragma HLS PIPELINE off
-                // #pragma HLS UNROLL
+                #pragma HLS UNROLL
 
                 if (potentials[ch][l][c] >= layer::threshold)
                 {
