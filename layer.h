@@ -14,295 +14,9 @@
 #include <hls_vector.h>
 #include <bitset>
 
+#include "types_and_params.h"
+
 using namespace std;
-
-// -------------- PARAMETROS SBESC - 2025 ------------------------   
-
-// #define NUM_INPUTS 784
-// #define NUM_NEURONS {128,10}
-// #define THRESHOLD 1.0
-// #define DECAY 0.001
-// #define NUM_STEPS 10
-// #define NUM_SAMPLES 1000
-// // #define WEIGHT_BITWIDTH 6
-// // #define WEIGHT_INT_WIDTH 2
-// #define weight_t ap_fixed<6, 2, AP_RND>
-// #define output_t ap_uint<1>
-// #define bit_t ap_uint<1>
-// // #define potential_t ap_fixed<16,6, AP_RND>
-// #define potential_t ap_fixed<10,6>
-// #define neuron_idx_t ap_uint<10>
-
-// constexpr int num_neurons [] = NUM_NEURONS;
-
-// const ap_fixed<16,4> threshold = THRESHOLD;
-
-// namespace layer {
-// const ap_ufixed<16,0> decay = DECAY;
-// }
-
-// -------------- PARAMETROS LASCAS - 2026 ------------------------
-
-// #define NUM_INPUTS 187
-// #define NUM_NEURONS {1000, 2}
-
-// #define THRESHOLD 1.0
-// #define DECAY 0.95
-
-// #define NUM_STEPS 25
-// #define NUM_SAMPLES 1//2910
-
-// #define input_ecg_t double
-// #define weight_t double
-// #define potential_t double
-// #define bit_t ap_uint<1>
-
-// -------------- TOBIAS - FASHION MNIST ------------------------
-
-#define NUM_INPUTS 784
-#define NUM_OUTPUTS 10
-
-#define TOTAL_SAMPLES 9984
-
-#define NUM_STEPS 100
-#define NUM_SAMPLES 1//2910
-
-#define THRESHOLD 1.0
-#define DECAY 0.7
-
-#define input_t ap_fixed<16, 8>
-#define weight_t ap_fixed<16, 8>
-#define potential_t ap_fixed<16, 8>
-#define bit_t ap_uint<1>
-
-// #define input_t ap_fixed<10, 4>
-// #define weight_t ap_fixed<6, 2, AP_RND>
-// #define potential_t ap_fixed<10, 4>
-// #define bit_t ap_uint<1>
-
-// potential_t THRESHOLD = 1.0;
-
-namespace layer {
-    const ap_fixed<16, 8> decay = DECAY;
-    const ap_fixed<16, 8> threshold = THRESHOLD;
-}
-
-template<int ch, int lines, int cols, typename mat_type>
-void print_mat(mat_type mat[ch][lines][cols], string name)
-{
-    ofstream dnet("debug_net_VITIS.txt", ios::app);
-
-    dnet << " *** " << name << ":" << endl;
-
-    for (int c = 0; c < ch; c++)
-    {
-        dnet << "Channel " << c + 1 << ":" << endl;
-
-        for (int i = 0; i < lines; i++)
-        {
-            for (int j = 0; j < cols; j++)
-            {
-                dnet << fixed << setprecision(2) <<  mat[c][i][j] << " ";
-            }
-
-            dnet << endl;
-        }
-
-        if (c < ch - 1)
-        {
-            dnet << "--------------" << endl;
-        }
-        else
-        {
-            dnet << endl;
-        }   
-    }
-
-    dnet.close();
-}
-
-template<int vet_size, typename vet_type>
-void print_vet(vet_type v[vet_size], string name)
-{
-    ofstream dnet("debug_net_VITIS.txt", ios::app);
-
-    dnet << " *** " << name << ":" << endl;
-
-    for (int i = 0; i < vet_size; i++)
-    {
-        dnet << v[i] << " ";
-    }
-
-    dnet << endl << endl;
-
-    dnet.close();
-}
-
-//#ifndef __SYNTHESIS__
-template<int n_neurons, int n_inputs>
-void load_weights(std::string weights_file, weight_t weights[n_neurons][n_inputs]) {
-    std::ifstream file(weights_file);
-
-    if (!file.is_open()) {
-    std::cerr << "Error opening file!" << std::endl;
-    }
-    
-    std::string line;
-
-    float value;
-
-    // Read the weights from the file
-    for (int i = 0; i < n_neurons; i++) {
-        for (int j = 0; j < n_inputs; j++) {
-            std::getline(file, line);
-            weights[i][j] = std::stof(line);
-        }
-    }
-    
-    file.close();
-}
-
-// performs latency encoding of the inputs
-template<int n_steps, int n_neurons, int n_inputs>
-void input_layer(float *input, bit_t output[n_steps][n_inputs]) {
-    //#pragma HLS ARRAY_PARTITION variable=output dim=1 type=complete
-    in_coding: 
-    for (int i = 0; i < n_steps; i++) {
-        #pragma HLS PIPELINE
-        float th = (float)(n_steps - i)/n_steps;
-        float tl = (float)(n_steps - i - 1)/n_steps;
-
-        for (int j = 0; j < n_inputs; j++) {
-            if (input[j] <= th && input[j] > tl)
-                output[i][j] = true;
-            else  
-                output[i][j] = false;        
-        }
-    }
-};
-
-template<int n_neurons, int n_inputs, typename in_t, typename out_t, int unroll_factor>
-void lif_layer(in_t &input, out_t &output, weight_t weights [n_neurons][n_inputs]) {
-    #pragma HLS function_instantiate variable=weights
-    //#pragma HLS EXPRESSION_BALANCE
-    //#pragma HLS ALLOCATION operation instances=mul  limit=n_neurons
-    //#pragma HLS ARRAY_RESHAPE variable= dim=1 type=complete
-    #pragma HLS ARRAY_PARTITION variable=weights dim=1 type=complete 
-    //#pragma HLS ARRAY_PARTITION variable=input type=complete
-    
-    static potential_t potentials[n_neurons];
-
-    bit_t spikes [n_neurons];
-
-    #pragma HLS ARRAY_PARTITION variable=potentials type=complete
-    #pragma HLS ARRAY_RESHAPE variable=spikes dim=0 type=complete
-    
-    fire_leak:
-    for (int i = 0; i < n_neurons; i++) {
-        #pragma HLS UNROLL
-        if (potentials[i] >= 1) {
-            spikes[i] = 1;
-            // reset potential
-            potentials[i] = 0.0;
-        } else {
-            spikes[i] = 0;
-            potentials[i] = potentials[i] * layer::decay;
-        }
-    }
-
-    output:
-    for (int i = 0; i < n_neurons; i++) {
-        #pragma HLS PIPELINE
-        if (spikes[i] > 0) {
-            output.write(i);
-        }
-    }
-
-    integrate:
-    while (!input.empty()) {
-        #pragma HLS LOOP_TRIPCOUNT min=0 avg=15 max=n_inputs
-        #pragma HLS PIPELINE     
-        int i = input.read(); // index of the neuron from the previous layer that spiked
-        for (int n = 0; n < n_neurons; n++) {
-            // #pragma HLS UNROLL
-            potentials[n] += weights[n][i];
-        }
-    }
-}
-
-template<int n_neurons, int n_inputs, typename in_t, typename out_t, int unroll_factor>
-void ci_lif_layer(in_t input[n_inputs], out_t &output, weight_t weights [n_neurons][n_inputs]) {
-    #pragma HLS function_instantiate variable=input,output,weights
-    //#pragma HLS EXPRESSION_BALANCE
-    //#pragma HLS ALLOCATION operation instances=mul  limit=n_neurons
-    #pragma HLS ARRAY_RESHAPE variable=weights dim=2 type=cyclic factor=unroll_factor
-    #pragma HLS ARRAY_PARTITION variable=input type=cyclic factor=unroll_factor
-    //#pragma HLS ARRAY_PARTITION variable=weights type=cyclic factor=unroll_factor dim=2
-    //#pragma HLS ARRAY_PARTITION variable=input type=complete
-    //#pragma HLS ARRAY_PARTITION variable=output type=complete
-    
-    static potential_t potentials[n_neurons];
-    static potential_t mult[n_neurons][n_inputs];
-
-    bit_t spikes [n_neurons];
-
-    #pragma HLS ARRAY_RESHAPE variable=spikes dim=0 type=complete
-
-    // #pragma HLS ARRAY_RESHAPE variable=potentials type=complete
-    // #pragma HLS ARRAY_PARTITION variable=mult type=complete
-
-    // fire_leak:
-    // for (int i = 0; i < n_neurons; i++) {
-    //     #pragma HLS PIPELINE
-    //     if (potentials[i] >= 1) {
-    //         output.write(i);
-    //         // reset potential
-    //         potentials[i] = 0.0;
-    //     } else {
-    //        // spikes[i] = 0;
-    //         potentials[i] = potentials[i] * layer::decay;
-    //     }
-    // }
-    
-    fire_leak:
-    for (int i = 0; i < n_neurons; i++) {
-        #pragma HLS UNROLL
-        if (potentials[i] >= 1) {
-            spikes[i] = 1;
-            // reset potential
-            potentials[i] = 0.0;
-        } else {
-            spikes[i] = 0;
-            potentials[i] = potentials[i] * layer::decay;
-        }
-    }
-
-    output:
-    for (int i = 0; i < n_neurons; i++) {
-        #pragma HLS PIPELINE
-        if (spikes[i] > 0) {
-            output.write(i);
-        }
-    }
-
-    // leak:
-    // for (int n = 0; n < n_neurons; n++) {
-    //     #pragma HLS UNROLL
-            
-    // }
-
-    integrate:
-    for (int i = 0; i < n_inputs; i++) {
-    #pragma HLS UNROLL factor=unroll_factor
-    #pragma HLS PIPELINE
-        // cache = input[i];
-        for (int n = 0; n < n_neurons; n++) {
-            #pragma HLS UNROLL
-            mult[n][i] = input[i] * weights[n][i];
-            potentials[n] += mult[n][i];
-        }
-    }
-}
 
 template<int n_neurons, int accum_unroll_factor>
 void fire_array(potential_t potentials[n_neurons], bit_t output[n_neurons])
@@ -676,12 +390,17 @@ void conv_2d(input_ty input[c_in][in_h][in_w],
     res_t aux[c_out][c_in];
 
     // #pragma HLS ARRAY_PARTITION variable=filter dim=0 type=complete
+
+    #pragma HLS ARRAY_PARTITION variable=filter dim=1 type=complete
+    #pragma HLS ARRAY_PARTITION variable=filter dim=2 type=complete
+
     // #pragma HLS ARRAY_PARTITION variable=input dim=0 type=complete
+    #pragma HLS ARRAY_PARTITION variable=input dim=1 type=complete
 
-    // #pragma HLS ARRAY_PARTITION variable=bias dim=0 type=complete
-    // #pragma HLS ARRAY_PARTITION variable=result dim=1 type=complete
+    #pragma HLS ARRAY_PARTITION variable=bias dim=0 type=complete
+    #pragma HLS ARRAY_PARTITION variable=result dim=1 type=complete
 
-    // #pragma HLS ARRAY_PARTITION variable=aux dim=0 type=complete 
+    #pragma HLS ARRAY_PARTITION variable=aux dim=0 type=complete 
 
     char ker_start_h = 0;
     char ker_start_w = 0;
@@ -690,7 +409,6 @@ void conv_2d(input_ty input[c_in][in_h][in_w],
     for (int res_l = 0; res_l < out_h; res_l++)
     {
         #pragma HLS PIPELINE off
-        // #pragma HLS UNROLL
 
         ker_start_w = 0;
 
@@ -702,13 +420,13 @@ void conv_2d(input_ty input[c_in][in_h][in_w],
             make_aux_zero:
             for (int j = 0; j < c_in; j++)
             {
-                #pragma HLS PIPELINE off
-                // #pragma HLS UNROLL
+                // #pragma HLS PIPELINE off
+                #pragma HLS UNROLL
 
                 for (int i = 0; i < c_out; i++)
                 {
-                    #pragma HLS PIPELINE off
-                    // #pragma HLS UNROLL
+                    // #pragma HLS PIPELINE off
+                    #pragma HLS UNROLL
                     aux[i][j] = 0;
                 }
             }
@@ -730,15 +448,15 @@ void conv_2d(input_ty input[c_in][in_h][in_w],
                     conv_ch_in:
                     for (int in_ch = 0; in_ch < c_in; in_ch++)
                     {
-                        // #pragma HLS UNROLL
-                        #pragma HLS PIPELINE off
+                        #pragma HLS UNROLL
+                        // #pragma HLS PIPELINE off
                         
                         conv_ch_out:
                         for (int out_ch = 0; out_ch < c_out; out_ch++)
                         {
-                            // #pragma HLS UNROLL
+                            #pragma HLS UNROLL
                             // #pragma HLS UNROLL factor=ch_out_unroll_factor
-                            #pragma HLS PIPELINE off
+                            // #pragma HLS PIPELINE off
                             aux[out_ch][in_ch] += input[in_ch][ker_start_h + kh][ker_start_w + kw] * filter[out_ch][in_ch][kh][kw];
                         }
                     }
@@ -748,8 +466,8 @@ void conv_2d(input_ty input[c_in][in_h][in_w],
             add_bias_to_result:
             for (int i = 0; i < c_out; i++)
             {
-                #pragma HLS PIPELINE off
-                // #pragma HLS UNROLL
+                // #pragma HLS PIPELINE off
+                #pragma HLS UNROLL
                 result[i][res_l][res_c] += bias[i];
             }
 
@@ -761,8 +479,8 @@ void conv_2d(input_ty input[c_in][in_h][in_w],
                 add_aux_result_c_out:
                 for (int i = 0; i < c_out; i++)
                 {
-                    #pragma HLS PIPELINE off
-                    // #pragma HLS UNROLL
+                    // #pragma HLS PIPELINE off
+                    #pragma HLS UNROLL
                     result[i][res_l][res_c] += aux[i][j];
                 }
             }
@@ -1130,8 +848,8 @@ void add_padding(input_type input[c_in][in_h][in_w], input_type result[c_in][in_
 
     /// POR ENQUANTO, ESTOU CONSIDERANDO APENAS PADDING = 1
 
-    // #pragma HLS ARRAY_PARTITION variable=result dim=0 type=complete
-    // #pragma HLS ARRAY_PARTITION variable=input dim=0 type=complete
+    #pragma HLS ARRAY_PARTITION variable=result dim=0 type=complete
+    #pragma HLS ARRAY_PARTITION variable=input dim=0 type=complete
 
     pad_ch_in:
     for (int ch = 0; ch < c_in; ch++)

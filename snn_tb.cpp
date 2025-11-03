@@ -571,7 +571,7 @@ void clear_debug_net()
 #define IMAGE_DIM 28
 
 int main (int argc, char **argv)
-{   
+{
     clear_debug_net();
 
     ofstream dnet("debug_net_VITIS.txt", ios::trunc);

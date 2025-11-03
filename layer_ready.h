@@ -1,6 +1,8 @@
 #ifndef _LAYER_READY_H_
 #define _LAYER_READY_H_
 
+#include "types_and_params.h"
+
 template<int n_neurons, int unroll_factor, typename potential_type>
 void leaky_fire_dense(potential_type potentials[n_neurons], bit_t output[n_neurons])
 {
@@ -19,7 +21,7 @@ void leaky_fire_dense(potential_type potentials[n_neurons], bit_t output[n_neuro
     {
         #pragma HLS UNROLL factor=unroll_factor
 
-        if (potentials[n] >= 1)
+        if (potentials[n] >= layer::threshold)
         {
             output[n] = 1;
             potentials[n] -= layer::threshold; ///// POR ENQUANTO, SUPORTE APENAS PARA SUBTRACT EM CASO DE FIRE
