@@ -1,17 +1,18 @@
 class GetCpp:
 
-    def __init__(self, input_shape : tuple, output_shape : tuple):
+    def __init__(self, input_type: str, input_shape : tuple):
         self._cur_layer = 1
-        self._expected_input_shape = input_shape
+        self._define_new_expected_input_shape(input_shape)
         self._last_output_name = "input"
 
         self.implemented_activations = {"LIF"}
+        self.used_types = {input_type}
+        self.has_defined_output_layer = False
 
         input_shape = self._get_bracket_syntax_of_shape(input_shape)
-        output_shape = self._get_bracket_syntax_of_shape(output_shape)
 
-        self._cpp = f"void snn_to_hls(input{input_shape}, output{output_shape})\n"
-        self._cpp += "{\n"
+        self._header = f"void snn_to_hls({input_type} input{input_shape}, bit_t output"
+        self._cpp = ""
 
     def _get_bracket_syntax_of_shape(self, shape : tuple):
 
@@ -26,9 +27,11 @@ class GetCpp:
         return brackets
 
     def _print_cur_layer(self):
-        self._cpp += "\n//---------------------\n"
+        num_dashes = 50
+
+        self._cpp += "\n//" + num_dashes * "-" + "\n"
         self._cpp += f"//\tLayer {self._cur_layer}\n"
-        self._cpp += "//---------------------\n\n"
+        self._cpp += "//" + num_dashes * "-" + "\n\n"
 
     def _check_input_shape(self, input_shape):
         
@@ -36,6 +39,10 @@ class GetCpp:
             raise Exception(f"input shape {input_shape} != expected {self._expected_input_shape}")
 
     def _define_new_expected_input_shape(self, new_input_shape):
+
+        if not isinstance(new_input_shape, tuple):
+            new_input_shape = (new_input_shape, )
+
         self._expected_input_shape = new_input_shape
 
     def _get_activation_function(self, activation):
@@ -52,10 +59,20 @@ class GetCpp:
         self._cur_layer += 1
 
     def _append_line(self, line):
-        self._cpp += "\t" + line
+        self._cpp += "\t" + line + "\n"
 
-    def conv_2d(self, in_h : int, in_w : int, ker_h : int, ker_w : int, c_in : int, c_out : int, stride : int, result_type : str, activation = "LIF"):
+    def _finish_header(self, output_shape):
 
+        if not isinstance(output_shape, str):
+            output_shape = self._get_bracket_syntax_of_shape(output_shape)
+        
+        self._header += output_shape + ")\n{\n"
+
+    def conv_2d(self, in_h : int, in_w : int, ker_h : int, ker_w : int, c_in : int, c_out : int, stride : int, result_type : str, is_output_layer = False, activation = "LIF"):
+        
+        if self.has_defined_output_layer:
+            raise Exception("Output has already been defined. Cannot add any other layer")
+        
         out_conv_h = (in_h - ker_h) // stride + 1
         out_conv_w = (in_w - ker_w) // stride + 1
 
@@ -67,61 +84,96 @@ class GetCpp:
 
         output_shape = self._get_bracket_syntax_of_shape(output_shape)
         activation = self._get_activation_function(activation)
+
+        self.used_types.add(result_type)
         
         self._print_cur_layer()
 
         potentials_var_name = f"potentials_{self._cur_layer}"
-        spikes_var_name = f"spikes_{self._cur_layer}"
+        spikes_var_name = "output" if is_output_layer else f"spikes_{self._cur_layer}"
 
-        self._append_line(f"{result_type} {potentials_var_name}{output_shape};\n")
-        self._append_line(f"bit_t {spikes_var_name}{output_shape};\n\n")
+        self._append_line(f"{result_type} {potentials_var_name}{output_shape};")
 
-        self._append_line(f"conv_2d<{in_h}, {in_w}, {ker_h}, {ker_w}, {c_in}, {c_out}, {stride}>({self._last_output_name}, {potentials_var_name});\n")
-        self._append_line(f"conv_2d_{activation}<{c_out}, {out_conv_h}, {out_conv_w}>({potentials_var_name}, {spikes_var_name});\n\n")
+        if not is_output_layer:
+            self._append_line(f"bit_t {spikes_var_name}{output_shape};\n")
+        else:
+            self._append_line("")
 
-        self._prepare_for_next_layer()
+        self._append_line(f"conv_2d<{in_h}, {in_w}, {ker_h}, {ker_w}, {c_in}, {c_out}, {stride}>({self._last_output_name}, {potentials_var_name});")
+        self._append_line(f"conv_2d_{activation}<{c_out}, {out_conv_h}, {out_conv_w}>({potentials_var_name}, {spikes_var_name});")
+
+        if is_output_layer:
+            self._finish_header(output_shape)
+            self.has_defined_output_layer = True
+        else:
+            self._prepare_for_next_layer()
+
+    def dense(self, n_inputs : int, n_neurons : int, result_type : str, is_output_layer = False, activation = "LIF"):
         
-
-    def dense(self, n_inputs : int, n_neurons : int, result_type : str, activation = "LIF"):
+        if self.has_defined_output_layer:
+            raise Exception("Output has already been defined. Cannot add any other layer")
         
-        self._check_input_shape((n_inputs))
+        input_shape = (n_inputs, )
+        output_shape = (n_neurons, )
+
+        self._check_input_shape(input_shape)
+        self._define_new_expected_input_shape(output_shape)
+
         activation = self._get_activation_function(activation)
+        self.used_types.add(result_type)
+
+        output_shape = self._get_bracket_syntax_of_shape(output_shape)
 
         self._print_cur_layer()
 
         potentials_var_name = f"potentials_{self._cur_layer}"
-        spikes_var_name = f"spikes_{self._cur_layer}"
+        spikes_var_name = "output" if is_output_layer else f"spikes_{self._cur_layer}"
 
         ################
         # OBS: nesse codigo, os parametros do template da camada densa (n_inputs e n_neurons) estao invertidos
         ############
 
-        self._cpp += f"{result_type} {potentials_var_name}[{n_neurons}];\n"
-        self._cpp += f"bit_t {spikes_var_name}[{n_neurons}];\n\n"
-        self._cpp += f"dense<{n_inputs}, {n_neurons}>({self._last_output_name}, {potentials_var_name});\n"
-        self._cpp += f"dense_{activation}<{n_neurons}>({potentials_var_name}, {spikes_var_name});\n"
+        self._append_line(f"{result_type} {potentials_var_name}{output_shape};")
 
-        self._prepare_for_next_layer()
-        self._define_new_expected_input_shape((n_neurons))
+        if not is_output_layer:
+            self._append_line(f"bit_t {spikes_var_name}{output_shape};\n")
+        else:
+            self._append_line("")
 
-    def get_cpp(self):
+        self._append_line(f"dense<{n_inputs}, {n_neurons}>({self._last_output_name}, {potentials_var_name});")
+        self._append_line(f"dense_{activation}<{n_neurons}>({potentials_var_name}, {spikes_var_name});")
+
+        if is_output_layer:
+            self._finish_header(output_shape)
+            self.has_defined_output_layer = True
+        else:
+            self._prepare_for_next_layer()
+            
+    def generate_files(self):
+
+        if not self.has_defined_output_layer:
+            raise Exception("Cannot generate files because output layer was not defined")
+
+        self._cpp = self._header + self._cpp
         self._cpp += "}\n"
+
         return self._cpp
 
 def test_conv():
 
-    test_cpp = GetCpp((1, 32, 32), (10))
+    test_cpp = GetCpp("input_t", (1, 32, 32))
 
     test_cpp.conv_2d(32, 32, 3, 3, 1, 16, 1, "potential_t")
-    test_cpp.conv_2d(30, 30, 3, 3, 16, 32, 1, "potential_t")
+    test_cpp.conv_2d(30, 30, 3, 3, 16, 32, 1, "potential_t", is_output_layer=True)
 
-    print("\n\n" + test_cpp.get_cpp())
+    print("\n\n" + test_cpp.generate_files())
 
 def test_dense():
-    test_cpp = GetCpp((784), (10))
+    test_cpp = GetCpp("input_t", (784))
 
     test_cpp.dense(784, 128, "potential_t")
-    print("\n\n" + test_cpp.get_cpp())
+    test_cpp.dense(128, 10, "potential_t", is_output_layer=True)
+    print("\n\n" + test_cpp.generate_files())
 
 test_conv()
 # test_dense()
