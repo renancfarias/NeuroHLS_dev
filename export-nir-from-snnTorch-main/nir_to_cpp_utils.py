@@ -1,3 +1,5 @@
+from pathlib import Path
+
 class GetCpp:
 
     def __init__(self, input_type: str, input_shape : tuple):
@@ -149,7 +151,7 @@ class GetCpp:
         else:
             self._prepare_for_next_layer()
             
-    def generate_files(self):
+    def generate_files(self, folder_path):
 
         if not self.has_defined_output_layer:
             raise Exception("Cannot generate files because output layer was not defined")
@@ -157,7 +159,13 @@ class GetCpp:
         self._cpp = self._header + self._cpp
         self._cpp += "}\n"
 
-        return self._cpp
+        # Creates Folder
+
+        folder = Path(folder_path)
+        folder.mkdir(parents=True, exist_ok=True)
+
+        with open(f"{folder_path}/main.cpp", "w") as f:
+            f.write(self._cpp)
 
 def test_conv():
 
@@ -166,14 +174,15 @@ def test_conv():
     test_cpp.conv_2d(32, 32, 3, 3, 1, 16, 1, "potential_t")
     test_cpp.conv_2d(30, 30, 3, 3, 16, 32, 1, "potential_t", is_output_layer=True)
 
-    print("\n\n" + test_cpp.generate_files())
+    test_cpp.generate_files("gen_test")
 
 def test_dense():
     test_cpp = GetCpp("input_t", (784))
 
     test_cpp.dense(784, 128, "potential_t")
     test_cpp.dense(128, 10, "potential_t", is_output_layer=True)
-    print("\n\n" + test_cpp.generate_files())
+    
+    test_cpp.generate_files("gen_test")
 
-test_conv()
-# test_dense()
+# test_conv()
+test_dense()
