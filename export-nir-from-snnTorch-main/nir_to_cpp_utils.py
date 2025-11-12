@@ -178,8 +178,7 @@ class GetCpp:
 
         # Creates Folder
 
-        folder = Path(folder_path)
-        folder.mkdir(parents=True, exist_ok=True)
+        Path(folder_path).mkdir(parents=True, exist_ok=True)
 
         with open(f"{folder_path}/main.cpp", "w") as f:
             f.write(self._cpp)
@@ -187,8 +186,7 @@ class GetCpp:
         self._generate_types_and_parameters_file(folder_path)
 
         neuro_hls_folder_name = "neuro_hls_functions"
-        neuro_hls_folder = Path(f"{folder_path}/{neuro_hls_folder_name}")
-        neuro_hls_folder.mkdir(parents=True, exist_ok=True)
+        Path(f"{folder_path}/{neuro_hls_folder_name}").mkdir(parents=True, exist_ok=True)
 
         shutil.copytree(neuro_hls_folder_name, f"{folder_path}/{neuro_hls_folder_name}", dirs_exist_ok=True)
 
