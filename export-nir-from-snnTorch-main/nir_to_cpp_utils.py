@@ -16,20 +16,6 @@ class GetCpp:
         self._header = "#include \"types_and_params.h\"\n\n"
         self._header += f"void snn_to_hls({input_type} input{input_shape}, bit_t output"
         self._cpp = ""
-        self._types_and_params = "#ifndef _TYPES_AND_PARAMS_H_\n#define _TYPES_AND_PARAMS_H_"
-
-    def _add_types_and_parameters(self):
-
-        self._types_and_params += "\n\n"
-
-        self._types_and_params += "#include \"ap_fixed.h\"\n#include \"ap_int.h\"\n\n"
-
-        self._types_and_params += "typedef ap_uint<1> bit_t;\n"
-
-        for type in self.used_types:
-            self._types_and_params += f"typedef ap_fixed<16, 8> {type};\n"
-
-        self._types_and_params += "\n#endif"
 
     def _get_bracket_syntax_of_shape(self, shape : tuple):
 
@@ -169,6 +155,21 @@ class GetCpp:
             self.has_defined_output_layer = True
         else:
             self._prepare_for_next_layer()
+
+    def _generate_types_and_parameters_file(self, path):
+
+        types_and_params = "#ifndef _TYPES_AND_PARAMS_H_\n#define _TYPES_AND_PARAMS_H_\n\n"
+        types_and_params += "#include \"ap_fixed.h\"\n#include \"ap_int.h\"\n\n"
+
+        types_and_params += "typedef ap_uint<1> bit_t;\n"
+
+        for type in self.used_types:
+            types_and_params += f"typedef ap_fixed<16, 8> {type};\n"
+
+        types_and_params += "\n#endif"
+
+        with open(f"{path}/types_and_params.h", "w") as f:
+            f.write(types_and_params)
             
     def generate_files(self, folder_path):
 
@@ -186,10 +187,7 @@ class GetCpp:
         with open(f"{folder_path}/main.cpp", "w") as f:
             f.write(self._cpp)
 
-        self._add_types_and_parameters()
-
-        with open(f"{folder_path}/types_and_params.h", "w") as f:
-            f.write(self._types_and_params)
+        self._generate_types_and_parameters_file(folder_path)
 
 def test_conv():
 
