@@ -13,8 +13,21 @@ class GetCpp:
 
         input_shape = self._get_bracket_syntax_of_shape(input_shape)
 
-        self._header = f"void snn_to_hls({input_type} input{input_shape}, bit_t output"
+        self._header = "#include \"types_and_params.h\"\n\n"
+        self._header += f"void snn_to_hls({input_type} input{input_shape}, bit_t output"
         self._cpp = ""
+        self._types_and_params = "#ifndef _TYPES_AND_PARAMS_H_\n#define _TYPES_AND_PARAMS_H_"
+
+    def _add_types_and_parameters(self):
+
+        self._types_and_params += "\n\n"
+
+        self._types_and_params += "#define bit_t ap_uint<1>\n"
+
+        for type in self.used_types:
+            self._types_and_params += f"#define {type} ap_fixed<16, 8>\n"
+
+        self._types_and_params += "\n#endif"
 
     def _get_bracket_syntax_of_shape(self, shape : tuple):
 
@@ -93,6 +106,8 @@ class GetCpp:
 
         potentials_var_name = f"potentials_{self._cur_layer}"
         spikes_var_name = "output" if is_output_layer else f"spikes_{self._cur_layer}"
+        weight_var_name = f"weights_{self._cur_layer}"
+        bias_var_name = f"bias_{self._cur_layer}"
 
         self._append_line(f"{result_type} {potentials_var_name}{output_shape};")
 
@@ -101,7 +116,7 @@ class GetCpp:
         else:
             self._append_line("")
 
-        self._append_line(f"conv_2d<{in_h}, {in_w}, {ker_h}, {ker_w}, {c_in}, {c_out}, {stride}>({self._last_output_name}, {potentials_var_name});")
+        self._append_line(f"conv_2d<{in_h}, {in_w}, {ker_h}, {ker_w}, {c_in}, {c_out}, {stride}>({self._last_output_name}, {potentials_var_name}, {weight_var_name}, {bias_var_name});")
         self._append_line(f"conv_2d_{activation}<{c_out}, {out_conv_h}, {out_conv_w}>({potentials_var_name}, {spikes_var_name});")
 
         if is_output_layer:
@@ -130,6 +145,8 @@ class GetCpp:
 
         potentials_var_name = f"potentials_{self._cur_layer}"
         spikes_var_name = "output" if is_output_layer else f"spikes_{self._cur_layer}"
+        weight_var_name = f"weights_{self._cur_layer}"
+        bias_var_name = f"bias_{self._cur_layer}"
 
         ################
         # OBS: nesse codigo, os parametros do template da camada densa (n_inputs e n_neurons) estao invertidos
@@ -142,7 +159,7 @@ class GetCpp:
         else:
             self._append_line("")
 
-        self._append_line(f"dense<{n_inputs}, {n_neurons}>({self._last_output_name}, {potentials_var_name});")
+        self._append_line(f"dense<{n_inputs}, {n_neurons}>({self._last_output_name}, {potentials_var_name}, {weight_var_name}, {bias_var_name});")
         self._append_line(f"dense_{activation}<{n_neurons}>({potentials_var_name}, {spikes_var_name});")
 
         if is_output_layer:
@@ -166,6 +183,11 @@ class GetCpp:
 
         with open(f"{folder_path}/main.cpp", "w") as f:
             f.write(self._cpp)
+
+        self._add_types_and_parameters()
+
+        with open(f"{folder_path}/types_and_params.h", "w") as f:
+            f.write(self._types_and_params)
 
 def test_conv():
 
