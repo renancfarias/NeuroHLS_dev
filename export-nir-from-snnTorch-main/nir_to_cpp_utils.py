@@ -160,9 +160,9 @@ class GetCpp:
     def _generate_types_and_parameters_file(self, path):
 
         types_and_params = "#ifndef _TYPES_AND_PARAMS_H_\n#define _TYPES_AND_PARAMS_H_\n\n"
-        types_and_params += "#include \"ap_fixed.h\"\n#include \"ap_int.h\"\n\n"
+        types_and_params += "#include \"ap_fixed.h\"\n\n"
 
-        types_and_params += "typedef ap_uint<1> bit_t;\n"
+        types_and_params += "#include \"neuro_hls_functions/bit_type.h\"\n\n"
 
         for type in self.used_types:
             types_and_params += f"typedef ap_fixed<16, 8> {type};\n"
