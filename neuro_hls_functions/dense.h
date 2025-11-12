@@ -1,39 +1,9 @@
-#ifndef _LAYER_READY_H_
-#define _LAYER_READY_H_
+#ifndef _DENSE_H_
+#define _DENSE_H_
 
-#include "types_and_params.h"
+#include "bit_type.h"
 
-template<int n_neurons, int unroll_factor, typename potential_type>
-void leaky_fire_dense(potential_type potentials[n_neurons], bit_t output[n_neurons])
-{
-    #pragma HLS INLINE
-    #pragma HLS BIND_OP variable=potentials op=mul impl=dsp
-
-    leaky_fire_dense_apply_decay:
-    for (int n = 0; n < n_neurons; n++)
-    {
-        #pragma HLS UNROLL factor=unroll_factor
-        potentials[n] *= layer::decay;
-    }
-
-    leaky_fire_dense_check_threshold:
-    for (int n = 0; n < n_neurons; n++)
-    {
-        #pragma HLS UNROLL factor=unroll_factor
-
-        if (potentials[n] >= layer::threshold)
-        {
-            output[n] = 1;
-            potentials[n] -= layer::threshold; ///// POR ENQUANTO, SUPORTE APENAS PARA SUBTRACT EM CASO DE FIRE
-        }
-        else
-        {
-            output[n] = 0;
-        }
-    }
-}
-
-template<int n_neurons, int n_inputs, int unroll_factor, typename input_type, typename potential_type>
+template<int n_inputs, int n_neurons, int unroll_factor, typename input_type, typename potential_type>
 void dense(input_type input [n_inputs],
            potential_type potentials [n_neurons],
            weight_t weights [n_neurons][n_inputs],
@@ -77,5 +47,35 @@ void dense(input_type input [n_inputs],
         potentials[n] += bias[n];
     }
 };
+
+template<int n_neurons, int unroll_factor, typename potential_type>
+void dense_LIF(potential_type potentials[n_neurons], bit_t output[n_neurons])
+{
+    #pragma HLS INLINE
+    #pragma HLS BIND_OP variable=potentials op=mul impl=dsp
+
+    leaky_fire_dense_apply_decay:
+    for (int n = 0; n < n_neurons; n++)
+    {
+        #pragma HLS UNROLL factor=unroll_factor
+        potentials[n] *= layer::decay;
+    }
+
+    leaky_fire_dense_check_threshold:
+    for (int n = 0; n < n_neurons; n++)
+    {
+        #pragma HLS UNROLL factor=unroll_factor
+
+        if (potentials[n] >= layer::threshold)
+        {
+            output[n] = 1;
+            potentials[n] -= layer::threshold; ///// POR ENQUANTO, SUPORTE APENAS PARA SUBTRACT EM CASO DE FIRE
+        }
+        else
+        {
+            output[n] = 0;
+        }
+    }
+}
 
 #endif
