@@ -1,4 +1,5 @@
 from pathlib import Path
+import shutil
 
 class GetCpp:
 
@@ -136,10 +137,6 @@ class GetCpp:
         weight_var_name = f"weights_{self._cur_layer}"
         bias_var_name = f"bias_{self._cur_layer}"
 
-        ################
-        # OBS: nesse codigo, os parametros do template da camada densa (n_inputs e n_neurons) estao invertidos
-        ############
-
         self._append_line(f"{result_type} {potentials_var_name}{output_shape};")
 
         if not is_output_layer:
@@ -188,6 +185,12 @@ class GetCpp:
             f.write(self._cpp)
 
         self._generate_types_and_parameters_file(folder_path)
+
+        neuro_hls_folder_name = "neuro_hls_functions"
+        neuro_hls_folder = Path(f"{folder_path}/{neuro_hls_folder_name}")
+        neuro_hls_folder.mkdir(parents=True, exist_ok=True)
+
+        shutil.copytree(neuro_hls_folder_name, f"{folder_path}/{neuro_hls_folder_name}", dirs_exist_ok=True)
 
 def test_conv():
 
