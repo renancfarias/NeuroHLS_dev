@@ -22,10 +22,12 @@ class GetCpp:
 
         self._types_and_params += "\n\n"
 
-        self._types_and_params += "#define bit_t ap_uint<1>\n"
+        self._types_and_params += "#include \"ap_fixed.h\"\n#include \"ap_int.h\"\n\n"
+
+        self._types_and_params += "typedef ap_uint<1> bit_t;\n"
 
         for type in self.used_types:
-            self._types_and_params += f"#define {type} ap_fixed<16, 8>\n"
+            self._types_and_params += f"typedef ap_fixed<16, 8> {type};\n"
 
         self._types_and_params += "\n#endif"
 

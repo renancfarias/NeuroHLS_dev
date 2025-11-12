@@ -1,8 +1,11 @@
 #ifndef _TYPES_AND_PARAMS_H_
 #define _TYPES_AND_PARAMS_H_
 
-#define bit_t ap_uint<1>
-#define input_t ap_fixed<16, 8>
-#define potential_t ap_fixed<16, 8>
+#include "ap_fixed.h"
+#include "ap_int.h"
+
+typedef ap_uint<1> bit_t;
+typedef ap_fixed<16, 8> potential_t;
+typedef ap_fixed<16, 8> input_t;
 
 #endif
