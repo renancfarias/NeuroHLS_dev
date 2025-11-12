@@ -2,11 +2,14 @@
 """
 NIR to C++ Parser
 Converte um gráfico NIR em chamadas de funções C++ vazias correspondentes às primitivas da rede.
+Também extrai os pesos do arquivo NIR e gera um arquivo .h com os pesos organizados.
 """
 
 import nir
 import numpy as np
-from typing import Dict, List, Tuple, Any
+import os
+import re
+from typing import Dict, List, Tuple, Any, Iterable
 
 
 class NIRToCppParser:
@@ -241,6 +244,185 @@ class NIRToCppParser:
         for src, dst in self.edges:
             print(f"{src} -> {dst}")
     
+    def export_weights_to_c_header(
+        self,
+        header_path: str = "nir_weights.h",
+        ctype: str = "float",
+        emit_typedef_if_builtin: bool = True,
+        line_wrap: int = 10,
+        float_fmt: str = ".8f",
+        verbose: bool = True
+    ):
+        """
+        Exporta pesos do arquivo NIR para um arquivo .h compatível com C.
+        Segue o mesmo padrão do export_weights.py
+        """
+        if verbose:
+            print("Extraindo pesos do arquivo NIR...")
+
+        # Cria diretório se não existir
+        header_dir = os.path.dirname(header_path)
+        if header_dir and not os.path.exists(header_dir):
+            os.makedirs(header_dir, exist_ok=True)
+
+        # guard a partir do nome do arquivo
+        base = os.path.basename(header_path)
+        guard = re.sub(r"[^A-Za-z0-9]", "_", base).upper()
+
+        def sanitize(k: str) -> str:
+            # "layer1.0.conv1.weight" -> "layer1_0_conv1_weight"
+            sanitized = re.sub(r"[^A-Za-z0-9_]", "_", k.replace(".", "_"))
+            # Se começar com dígito, adiciona prefixo "layer_"
+            if sanitized and sanitized[0].isdigit():
+                sanitized = "layer_" + sanitized
+            return sanitized
+
+        def as_list_str(arr: np.ndarray) -> list[str]:
+            # sempre grava como float no texto
+            flat = arr.astype(np.float32).reshape(-1).tolist()
+            fmt = "{:" + float_fmt + "}"
+            return [fmt.format(v) for v in flat]
+
+        def write_wrapped(f, values: Iterable[str], wrap=line_wrap, indent="  "):
+            values = list(values)  # garantir len()
+            for i, v in enumerate(values):
+                if i % wrap == 0:
+                    f.write("\n" + indent)
+                f.write(v)
+                if i != len(values) - 1:
+                    f.write(",")
+            f.write("\n")
+
+        if verbose:
+            print(f"Exportando pesos NIR para {header_path}...")
+
+        stats = []
+        weights_found = []
+
+        # Coleta todos os pesos e biases dos nós
+        for node_name, node in self.nodes.items():
+            # Pula nós de entrada e saída
+            if node_name in ['input', 'output']:
+                continue
+                
+            # Extrai weights
+            if hasattr(node, 'weight') and node.weight is not None:
+                weight_name = f"{node_name}_weight"
+                weights_found.append((weight_name, node.weight))
+                
+            # Extrai bias
+            if hasattr(node, 'bias') and node.bias is not None:
+                bias_name = f"{node_name}_bias"
+                weights_found.append((bias_name, node.bias))
+                
+            # Extrai parâmetros específicos de neurônios LIF
+            if hasattr(node, 'tau') and node.tau is not None:
+                tau_name = f"{node_name}_tau"
+                weights_found.append((tau_name, node.tau))
+                
+            if hasattr(node, 'v_threshold') and node.v_threshold is not None:
+                thresh_name = f"{node_name}_v_threshold"
+                weights_found.append((thresh_name, node.v_threshold))
+                
+            if hasattr(node, 'v_leak') and node.v_leak is not None:
+                leak_name = f"{node_name}_v_leak"
+                weights_found.append((leak_name, node.v_leak))
+
+        with open(header_path, "w") as f:
+            f.write(f"#ifndef {guard}\n")
+            f.write(f"#define {guard}\n\n")
+
+            # typedef opcional para weight_t
+            if ctype in {"float", "double"} and emit_typedef_if_builtin:
+                f.write(f"typedef {ctype} weight_t;\n\n")
+
+            f.write(f"// Número de tensores exportados do NIR\n")
+            f.write(f"#define NIR_NUM_TENSORS {len(weights_found)}\n\n")
+
+            for weight_name, weight_array in weights_found:
+                name = sanitize(weight_name)
+                arr = np.array(weight_array, dtype=np.float32)
+                dims = list(arr.shape)
+                rank = arr.ndim
+
+                # Metadados do shape
+                if dims:
+                    for i, d in enumerate(dims):
+                        f.write(f"#define {name.upper()}_DIM{i} {d}\n")
+                f.write(f"#define {name.upper()}_NDIMS {rank}\n\n")
+
+                # Estatísticas
+                mn = float(arr.min()) if arr.size > 0 else 0.0
+                mx = float(arr.max()) if arr.size > 0 else 0.0
+                stats.append((weight_name, mn, mx))
+
+                # Emissão por rank
+                if rank == 2:
+                    rows, cols = dims
+                    f.write(f"{ctype} {name}[{rows}][{cols}] = {{\n")
+                    fmt = "{:" + float_fmt + "}"
+                    for i in range(rows):
+                        row = arr[i].reshape(-1).tolist()
+                        f.write("  {")
+                        for j, val in enumerate(row):
+                            f.write(fmt.format(val))
+                            if j != cols - 1:
+                                f.write(",")
+                        f.write("}")
+                        if i != rows - 1:
+                            f.write(",\n")
+                        else:
+                            f.write("\n")
+                    f.write("};\n\n")
+                elif rank == 4:
+                    # Caso especial para Conv2d: [out_channels, in_channels, kernel_h, kernel_w]
+                    out_ch, in_ch, kh, kw = dims
+                    f.write(f"{ctype} {name}[{out_ch}][{in_ch}][{kh}][{kw}] = {{\n")
+                    fmt = "{:" + float_fmt + "}"
+                    
+                    for out_idx in range(out_ch):
+                        f.write("  {\n")
+                        for in_idx in range(in_ch):
+                            f.write("    {\n")
+                            for h_idx in range(kh):
+                                f.write("      {")
+                                for w_idx in range(kw):
+                                    val = arr[out_idx, in_idx, h_idx, w_idx]
+                                    f.write(fmt.format(val))
+                                    if w_idx != kw - 1:
+                                        f.write(",")
+                                f.write("}")
+                                if h_idx != kh - 1:
+                                    f.write(",\n")
+                                else:
+                                    f.write("\n")
+                            f.write("    }")
+                            if in_idx != in_ch - 1:
+                                f.write(",\n")
+                            else:
+                                f.write("\n")
+                        f.write("  }")
+                        if out_idx != out_ch - 1:
+                            f.write(",\n")
+                        else:
+                            f.write("\n")
+                    f.write("};\n\n")
+                else:
+                    n = arr.size
+                    vals = as_list_str(arr)
+                    f.write(f"{ctype} {name}[{n}] = {{")
+                    write_wrapped(f, vals, wrap=line_wrap, indent="  ")
+                    f.write("};\n\n")
+
+            f.write(f"#endif // {guard}\n")
+
+        if verbose:
+            print("Pesos NIR exportados com sucesso!")
+            print(f"Arquivo criado: {header_path}")
+            print(f"Total de tensores exportados: {len(weights_found)}")
+            for k, mn, mx in stats:
+                print(f"  {k}: min={mn:{float_fmt}}, max={mx:{float_fmt}}")
+
     def save_cpp_files(self, output_dir: str = "."):
         """Salva os arquivos C++ gerados."""
         import os
@@ -267,6 +449,61 @@ class NIRToCppParser:
         print(f"Main salvo em: {main_path}")
 
 
+def export_nir_weights_to_c_header(
+    nir_file: str,
+    header_path: str = "nir_weights.h",
+    ctype: str = "float",
+    emit_typedef_if_builtin: bool = True,
+    line_wrap: int = 10,
+    float_fmt: str = ".8f",
+    verbose: bool = True
+):
+    """
+    Função standalone para exportar pesos de um arquivo NIR para C header.
+    Similar à função export_weights_to_c_header_generic do export_weights.py
+    
+    Args:
+        nir_file: Caminho para o arquivo .nir
+        header_path: Caminho para o arquivo .h de saída
+        ctype: Tipo C para os pesos (ex: "float", "double", "weight_t")
+        emit_typedef_if_builtin: Se deve emitir typedef para tipos builtin
+        line_wrap: Número de valores por linha
+        float_fmt: Formato para números float
+        verbose: Se deve imprimir informações detalhadas
+    """
+    parser = NIRToCppParser(nir_file)
+    parser.export_weights_to_c_header(
+        header_path=header_path,
+        ctype=ctype,
+        emit_typedef_if_builtin=emit_typedef_if_builtin,
+        line_wrap=line_wrap,
+        float_fmt=float_fmt,
+        verbose=verbose
+    )
+
+
+def demo_simple_export():
+    """Demonstração simples de exportação de pesos do NIR."""
+    nir_file = "csnn_mnist.nir"
+    
+    if not os.path.exists(nir_file):
+        print(f"Erro: Arquivo {nir_file} não encontrado!")
+        print("Execute primeiro export_nir_from_snnTorchNet.py para gerar o arquivo NIR.")
+        return
+    
+    print("=== DEMONSTRAÇÃO: Exportação Simples de Pesos do NIR ===")
+    
+    # Exportação simples
+    export_nir_weights_to_c_header(
+        nir_file=nir_file,
+        header_path="nir_weights_simple.h",
+        ctype="float",
+        verbose=True
+    )
+    
+    print("Demonstração concluída!")
+
+
 def main():
     """Função principal."""
     nir_file = "csnn_mnist.nir"
@@ -277,6 +514,21 @@ def main():
         
         # Mostra informações da rede
         parser.print_network_info()
+        
+        print("\n" + "="*50)
+        print("EXPORTAÇÃO DE PESOS DO NIR")
+        print("="*50)
+        
+        # Exportação dos pesos para arquivo .h (dentro de cpp_output)
+        export_nir_weights_to_c_header(
+            nir_file=nir_file,
+            header_path="cpp_output/nir_weights.h",
+            ctype="float",
+            emit_typedef_if_builtin=False,
+            line_wrap=10,
+            float_fmt=".8f",
+            verbose=True
+        )
         
         print("\n" + "="*50)
         print("Código C++ gerado:")
@@ -304,4 +556,8 @@ def main():
 
 
 if __name__ == "__main__":
+    # Descomente a linha abaixo para executar apenas a demonstração simples
+    # demo_simple_export()
+    
+    # Execução completa
     main()
