@@ -14,8 +14,12 @@ class GetCpp:
 
         input_shape = self._get_bracket_syntax_of_shape(input_shape)
 
-        self._header = "#include \"types_and_params.h\"\n\n"
-        self._header += f"void snn_to_hls({input_type} input{input_shape}, bit_t output"
+        self._header = "\n#include \"types_and_params.h\"\n\n"
+
+        self._header += "#include \"neuro_hls_functions/bit_type.h\"\n"
+        self._header += "#include \"neuro_hls_functions/dense.h\"\n"
+        
+        self._header += f"\nvoid snn_to_hls({input_type} input{input_shape}, bit_t output"
         self._cpp = ""
 
     def _get_bracket_syntax_of_shape(self, shape : tuple):
