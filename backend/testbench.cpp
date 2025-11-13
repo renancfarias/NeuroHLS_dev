@@ -67,7 +67,6 @@ int main (int argc, char **argv)
             for (int s = 0; s < NUM_STEPS; s++)
             {
                 //<feed_data_snn>
-                snn_mnist_hls(input_data[b], output);
 
                 for (int i = 0; i < NUM_OUTPUTS; i++)
                 {
