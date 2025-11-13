@@ -3,23 +3,31 @@ import shutil
 
 class GetCpp:
 
-    def __init__(self, input_type: str, input_shape : tuple):
+    def __init__(self, input_type: str, input_shape : tuple, step_count : int, different_sample_per_step : bool):
         self._cur_layer = 1
         self._define_new_expected_input_shape(input_shape)
         self._last_output_name = "input"
+
+        self.step_count = step_count
+        self.different_sample_per_step = different_sample_per_step
 
         self.implemented_activations = {"LIF"}
         self.used_types = {input_type}
         self.has_defined_output_layer = False
 
-        input_shape = self._get_bracket_syntax_of_shape(input_shape)
+        if not isinstance(input_shape, tuple):
+            input_shape = (input_shape, )
+
+        self.input_shape = input_shape
+
+        bracket_input_shape = self._get_bracket_syntax_of_shape(input_shape)
 
         self._header = "\n#include \"types_and_params.h\"\n\n"
 
         self._header += "#include \"neuro_hls_functions/bit_type.h\"\n"
         self._header += "#include \"neuro_hls_functions/dense.h\"\n"
         
-        self._header += f"\nvoid snn_to_hls({input_type} input{input_shape}, bit_t output"
+        self._header += f"\nvoid snn_to_hls({input_type} input{bracket_input_shape}, bit_t output"
         self._cpp = ""
 
     def _get_bracket_syntax_of_shape(self, shape : tuple):
@@ -171,6 +179,26 @@ class GetCpp:
 
         with open(f"{path}/types_and_params.h", "w") as f:
             f.write(types_and_params)
+
+    def _finish_testbench_file(self, folder_path):
+        tb_name = f"{folder_path}/testbench.cpp"
+
+        with open(tb_name, "r", encoding="utf-8") as f:
+            tb_cpp = f.read()
+
+        input_data_shape = self.input_shape
+
+        if self.different_sample_per_step:
+            input_data_shape = (self.step_count, ) + input_data_shape
+
+        input_data_shape = self._get_bracket_syntax_of_shape(input_data_shape)
+
+        decl_input_data = f"input_t input_data[BATCH_SIZE_TEST]{input_data_shape};"
+
+        tb_cpp = tb_cpp.replace("//<decl_input_data>", decl_input_data)
+
+        with open(tb_name, "w", encoding="utf-8") as f:
+            f.write(tb_cpp)
             
     def generate_files(self, folder_path):
 
@@ -179,8 +207,6 @@ class GetCpp:
 
         self._cpp = self._header + self._cpp
         self._cpp += "}\n"
-
-        # Creates Folder
 
         Path(folder_path).mkdir(parents=True, exist_ok=True)
 
@@ -192,17 +218,19 @@ class GetCpp:
         backend_folder = "backend"
         shutil.copytree(backend_folder, f"{folder_path}", dirs_exist_ok=True)
 
-def test_conv():
+        self._finish_testbench_file(folder_path)
 
-    test_cpp = GetCpp("input_t", (1, 32, 32))
+# def test_conv():
 
-    test_cpp.conv_2d(32, 32, 3, 3, 1, 16, 1, "potential_t")
-    test_cpp.conv_2d(30, 30, 3, 3, 16, 32, 1, "potential_t", is_output_layer=True)
+#     test_cpp = GetCpp("input_t", (1, 32, 32))
 
-    test_cpp.generate_files("gen_test")
+#     test_cpp.conv_2d(32, 32, 3, 3, 1, 16, 1, "potential_t")
+#     test_cpp.conv_2d(30, 30, 3, 3, 16, 32, 1, "potential_t", is_output_layer=True)
+
+#     test_cpp.generate_files("gen_test")
 
 def test_dense():
-    test_cpp = GetCpp("input_t", (784))
+    test_cpp = GetCpp("input_t", (784), step_count=10, different_sample_per_step=True)
 
     test_cpp.dense(784, 128, "potential_t")
     test_cpp.dense(128, 10, "potential_t", is_output_layer=True)
