@@ -33,9 +33,6 @@ int main (int argc, char **argv)
     ofstream tb_log(log_file_name, ios::trunc);
 
     //<decl_input_data>
-    //<decl_target_data>
-
-    input_t input_data[BATCH_SIZE_TEST][IMAGE_DIM][IMAGE_DIM];
     int target_data[BATCH_SIZE_TEST];
 
     int total_correct = 0;
