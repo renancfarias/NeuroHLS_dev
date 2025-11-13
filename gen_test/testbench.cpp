@@ -32,7 +32,7 @@ int main (int argc, char **argv)
 
     ofstream tb_log(log_file_name, ios::trunc);
 
-    input_t input_data[BATCH_SIZE_TEST][10][784];
+    input_t input_data[BATCH_SIZE_TEST][784];
     int target_data[BATCH_SIZE_TEST];
 
     int total_correct = 0;
@@ -66,7 +66,6 @@ int main (int argc, char **argv)
 
             for (int s = 0; s < NUM_STEPS; s++)
             {
-                //<feed_data_snn>
                 snn_mnist_hls(input_data[b], output);
 
                 for (int i = 0; i < NUM_OUTPUTS; i++)

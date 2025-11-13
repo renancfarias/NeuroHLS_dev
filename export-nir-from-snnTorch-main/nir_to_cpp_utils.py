@@ -197,6 +197,11 @@ class GetCpp:
 
         tb_cpp = tb_cpp.replace("//<decl_input_data>", decl_input_data)
 
+        step_dimension_string = "[s]" if self.different_sample_per_step else ""
+        feed_data_snn = f"snn_mnist_hls(input_data[b]{step_dimension_string}, output);"
+
+        tb_cpp = tb_cpp.replace("//<feed_data_snn>", feed_data_snn)
+
         with open(tb_name, "w", encoding="utf-8") as f:
             f.write(tb_cpp)
             
@@ -230,7 +235,7 @@ class GetCpp:
 #     test_cpp.generate_files("gen_test")
 
 def test_dense():
-    test_cpp = GetCpp("input_t", (784), step_count=10, different_sample_per_step=True)
+    test_cpp = GetCpp("input_t", (784), step_count=10, different_sample_per_step=False)
 
     test_cpp.dense(784, 128, "potential_t")
     test_cpp.dense(128, 10, "potential_t", is_output_layer=True)
