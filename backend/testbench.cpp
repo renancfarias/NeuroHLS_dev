@@ -42,14 +42,7 @@ int main (int argc, char **argv)
     {
         for (int b = 0; b < BATCH_SIZE_TEST; b++)
         {
-            //<read_batch_>
-            for (int l = 0; l < IMAGE_DIM; l++)
-            {
-                for (int c = 0; c < IMAGE_DIM; c++)
-                {
-                    input_file >> input_data[b][l][c];
-                }
-            }
+            //<read_batch>
         }
         
         for (int b = 0; b < BATCH_SIZE_TEST; b++)
