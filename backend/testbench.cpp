@@ -65,8 +65,6 @@ int main (int argc, char **argv)
                 {
                     accum_output[i] += output[i];
                 }
-
-                return 0;
             }
 
             int max_v = -1;
