@@ -1,5 +1,6 @@
 from pathlib import Path
 import shutil
+from IndentationMaker import IndentationMaker
 
 class GetCpp:
 
@@ -14,6 +15,8 @@ class GetCpp:
         self.implemented_activations = {"LIF"}
         self.used_types = {input_type}
         self.has_defined_output_layer = False
+
+        self.constants = {"STEP_COUNT": step_count}
 
         if not isinstance(input_shape, tuple):
             input_shape = (input_shape, )
@@ -188,19 +191,51 @@ class GetCpp:
 
         input_data_shape = self.input_shape
 
+        for idx, dim in enumerate(input_data_shape, start=1):
+            self.constants[f"DIM_{idx}"] = dim
+
         if self.different_sample_per_step:
             input_data_shape = (self.step_count, ) + input_data_shape
 
         input_data_shape = self._get_bracket_syntax_of_shape(input_data_shape)
 
-        decl_input_data = f"input_t input_data[BATCH_SIZE_TEST]{input_data_shape};"
+        # Declaration input_data
 
+        decl_input_data = f"input_t input_data[BATCH_SIZE_TEST]{input_data_shape};"
         tb_cpp = tb_cpp.replace("//<decl_input_data>", decl_input_data)
+
+        # Feed the data to the SNN
 
         step_dimension_string = "[s]" if self.different_sample_per_step else ""
         feed_data_snn = f"snn_mnist_hls(input_data[b]{step_dimension_string}, output);"
-
         tb_cpp = tb_cpp.replace("//<feed_data_snn>", feed_data_snn)
+
+        input_file_read = "input_file >> input_data[b]"
+        read_batch = IndentationMaker(3, first_line_should_use_indentation=False)
+
+        idx = 1
+
+        for dim in self.constants.keys():
+
+            if dim == "STEP_COUNT":
+                
+                if not self.different_sample_per_step:
+                    continue
+
+                # read_batch += f"for (int s = 0; s < {dim}; s++)"
+                read_batch.append_line(f"for (int s = 0; s < {dim}; s++)")
+                input_file_read += "[s]"
+            else:
+                read_batch.append_line(f"for (int d{idx} = 0; d{idx} < {dim}; d{idx}++)")
+                # read_batch += f"for (int d{idx} = 0; d{idx} < {dim}; d{idx}++)\n\t"
+                input_file_read += f"[d{idx}]"
+                idx += 1
+
+            read_batch.add_scope()
+
+        read_batch.append_line(input_file_read + ";")
+        # read_batch += input_file_read + ";\n"
+        tb_cpp = tb_cpp.replace("//<read_batch>", read_batch.get_text())
 
         with open(tb_name, "w", encoding="utf-8") as f:
             f.write(tb_cpp)
@@ -235,7 +270,7 @@ class GetCpp:
 #     test_cpp.generate_files("gen_test")
 
 def test_dense():
-    test_cpp = GetCpp("input_t", (784), step_count=10, different_sample_per_step=False)
+    test_cpp = GetCpp("input_t", (784), step_count=10, different_sample_per_step=True)
 
     test_cpp.dense(784, 128, "potential_t")
     test_cpp.dense(128, 10, "potential_t", is_output_layer=True)
