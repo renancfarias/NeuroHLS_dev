@@ -178,6 +178,10 @@ class GetCpp:
         for type in self.used_types:
             types_and_params += f"typedef ap_fixed<16, 8> {type};\n"
 
+        types_and_params += "\n"
+        for (constant, constant_value) in self.constants.items():
+            types_and_params += f"#define {constant} {constant_value}\n"
+
         types_and_params += "\n#endif"
 
         with open(f"{path}/types_and_params.h", "w") as f:
@@ -253,12 +257,12 @@ class GetCpp:
         with open(f"{folder_path}/main.cpp", "w") as f:
             f.write(self._cpp)
 
-        self._generate_types_and_parameters_file(folder_path)
-
         backend_folder = "backend"
         shutil.copytree(backend_folder, f"{folder_path}", dirs_exist_ok=True)
 
         self._finish_testbench_file(folder_path)
+
+        self._generate_types_and_parameters_file(folder_path)
 
 # def test_conv():
 
