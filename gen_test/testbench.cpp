@@ -7,7 +7,10 @@
 
 using namespace std;
 
-#define BATCH_SIZE_TEST 24 // POR ENQUANTO, SOMENTE FUNCIONA COM DIVISORES DO TOTAL DE AMOSTRAS
+//<unedited>
+
+//<decl_total_samples>
+//<decl_batch_size>
 
 int main (int argc, char **argv)
 {
@@ -32,14 +35,14 @@ int main (int argc, char **argv)
     ofstream tb_log(log_file_name, ios::trunc);
 
     input_t input_data[BATCH_SIZE_TEST][DIM_1];
-    int target_data[BATCH_SIZE_TEST];
+    int target_data[BATCH_SIZE];
 
     int total_correct = 0;
-    int total_batches = (float)TOTAL_SAMPLES / BATCH_SIZE_TEST;
+    int total_batches = (float)TOTAL_SAMPLES / BATCH_SIZE;
 
     for (int cur_batch = 0; cur_batch < total_batches; cur_batch++)
     {
-        for (int b = 0; b < BATCH_SIZE_TEST; b++)
+        for (int b = 0; b < BATCH_SIZE; b++)
         {
             for (int d1 = 0; d1 < DIM_1; d1++)
 			{
@@ -47,14 +50,14 @@ int main (int argc, char **argv)
 			}
         }
         
-        for (int b = 0; b < BATCH_SIZE_TEST; b++)
+        for (int b = 0; b < BATCH_SIZE; b++)
         {
             targets_file >> target_data[b];
         }
 
         int batch_total_correct = 0;
 
-        for (int b = 0; b < BATCH_SIZE_TEST; b++)
+        for (int b = 0; b < BATCH_SIZE; b++)
         {
             int accum_output[OUTPUT_SIZE] = {};
             bit_t output[OUTPUT_SIZE];
@@ -89,7 +92,7 @@ int main (int argc, char **argv)
 
         tb_log << "Batch (" << cur_batch + 1 << " / " << total_batches << ") :" << endl;
 
-        tb_log << fixed << setprecision(2) << "Acc: " << (float) 100 * batch_total_correct / BATCH_SIZE_TEST << "%" << endl;
+        tb_log << fixed << setprecision(2) << "Acc: " << (float) 100 * batch_total_correct / BATCH_SIZE << "%" << endl;
         total_correct += batch_total_correct;
     }
 

@@ -1,6 +1,7 @@
 from pathlib import Path
 import shutil
-from IndentationMaker import IndentationMaker
+from FileGenUtils import IndentationMaker
+from FileGenUtils import get_bracket_notation_of_tuple
 
 class GetCpp:
 
@@ -25,7 +26,7 @@ class GetCpp:
 
         self.input_shape = input_shape
 
-        bracket_input_shape = self._get_bracket_syntax_of_shape(input_shape)
+        bracket_input_shape = get_bracket_notation_of_tuple(input_shape)
 
         self._header = "\n#include \"types_and_params.h\"\n\n"
 
@@ -34,18 +35,6 @@ class GetCpp:
         
         self._header += f"\nvoid snn_to_hls({input_type} input{bracket_input_shape}, bit_t output"
         self._cpp = ""
-
-    def _get_bracket_syntax_of_shape(self, shape : tuple):
-
-        if not isinstance(shape, tuple):
-            shape = (shape, )
-
-        brackets = ""
-
-        for i in shape:
-            brackets += f"[{i}]"
-        
-        return brackets
 
     def _print_cur_layer(self):
         num_dashes = 50
@@ -85,7 +74,7 @@ class GetCpp:
     def _finish_header(self, output_shape):
 
         if not isinstance(output_shape, str):
-            output_shape = self._get_bracket_syntax_of_shape(output_shape)
+            output_shape = get_bracket_notation_of_tuple(output_shape)
         
         self._header += output_shape + ")\n{\n"
 
@@ -112,7 +101,7 @@ class GetCpp:
         self._check_input_shape(input_shape)
         self._define_new_expected_input_shape(output_shape)
 
-        output_shape = self._get_bracket_syntax_of_shape(output_shape)
+        output_shape = get_bracket_notation_of_tuple(output_shape)
         activation = self._get_activation_function(activation)
 
         self.used_types.add(result_type)
@@ -158,7 +147,7 @@ class GetCpp:
         activation = self._get_activation_function(activation)
         self.used_types.add(result_type)
 
-        output_shape = self._get_bracket_syntax_of_shape(output_shape)
+        output_shape = get_bracket_notation_of_tuple(output_shape)
 
         self._print_cur_layer()
 
@@ -220,7 +209,7 @@ class GetCpp:
             self.constants[f"DIM_{idx}"] = dim
             input_data_shape_constants += (f"DIM_{idx}", )
 
-        input_data_shape_constants = self._get_bracket_syntax_of_shape(input_data_shape_constants)
+        input_data_shape_constants = get_bracket_notation_of_tuple(input_data_shape_constants)
 
         # Declaration input_data
 
@@ -250,19 +239,16 @@ class GetCpp:
                 if not self.different_sample_per_step:
                     continue
 
-                # read_batch += f"for (int s = 0; s < {dim}; s++)"
                 read_batch.append_line(f"for (int s = 0; s < {dim}; s++)")
                 input_file_read += "[s]"
             else:
                 read_batch.append_line(f"for (int d{idx} = 0; d{idx} < {dim}; d{idx}++)")
-                # read_batch += f"for (int d{idx} = 0; d{idx} < {dim}; d{idx}++)\n\t"
                 input_file_read += f"[d{idx}]"
                 idx += 1
 
             read_batch.add_scope()
 
         read_batch.append_line(input_file_read + ";")
-        # read_batch += input_file_read + ";\n"
         tb_cpp = tb_cpp.replace("//<read_batch>", read_batch.get_text())
 
         with open(tb_name, "w", encoding="utf-8") as f:

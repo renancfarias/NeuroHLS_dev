@@ -37,3 +37,16 @@ class IndentationMaker:
     def get_text(self):
         self._close_braces()
         return self._str
+
+
+def get_bracket_notation_of_tuple(shape : tuple):
+
+    if not isinstance(shape, tuple):
+        shape = (shape, )
+
+    brackets = ""
+
+    for i in shape:
+        brackets += f"[{i}]"
+    
+    return brackets
