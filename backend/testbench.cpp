@@ -8,7 +8,6 @@
 using namespace std;
 
 #define BATCH_SIZE_TEST 24 // POR ENQUANTO, SOMENTE FUNCIONA COM DIVISORES DO TOTAL DE AMOSTRAS
-#define IMAGE_DIM 28
 
 int main (int argc, char **argv)
 {
