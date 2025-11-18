@@ -8,7 +8,6 @@
 using namespace std;
 
 #define BATCH_SIZE_TEST 24 // POR ENQUANTO, SOMENTE FUNCIONA COM DIVISORES DO TOTAL DE AMOSTRAS
-#define IMAGE_DIM 28
 
 int main (int argc, char **argv)
 {
@@ -32,7 +31,7 @@ int main (int argc, char **argv)
 
     ofstream tb_log(log_file_name, ios::trunc);
 
-    input_t input_data[BATCH_SIZE_TEST][10][784];
+    input_t input_data[BATCH_SIZE_TEST][DIM_1];
     int target_data[BATCH_SIZE_TEST];
 
     int total_correct = 0;
@@ -42,12 +41,9 @@ int main (int argc, char **argv)
     {
         for (int b = 0; b < BATCH_SIZE_TEST; b++)
         {
-            for (int s = 0; s < STEP_COUNT; s++)
+            for (int d1 = 0; d1 < DIM_1; d1++)
 			{
-				for (int d1 = 0; d1 < DIM_1; d1++)
-				{
-					input_file >> input_data[b][s][d1];
-				}
+				input_file >> input_data[b][d1];
 			}
         }
         
@@ -65,14 +61,12 @@ int main (int argc, char **argv)
 
             for (int s = 0; s < NUM_STEPS; s++)
             {
-                snn_mnist_hls(input_data[b][s], output);
+                snn_mnist_hls(input_data[b], output);
 
                 for (int i = 0; i < NUM_OUTPUTS; i++)
                 {
                     accum_output[i] += output[i];
                 }
-
-                return 0;
             }
 
             int max_v = -1;

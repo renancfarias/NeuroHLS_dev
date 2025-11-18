@@ -4,13 +4,15 @@ from IndentationMaker import IndentationMaker
 
 class GetCpp:
 
-    def __init__(self, input_type: str, input_shape : tuple, step_count : int, different_sample_per_step : bool):
+    def __init__(self, input_shape : tuple, step_count : int, different_sample_per_step : bool):
         self._cur_layer = 1
         self._define_new_expected_input_shape(input_shape)
         self._last_output_name = "input"
 
         self.step_count = step_count
         self.different_sample_per_step = different_sample_per_step
+
+        input_type = "input_t"
 
         self.implemented_activations = {"LIF"}
         self.used_types = {input_type}
@@ -179,6 +181,7 @@ class GetCpp:
             types_and_params += f"typedef ap_fixed<16, 8> {type};\n"
 
         types_and_params += "\n"
+
         for (constant, constant_value) in self.constants.items():
             types_and_params += f"#define {constant} {constant_value}\n"
 
@@ -195,24 +198,29 @@ class GetCpp:
 
         input_data_shape = self.input_shape
 
-        for idx, dim in enumerate(input_data_shape, start=1):
-            self.constants[f"DIM_{idx}"] = dim
+        input_data_shape_constants = tuple()
 
         if self.different_sample_per_step:
-            input_data_shape = (self.step_count, ) + input_data_shape
+            input_data_shape_constants = ("STEP_COUNT", )
 
-        input_data_shape = self._get_bracket_syntax_of_shape(input_data_shape)
+        for idx, dim in enumerate(input_data_shape, start=1):
+            self.constants[f"DIM_{idx}"] = dim
+            input_data_shape_constants += (f"DIM_{idx}", )
+
+        input_data_shape_constants = self._get_bracket_syntax_of_shape(input_data_shape_constants)
 
         # Declaration input_data
 
-        decl_input_data = f"input_t input_data[BATCH_SIZE_TEST]{input_data_shape};"
+        decl_input_data = f"input_t input_data[BATCH_SIZE_TEST]{input_data_shape_constants};"
         tb_cpp = tb_cpp.replace("//<decl_input_data>", decl_input_data)
 
-        # Feed the data to the SNN
+        # Feed data to the SNN
 
         step_dimension_string = "[s]" if self.different_sample_per_step else ""
         feed_data_snn = f"snn_mnist_hls(input_data[b]{step_dimension_string}, output);"
         tb_cpp = tb_cpp.replace("//<feed_data_snn>", feed_data_snn)
+
+        # Read data from input file
 
         input_file_read = "input_file >> input_data[b]"
         read_batch = IndentationMaker(3, first_line_should_use_indentation=False)
@@ -266,7 +274,7 @@ class GetCpp:
 
 # def test_conv():
 
-#     test_cpp = GetCpp("input_t", (1, 32, 32))
+#     test_cpp = GetCpp((1, 32, 32))
 
 #     test_cpp.conv_2d(32, 32, 3, 3, 1, 16, 1, "potential_t")
 #     test_cpp.conv_2d(30, 30, 3, 3, 16, 32, 1, "potential_t", is_output_layer=True)
@@ -274,7 +282,7 @@ class GetCpp:
 #     test_cpp.generate_files("gen_test")
 
 def test_dense():
-    test_cpp = GetCpp("input_t", (784), step_count=10, different_sample_per_step=True)
+    test_cpp = GetCpp((784), step_count=10, different_sample_per_step=False)
 
     test_cpp.dense(784, 128, "potential_t")
     test_cpp.dense(128, 10, "potential_t", is_output_layer=True)
