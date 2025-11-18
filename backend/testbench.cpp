@@ -53,14 +53,14 @@ int main (int argc, char **argv)
 
         for (int b = 0; b < BATCH_SIZE_TEST; b++)
         {
-            int accum_output[NUM_OUTPUTS] = {};
-            bit_t output[NUM_OUTPUTS];
+            int accum_output[OUTPUT_SIZE] = {};
+            bit_t output[OUTPUT_SIZE];
 
-            for (int s = 0; s < NUM_STEPS; s++)
+            for (int s = 0; s < STEP_COUNT; s++)
             {
                 //<feed_data_snn>
 
-                for (int i = 0; i < NUM_OUTPUTS; i++)
+                for (int i = 0; i < OUTPUT_SIZE; i++)
                 {
                     accum_output[i] += output[i];
                 }
@@ -69,7 +69,7 @@ int main (int argc, char **argv)
             int max_v = -1;
             int idx_max = 0;
 
-            for (int i = 0; i < NUM_OUTPUTS; i++)
+            for (int i = 0; i < OUTPUT_SIZE; i++)
             {
                 if (accum_output[i] > max_v)
                 {
