@@ -89,6 +89,11 @@ class GetCpp:
         
         self._header += output_shape + ")\n{\n"
 
+    def _check_output_shape(self, output_shape):
+        
+        if len(output_shape) != 1:
+            raise Exception("No support for output shape with dim != 1")
+
     def conv_2d(self, in_h : int, in_w : int, ker_h : int, ker_w : int, c_in : int, c_out : int, stride : int, result_type : str, is_output_layer = False, activation = "LIF"):
         
         if self.has_defined_output_layer:
@@ -99,6 +104,10 @@ class GetCpp:
 
         input_shape = (c_in, in_h, in_w)
         output_shape = (c_out, out_conv_h, out_conv_w)
+
+        if is_output_layer:
+            self._check_output_shape(output_shape)
+            self.constants["OUTPUT_SIZE"] = output_shape[0]
 
         self._check_input_shape(input_shape)
         self._define_new_expected_input_shape(output_shape)
@@ -138,6 +147,10 @@ class GetCpp:
         
         input_shape = (n_inputs, )
         output_shape = (n_neurons, )
+
+        if is_output_layer:
+            self._check_output_shape(output_shape)
+            self.constants["OUTPUT_SIZE"] = output_shape[0]
 
         self._check_input_shape(input_shape)
         self._define_new_expected_input_shape(output_shape)
@@ -228,6 +241,9 @@ class GetCpp:
         idx = 1
 
         for dim in self.constants.keys():
+
+            if dim == "OUTPUT_SIZE":
+                continue
 
             if dim == "STEP_COUNT":
                 
