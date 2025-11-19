@@ -42,7 +42,6 @@ class IndentationMaker:
         self._close_braces()
         return self._str
 
-
 def get_bracket_notation_of_tuple(shape : tuple):
 
     if not isinstance(shape, tuple):

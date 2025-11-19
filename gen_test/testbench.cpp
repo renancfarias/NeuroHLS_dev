@@ -15,8 +15,8 @@ using namespace std;
 int main (int argc, char **argv)
 {
     string log_file_name = "log_testbench.txt";
-    string data_file_name = "data.txt";
-    string targets_file_name = "targets.txt";
+    string data_file_name = "tb_data/data.txt";
+    string targets_file_name = "tb_data/targets.txt";
 
     std::ifstream input_file(data_file_name);
     if (!input_file.is_open())
@@ -34,7 +34,7 @@ int main (int argc, char **argv)
 
     ofstream tb_log(log_file_name, ios::trunc);
 
-    input_t input_data[BATCH_SIZE][DIM_1];
+    input_t input_data[BATCH_SIZE][STEP_COUNT][DIM_1];
     int target_data[BATCH_SIZE];
 
     int total_correct = 0;
@@ -44,9 +44,12 @@ int main (int argc, char **argv)
     {
         for (int b = 0; b < BATCH_SIZE; b++)
         {
-            for (int d1 = 0; d1 < DIM_1; d1++)
+            for (int s = 0; s < STEP_COUNT; s++)
 			{
-				input_file >> input_data[b][d1];
+				for (int d1 = 0; d1 < DIM_1; d1++)
+				{
+					input_file >> input_data[b][s][d1];
+				}
 			}
         }
         
@@ -64,7 +67,7 @@ int main (int argc, char **argv)
 
             for (int s = 0; s < STEP_COUNT; s++)
             {
-                snn_mnist_hls(input_data[b], output);
+                snn_mnist_hls(input_data[b][s], output);
 
                 for (int i = 0; i < OUTPUT_SIZE; i++)
                 {

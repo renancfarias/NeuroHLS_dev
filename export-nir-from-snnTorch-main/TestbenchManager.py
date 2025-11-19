@@ -1,4 +1,5 @@
 from FileGenUtils import *
+import os
 
 class TestbenchManager:
 
@@ -68,9 +69,29 @@ class TestbenchManager:
         with open(tb_name, "w", encoding="utf-8") as f:
             f.write(tb_cpp)
 
+    def get_status(self):
+
+        test_dataset_path = f"{self._folder_path}/tb_data/data.txt"
+        test_targets_path = f"{self._folder_path}/tb_data/targets.txt"
+
+        status_dataset = "OK" if os.path.exists(test_dataset_path) else "MISSING"
+        status_targets = "OK" if os.path.exists(test_targets_path) else "MISSING"
+
+        print("Testbench Status:\n")
+
+        print(f"Test dataset: {status_dataset}")
+        print(f"Test targets: {status_targets}")
+
+        overall_status = "YES" if status_dataset == "OK" and status_targets == "OK" else "NO"
+        print(f"\nReady? {overall_status}")
+
+        
+
 def test_testbench_editor():
 
-    tb_editor = TestbenchManager(1, 10, 10, False, "gen_test")
+    tb_editor = TestbenchManager(1, 10, 10, True, "gen_test")
     tb_editor.create_testbench_file()
+
+    tb_editor.get_status()
 
 test_testbench_editor()
