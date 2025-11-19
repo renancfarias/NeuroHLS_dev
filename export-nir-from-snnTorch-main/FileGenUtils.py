@@ -1,3 +1,7 @@
+from pathlib import Path
+import shutil
+import os
+
 class IndentationMaker:
     
     def __init__(self, tab_count : int, first_line_should_use_indentation = True):
@@ -50,3 +54,27 @@ def get_bracket_notation_of_tuple(shape : tuple):
         brackets += f"[{i}]"
     
     return brackets
+
+def copy_folder_from_backend(path_inside_backend, to_path):
+
+    backend_path = f"backend/{path_inside_backend}"
+
+    if not os.path.exists(backend_path):
+        raise Exception(f"Folder {backend_path} does not exist")
+
+    to_path = f"{to_path}/{path_inside_backend}"
+    Path(to_path).mkdir(parents=True, exist_ok=True)
+
+    shutil.copytree(backend_path, to_path, dirs_exist_ok=True)
+
+def copy_file_from_backend(path_inside_backend, to_path):
+    
+    backend_path = f"backend/{path_inside_backend}"
+
+    if not os.path.exists(backend_path):
+        raise Exception(f"File {backend_path} does not exist")
+
+    Path(to_path).mkdir(parents=True, exist_ok=True)
+
+    shutil.copy(backend_path, to_path)
+    

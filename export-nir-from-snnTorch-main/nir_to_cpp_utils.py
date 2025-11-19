@@ -1,7 +1,6 @@
 from pathlib import Path
 import shutil
-from FileGenUtils import IndentationMaker
-from FileGenUtils import get_bracket_notation_of_tuple
+from FileGenUtils import *
 
 class GetCpp:
 
@@ -192,67 +191,67 @@ class GetCpp:
         with open(f"{path}/types_and_params.h", "w") as f:
             f.write(types_and_params)
 
-    def _finish_testbench_file(self, folder_path):
-        tb_name = f"{folder_path}/testbench.cpp"
+    # def _finish_testbench_file(self, folder_path):
+    #     tb_name = f"{folder_path}/testbench.cpp"
 
-        with open(tb_name, "r", encoding="utf-8") as f:
-            tb_cpp = f.read()
+    #     with open(tb_name, "r", encoding="utf-8") as f:
+    #         tb_cpp = f.read()
 
-        input_data_shape = self.input_shape
+    #     input_data_shape = self.input_shape
 
-        input_data_shape_constants = tuple()
+    #     input_data_shape_constants = tuple()
 
-        if self.different_sample_per_step:
-            input_data_shape_constants = ("STEP_COUNT", )
+    #     if self.different_sample_per_step:
+    #         input_data_shape_constants = ("STEP_COUNT", )
 
-        for idx, dim in enumerate(input_data_shape, start=1):
-            self.constants[f"DIM_{idx}"] = dim
-            input_data_shape_constants += (f"DIM_{idx}", )
+    #     for idx, dim in enumerate(input_data_shape, start=1):
+    #         self.constants[f"DIM_{idx}"] = dim
+    #         input_data_shape_constants += (f"DIM_{idx}", )
 
-        input_data_shape_constants = get_bracket_notation_of_tuple(input_data_shape_constants)
+    #     input_data_shape_constants = get_bracket_notation_of_tuple(input_data_shape_constants)
 
-        # Declaration input_data
+    #     # Declaration input_data
 
-        decl_input_data = f"input_t input_data[BATCH_SIZE_TEST]{input_data_shape_constants};"
-        tb_cpp = tb_cpp.replace("//<decl_input_data>", decl_input_data)
+    #     decl_input_data = f"input_t input_data[BATCH_SIZE_TEST]{input_data_shape_constants};"
+    #     tb_cpp = tb_cpp.replace("//<decl_input_data>", decl_input_data)
 
-        # Feed data to the SNN
+    #     # Feed data to the SNN
 
-        step_dimension_string = "[s]" if self.different_sample_per_step else ""
-        feed_data_snn = f"snn_mnist_hls(input_data[b]{step_dimension_string}, output);"
-        tb_cpp = tb_cpp.replace("//<feed_data_snn>", feed_data_snn)
+    #     step_dimension_string = "[s]" if self.different_sample_per_step else ""
+    #     feed_data_snn = f"snn_mnist_hls(input_data[b]{step_dimension_string}, output);"
+    #     tb_cpp = tb_cpp.replace("//<feed_data_snn>", feed_data_snn)
 
-        # Read data from input file
+    #     # Read data from input file
 
-        input_file_read = "input_file >> input_data[b]"
-        read_batch = IndentationMaker(3, first_line_should_use_indentation=False)
+    #     input_file_read = "input_file >> input_data[b]"
+    #     read_batch = IndentationMaker(3, first_line_should_use_indentation=False)
 
-        idx = 1
+    #     idx = 1
 
-        for dim in self.constants.keys():
+    #     for dim in self.constants.keys():
 
-            if dim == "OUTPUT_SIZE":
-                continue
+    #         if dim == "OUTPUT_SIZE":
+    #             continue
 
-            if dim == "STEP_COUNT":
+    #         if dim == "STEP_COUNT":
                 
-                if not self.different_sample_per_step:
-                    continue
+    #             if not self.different_sample_per_step:
+    #                 continue
 
-                read_batch.append_line(f"for (int s = 0; s < {dim}; s++)")
-                input_file_read += "[s]"
-            else:
-                read_batch.append_line(f"for (int d{idx} = 0; d{idx} < {dim}; d{idx}++)")
-                input_file_read += f"[d{idx}]"
-                idx += 1
+    #             read_batch.append_line(f"for (int s = 0; s < {dim}; s++)")
+    #             input_file_read += "[s]"
+    #         else:
+    #             read_batch.append_line(f"for (int d{idx} = 0; d{idx} < {dim}; d{idx}++)")
+    #             input_file_read += f"[d{idx}]"
+    #             idx += 1
 
-            read_batch.add_scope()
+    #         read_batch.add_scope()
 
-        read_batch.append_line(input_file_read + ";")
-        tb_cpp = tb_cpp.replace("//<read_batch>", read_batch.get_text())
+    #     read_batch.append_line(input_file_read + ";")
+    #     tb_cpp = tb_cpp.replace("//<read_batch>", read_batch.get_text())
 
-        with open(tb_name, "w", encoding="utf-8") as f:
-            f.write(tb_cpp)
+    #     with open(tb_name, "w", encoding="utf-8") as f:
+    #         f.write(tb_cpp)
             
     def generate_files(self, folder_path):
 
@@ -270,7 +269,7 @@ class GetCpp:
         backend_folder = "backend"
         shutil.copytree(backend_folder, f"{folder_path}", dirs_exist_ok=True)
 
-        self._finish_testbench_file(folder_path)
+        # self._finish_testbench_file(folder_path)
 
         self._generate_types_and_parameters_file(folder_path)
 

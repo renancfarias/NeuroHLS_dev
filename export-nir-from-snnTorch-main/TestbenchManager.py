@@ -1,6 +1,6 @@
 from FileGenUtils import *
 
-class TestbenchEditor:
+class TestbenchManager:
 
     def __init__(self, input_component_count: int, output_size: int, step_count: int, different_sample_per_step: bool, folder_path):
 
@@ -47,7 +47,9 @@ class TestbenchEditor:
         read_batch.append_line(input_file_read + ";")
         return read_batch.get_text()
 
-    def finish_main(self):
+    def create_testbench_file(self):
+
+        copy_file_from_backend("testbench.cpp", self._folder_path)
 
         tb_name = f"{self._folder_path}/testbench.cpp"
 
@@ -68,7 +70,7 @@ class TestbenchEditor:
 
 def test_testbench_editor():
 
-    tb_editor = TestbenchEditor(1, 10, 10, False, "gen_test")
-    tb_editor.finish_main()
+    tb_editor = TestbenchManager(1, 10, 10, False, "gen_test")
+    tb_editor.create_testbench_file()
 
 test_testbench_editor()
