@@ -15,8 +15,8 @@ using namespace std;
 int main (int argc, char **argv)
 {
     string log_file_name = "log_testbench.txt";
-    string data_file_name = "data.txt";
-    string targets_file_name = "targets.txt";
+    string data_file_name = "tb_data/data.txt";
+    string targets_file_name = "tb_data/targets.txt";
 
     std::ifstream input_file(data_file_name);
     if (!input_file.is_open())
