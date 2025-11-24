@@ -7,8 +7,7 @@
 
 using namespace std;
 
-//<unedited>
-
+//<decl_step_count>
 //<decl_total_samples>
 //<decl_batch_size>
 

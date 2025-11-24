@@ -11,6 +11,8 @@ class TestbenchManager:
         self._different_sample_per_step = different_sample_per_step
         self._folder_path = folder_path
 
+        self._has_defined_dataset = False
+
     def _get_decl_input_data_code(self):
 
         input_dims = ""
@@ -47,6 +49,38 @@ class TestbenchManager:
 
         read_batch.append_line(input_file_read + ";")
         return read_batch.get_text()
+    
+    def _get_decl_total_samples(self):
+
+        return f"#define TOTAL_SAMPLES {self._used_samples}"
+
+    def _get_decl_batch_size(self):
+        
+        return f"#define BATCH_SIZE {self._batch_size}"
+    
+    def _get_decl_step_count(self):
+
+        return f"#define STEP_COUNT {self._step_count}"
+    
+    def define_dataset(self, dataset):
+
+        # TERMINAR
+        self._available_samples = 1000
+        self._has_defined_dataset = True
+    
+    def define_sample_count_and_batch_size(self, total_samples: int, batch_size: int):
+
+        total_samples = abs(total_samples)
+        batch_size = max(abs(batch_size), 1)
+        
+        total_samples = min(total_samples, self._available_samples)
+        batch_size = min(batch_size, total_samples)
+
+        # Assures that batch_size divides total_samples
+        batch_size = get_closest_divisor(total_samples, batch_size)
+
+        self._used_samples = total_samples
+        self._batch_size = batch_size
 
     def create_testbench_file(self):
 
@@ -66,6 +100,15 @@ class TestbenchManager:
         # Read data from input file
         tb_cpp = tb_cpp.replace("//<read_batch>", self._get_read_batch_code())
 
+        # Define total used samples
+        tb_cpp = tb_cpp.replace("//<decl_total_samples>", self._get_decl_total_samples())
+
+        # Define batch size of samples
+        tb_cpp = tb_cpp.replace("//<decl_batch_size>", self._get_decl_batch_size())
+
+        # Define the number of time steps
+        tb_cpp = tb_cpp.replace("//<decl_step_count>", self._get_decl_step_count())
+
         with open(tb_name, "w", encoding="utf-8") as f:
             f.write(tb_cpp)
 
@@ -77,21 +120,22 @@ class TestbenchManager:
         status_dataset = "OK" if os.path.exists(test_dataset_path) else "MISSING"
         status_targets = "OK" if os.path.exists(test_targets_path) else "MISSING"
 
-        print("Testbench Status:\n")
+        print("\nTestbench Status:")
 
-        print(f"Test dataset: {status_dataset}")
-        print(f"Test targets: {status_targets}")
+        print(f" - Test dataset: {status_dataset}")
+        print(f" - Test targets: {status_targets}")
 
         overall_status = "YES" if status_dataset == "OK" and status_targets == "OK" else "NO"
         print(f"\nReady? {overall_status}")
 
-        
+def test_testbench_manager():
 
-def test_testbench_editor():
+    tb_manager = TestbenchManager(1, 10, 10, True, "gen_test")
 
-    tb_editor = TestbenchManager(1, 10, 10, True, "gen_test")
-    tb_editor.create_testbench_file()
+    tb_manager.define_dataset("blabla")
+    tb_manager.define_sample_count_and_batch_size(10, 0)
+    tb_manager.create_testbench_file()
 
-    tb_editor.get_status()
+    tb_manager.get_status()
 
-test_testbench_editor()
+test_testbench_manager()

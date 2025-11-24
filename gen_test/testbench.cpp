@@ -7,10 +7,9 @@
 
 using namespace std;
 
-//<unedited>
-
-//<decl_total_samples>
-//<decl_batch_size>
+#define STEP_COUNT 10
+#define TOTAL_SAMPLES 10
+#define BATCH_SIZE 1
 
 int main (int argc, char **argv)
 {
