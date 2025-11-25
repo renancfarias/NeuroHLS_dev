@@ -5,8 +5,8 @@
 
 #include "neuro_hls_functions/bit_type.h"
 
-typedef ap_fixed<16, 8> potential_t;
 typedef ap_fixed<16, 8> input_t;
+typedef ap_fixed<16, 8> potential_t;
 
 #define OUTPUT_SIZE 10
 #define DIM_1 784
