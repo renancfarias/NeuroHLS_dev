@@ -201,11 +201,10 @@ class GetCpp:
 
         Path(folder_path).mkdir(parents=True, exist_ok=True)
 
-        with open(f"{folder_path}/main.cpp", "w") as f:
+        with open(f"{folder_path}/snn_implementation.cpp", "w") as f:
             f.write(self._cpp)
 
-        backend_folder = "backend"
-        shutil.copytree(backend_folder, f"{folder_path}", dirs_exist_ok=True)
+        copy_folder_from_backend("neuro_hls_functions", folder_path)
 
         self._generate_types_and_parameters_file(folder_path)
 
