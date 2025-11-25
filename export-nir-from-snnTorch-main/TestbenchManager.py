@@ -3,15 +3,36 @@ import os
 
 class TestbenchManager:
 
-    def __init__(self, input_component_count: int, output_size: int, step_count: int, different_sample_per_step: bool, folder_path):
+    def __init__(self, input_shape: tuple, output_size: int, step_count: int, different_sample_per_step: bool, folder_path):
 
-        self._input_component_count = input_component_count
+        self._input_shape = input_shape
         self._output_size = output_size
         self._step_count = step_count
         self._different_sample_per_step = different_sample_per_step
         self._folder_path = folder_path
 
         self._has_defined_dataset = False
+        
+        self._build_constants_dict()
+
+    def _build_constants_dict(self):
+
+        self._constants = {}
+
+        for idx, dim in enumerate(self._input_shape, start=1):
+            self._constants[f"DIM_{idx}"] = dim
+
+        self._constants["OUTPUT_SIZE"] = self._output_size
+        self._constants["STEP_COUNT"] = self._step_count
+
+    def _get_decl_constants_code(self):
+
+        constants_str = ""
+
+        for (constant, constant_value) in self._constants.items():
+            constants_str += f"#define {constant} {constant_value}\n"
+
+        return constants_str
 
     def _get_decl_input_data_code(self):
 
@@ -20,7 +41,7 @@ class TestbenchManager:
         if self._different_sample_per_step:
             input_dims += "[STEP_COUNT]"
 
-        for i in range(1, self._input_component_count + 1):
+        for i in range(1, len(self._input_shape) + 1):
             input_dims += f"[DIM_{i}]"
 
         return f"input_t input_data[BATCH_SIZE]{input_dims};"
@@ -41,7 +62,7 @@ class TestbenchManager:
             read_batch.append_line(f"for (int s = 0; s < STEP_COUNT; s++)")
             read_batch.add_scope()
         
-        for i in range(1, self._input_component_count + 1):
+        for i in range(1, len(self._input_shape) + 1):
             input_file_read += f"[d{i}]"
 
             read_batch.append_line(f"for (int d{i} = 0; d{i} < DIM_{i}; d{i}++)")
@@ -49,18 +70,6 @@ class TestbenchManager:
 
         read_batch.append_line(input_file_read + ";")
         return read_batch.get_text()
-    
-    def _get_decl_total_samples(self):
-
-        return f"#define TOTAL_SAMPLES {self._used_samples}"
-
-    def _get_decl_batch_size(self):
-        
-        return f"#define BATCH_SIZE {self._batch_size}"
-    
-    def _get_decl_step_count(self):
-
-        return f"#define STEP_COUNT {self._step_count}"
     
     def define_dataset(self, dataset):
 
@@ -79,8 +88,8 @@ class TestbenchManager:
         # Assures that batch_size divides total_samples
         batch_size = get_closest_divisor(total_samples, batch_size)
 
-        self._used_samples = total_samples
-        self._batch_size = batch_size
+        self._constants["TOTAL_SAMPLES"] = total_samples
+        self._constants["BATCH_SIZE"] = batch_size
 
     def create_testbench_file(self):
 
@@ -100,14 +109,8 @@ class TestbenchManager:
         # Read data from input file
         tb_cpp = tb_cpp.replace("//<read_batch>", self._get_read_batch_code())
 
-        # Define total used samples
-        tb_cpp = tb_cpp.replace("//<decl_total_samples>", self._get_decl_total_samples())
-
-        # Define batch size of samples
-        tb_cpp = tb_cpp.replace("//<decl_batch_size>", self._get_decl_batch_size())
-
-        # Define the number of time steps
-        tb_cpp = tb_cpp.replace("//<decl_step_count>", self._get_decl_step_count())
+        # Define constants, such as the number of steps, output size, etc
+        tb_cpp = tb_cpp.replace("//<decl_constants>", self._get_decl_constants_code())
 
         with open(tb_name, "w", encoding="utf-8") as f:
             f.write(tb_cpp)
@@ -130,7 +133,7 @@ class TestbenchManager:
 
 def test_testbench_manager():
 
-    tb_manager = TestbenchManager(1, 10, 10, True, "gen_test")
+    tb_manager = TestbenchManager((784,), 10, 10, True, "gen_test")
 
     tb_manager.define_dataset("blabla")
     tb_manager.define_sample_count_and_batch_size(10, 0)

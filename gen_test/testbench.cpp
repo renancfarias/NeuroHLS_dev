@@ -7,9 +7,12 @@
 
 using namespace std;
 
+#define DIM_1 784
+#define OUTPUT_SIZE 10
 #define STEP_COUNT 10
 #define TOTAL_SAMPLES 10
 #define BATCH_SIZE 1
+
 
 int main (int argc, char **argv)
 {

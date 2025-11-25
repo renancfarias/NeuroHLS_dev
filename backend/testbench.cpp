@@ -7,9 +7,7 @@
 
 using namespace std;
 
-//<decl_step_count>
-//<decl_total_samples>
-//<decl_batch_size>
+//<decl_constants>
 
 int main (int argc, char **argv)
 {

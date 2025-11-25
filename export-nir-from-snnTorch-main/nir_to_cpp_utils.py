@@ -15,8 +15,6 @@ class GetCpp:
         self.used_types = {input_type}
         self.has_defined_output_layer = False
 
-        self.constants = {}
-
         if not isinstance(input_shape, tuple):
             input_shape = (input_shape, )
 
@@ -92,7 +90,6 @@ class GetCpp:
 
         if is_output_layer:
             self._check_output_shape(output_shape)
-            self.constants["OUTPUT_SIZE"] = output_shape[0]
 
         self._check_input_shape(input_shape)
         self._define_new_expected_input_shape(output_shape)
@@ -135,7 +132,6 @@ class GetCpp:
 
         if is_output_layer:
             self._check_output_shape(output_shape)
-            self.constants["OUTPUT_SIZE"] = output_shape[0]
 
         self._check_input_shape(input_shape)
         self._define_new_expected_input_shape(output_shape)
@@ -179,13 +175,6 @@ class GetCpp:
             types_and_params += f"typedef ap_fixed<16, 8> {type};\n"
 
         types_and_params += "\n"
-
-        for idx, dim in enumerate(self.input_shape, start=1):
-            self.constants[f"DIM_{idx}"] = dim
-
-        for (constant, constant_value) in self.constants.items():
-            types_and_params += f"#define {constant} {constant_value}\n"
-
         types_and_params += "\n#endif"
 
         with open(f"{path}/types_and_params.h", "w") as f:
