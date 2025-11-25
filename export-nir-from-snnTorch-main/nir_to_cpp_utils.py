@@ -1,6 +1,7 @@
 from pathlib import Path
 import shutil
 from FileGenUtils import *
+from HeaderCreator import HeaderCreator
 
 class GetCpp:
 
@@ -28,6 +29,8 @@ class GetCpp:
         self._header += "#include \"neuro_hls_functions/dense.h\"\n"
         
         self._header += f"\nvoid snn_to_hls({input_type} input{bracket_input_shape}, bit_t output"
+
+        self._prototype = f"void snn_to_hls(input_t input{bracket_input_shape}, bit_t output"
         self._cpp = ""
 
     def _print_cur_layer(self):
@@ -71,6 +74,7 @@ class GetCpp:
             output_shape = get_bracket_notation_of_tuple(output_shape)
         
         self._header += output_shape + ")\n{\n"
+        self._prototype += output_shape + ");\n"
 
     def _check_output_shape(self, output_shape):
         
@@ -179,7 +183,18 @@ class GetCpp:
 
         with open(f"{path}/types_and_params.h", "w") as f:
             f.write(types_and_params)
-            
+
+    def _generate_header_file(self, folder_path):
+
+        header = HeaderCreator("snn_implementation", folder_path)
+
+        header.add_include("types_and_params.h")
+        header.add_include("neuro_hls_functions/bit_type.h")
+        header.add_include("neuro_hls_functions/dense.h")
+
+        header.add_code(self._prototype)
+        header.create_header()
+
     def generate_files(self, folder_path):
 
         if not self.has_defined_output_layer:
@@ -196,6 +211,9 @@ class GetCpp:
         copy_folder_from_backend("neuro_hls_functions", folder_path)
 
         self._generate_types_and_parameters_file(folder_path)
+        self._generate_header_file(folder_path)
+
+
 
 # def test_conv():
 
