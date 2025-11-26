@@ -7,6 +7,7 @@
 
 typedef ap_fixed<16, 8> potential_t;
 typedef ap_fixed<16, 8> input_t;
+typedef ap_fixed<16, 8> weight_t;
 
 
 #endif
