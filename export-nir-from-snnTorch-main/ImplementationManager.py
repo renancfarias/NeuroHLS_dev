@@ -3,7 +3,7 @@ import shutil
 from FileGenUtils import *
 from HeaderCreator import HeaderCreator
 
-class GetCpp:
+class ImplementationManager:
 
     def __init__(self, input_shape: tuple):
         self._cur_layer = 1
@@ -213,8 +213,6 @@ class GetCpp:
         self._generate_types_and_parameters_file(folder_path)
         self._generate_header_file(folder_path)
 
-
-
 # def test_conv():
 
 #     test_cpp = GetCpp((1, 32, 32))
@@ -225,7 +223,8 @@ class GetCpp:
 #     test_cpp.generate_files("gen_test")
 
 def test_dense():
-    test_cpp = GetCpp(784)
+
+    test_cpp = ImplementationManager(784)
 
     test_cpp.dense(784, 128, "potential_t")
     test_cpp.dense(128, 10, "potential_t", is_output_layer=True)
