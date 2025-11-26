@@ -1,6 +1,6 @@
-#include <deque>
 #include <iostream>
 #include <ostream>
+#include <fstream>
 #include <vector>
 
 #include "types_and_params.h"
@@ -12,18 +12,18 @@ using namespace std;
 
 int main (int argc, char **argv)
 {
-    string log_file_name = "log_testbench.txt";
-    string data_file_name = "tb_data/data.txt";
-    string targets_file_name = "tb_data/targets.txt";
+    string log_file_name = "../../../../log_testbench.txt";
+    string data_file_name = "data.txt";
+    string targets_file_name = "targets.txt";
 
-    std::ifstream input_file(data_file_name);
+    ifstream input_file(data_file_name);
     if (!input_file.is_open())
     {
         cerr << "Error opening input file." << endl;
         return 1;
     }
 
-    std::ifstream targets_file(targets_file_name);
+    ifstream targets_file(targets_file_name);
     if (!targets_file.is_open())
     {
         cerr << "Error opening targets file." << endl;

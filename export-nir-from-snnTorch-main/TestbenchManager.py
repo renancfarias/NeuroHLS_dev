@@ -49,7 +49,7 @@ class TestbenchManager:
     def _get_feed_snn_code(self):
 
         step_dimension_string = "[s]" if self._different_sample_per_step else ""
-        return f"snn_mnist_hls(input_data[b]{step_dimension_string}, output);"
+        return f"snn_to_hls(input_data[b]{step_dimension_string}, output);"
     
     def _get_read_batch_code(self):
 
