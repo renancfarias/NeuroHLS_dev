@@ -110,7 +110,7 @@ class ImplementationManager:
         weight_var_name = f"weights_{self._cur_layer}"
         bias_var_name = f"bias_{self._cur_layer}"
 
-        self._append_line(f"{result_type} {potentials_var_name}{output_shape};")
+        self._append_line(f"static {result_type} {potentials_var_name}{output_shape} = {{}};")
 
         if not is_output_layer:
             self._append_line(f"bit_t {spikes_var_name}{output_shape};\n")
@@ -152,7 +152,7 @@ class ImplementationManager:
         weight_var_name = f"weights_{self._cur_layer}"
         bias_var_name = f"bias_{self._cur_layer}"
 
-        self._append_line(f"{result_type} {potentials_var_name}{output_shape};")
+        self._append_line(f"static {result_type} {potentials_var_name}{output_shape} = {{}};")
 
         if not is_output_layer:
             self._append_line(f"bit_t {spikes_var_name}{output_shape};\n")
