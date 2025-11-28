@@ -3,7 +3,7 @@ import os
 
 class TestbenchManager:
 
-    def __init__(self, input_shape: tuple, output_size: int, step_count: int, different_sample_per_step: bool, folder_path):
+    def __init__(self, input_shape: tuple, output_size: int, step_count: int, different_sample_per_step: bool, folder_path: str):
 
         self._input_shape = input_shape
         self._output_size = output_size
@@ -131,14 +131,18 @@ class TestbenchManager:
         overall_status = "YES" if status_dataset == "OK" and status_targets == "OK" else "NO"
         print(f"\nReady? {overall_status}")
 
+    def run_c_simulation(self):
+        pass
+
 def test_testbench_manager():
 
-    tb_manager = TestbenchManager((784,), 10, 10, True, "gen_test")
+    tb_manager = TestbenchManager((784,), 10, 10, True, "tcl_test")
 
     tb_manager.define_dataset("blabla")
-    tb_manager.define_sample_count_and_batch_size(10, 0)
+    tb_manager.define_sample_count_and_batch_size(100, 1)
     tb_manager.create_testbench_file()
 
     tb_manager.get_status()
+    tb_manager.run_c_simulation()
 
 test_testbench_manager()

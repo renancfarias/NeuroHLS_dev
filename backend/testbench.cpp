@@ -12,7 +12,6 @@ using namespace std;
 
 int main (int argc, char **argv)
 {
-    string log_file_name = "../../../../log_testbench.txt";
     string data_file_name = "data.txt";
     string targets_file_name = "targets.txt";
 
@@ -30,13 +29,16 @@ int main (int argc, char **argv)
         return 1;
     }
 
-    ofstream tb_log(log_file_name, ios::trunc);
-
     //<decl_input_data>
     int target_data[BATCH_SIZE];
 
     int total_correct = 0;
     int total_batches = (float)TOTAL_SAMPLES / BATCH_SIZE;
+
+    cout << endl << "-------------------------------" << endl;
+    cout << " - Total Samples: " << TOTAL_SAMPLES << endl;
+    cout << " - Batch Size: " << BATCH_SIZE << endl;
+    cout << "-------------------------------" << endl << endl;
 
     for (int cur_batch = 0; cur_batch < total_batches; cur_batch++)
     {
@@ -85,17 +87,17 @@ int main (int argc, char **argv)
             }
         }
 
-        tb_log << "Batch (" << cur_batch + 1 << " / " << total_batches << ") :" << endl;
-
-        tb_log << fixed << setprecision(2) << "Acc: " << (float) 100 * batch_total_correct / BATCH_SIZE << "%" << endl;
+        cout << "Batch (" << cur_batch + 1 << " / " << total_batches << "): ";
+        cout << fixed << setprecision(2) << (float) 100 * batch_total_correct / BATCH_SIZE << "%" << endl;
+        
         total_correct += batch_total_correct;
     }
 
-    tb_log << "Final Acc: " << (float) 100 * total_correct / TOTAL_SAMPLES << "%" << endl;
+    cout << endl << " *** Final Acc: " << (float) 100 * total_correct / TOTAL_SAMPLES << "%" << endl;
+    cout << "-------------------------------" << endl << endl;
 
     input_file.close();
     targets_file.close();
-    tb_log.close();
 
     return 0;
 }
