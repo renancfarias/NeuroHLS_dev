@@ -132,7 +132,8 @@ class TestbenchManager:
         print(f"\nReady? {overall_status}")
 
     def run_c_simulation(self):
-        pass
+        import subprocess
+        subprocess.run(["vitis_hls", "-f", "run.tcl"], cwd="tcl_test")
 
 def test_testbench_manager():
 
