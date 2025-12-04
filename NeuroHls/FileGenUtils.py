@@ -54,6 +54,23 @@ def get_bracket_notation_of_tuple(shape : tuple):
     
     return brackets
 
+def copy_backend_to(folder_path: str):
+
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+    base_dir = os.path.dirname(__file__)
+    backend_folder = os.path.join(base_dir, "backend")
+
+    for item in os.listdir(backend_folder):
+        source_path = os.path.join(backend_folder, item)
+        target_path = os.path.join(folder_path, item)
+
+        if os.path.isdir(source_path):
+            shutil.copytree(source_path, target_path, dirs_exist_ok=True)
+        else:
+            shutil.copy2(source_path, target_path)
+
 def copy_folder_from_backend(path_inside_backend, to_path):
 
     backend_path = f"backend/{path_inside_backend}"
