@@ -1,13 +1,15 @@
 import subprocess
+import os
+
 from .FileGenUtils import *
 
 class NeuroHls:
 
-    def __init__(self, folder_path: str, should_create_files = True):
+    def __init__(self, folder_path: str, should_recreate_files = True):
 
         self._folder_path = folder_path
 
-        if should_create_files:
+        if should_recreate_files or not os.path.exists(folder_path):
             copy_backend_to(folder_path)
 
         self._has_parsed_nir = False
@@ -41,7 +43,7 @@ class NeuroHls:
             print("ERROR: The testbench files must be created before running the C-Simulation.")
             return
         
-        subprocess.run(["vitis_hls", "-f", "run.tcl"], cwd = self._folder_path)
+        subprocess.run(["vitis_hls", "-f", "run_csim.tcl"], cwd = self._folder_path)
 
     def run_synth(self):
         pass

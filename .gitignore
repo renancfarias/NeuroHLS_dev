@@ -25,5 +25,6 @@ _ide/.wsdata
 __pycache__/
 *.pyc
 
+data/
 tcl_test/
 gen_test/

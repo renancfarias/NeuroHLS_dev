@@ -1,5 +1,7 @@
-from FileGenUtils import *
 import os
+import numpy as np
+
+from .FileGenUtils import *
 
 class TestbenchManager:
 
@@ -71,10 +73,19 @@ class TestbenchManager:
         read_batch.append_line(input_file_read + ";")
         return read_batch.get_text()
     
-    def define_dataset(self, dataset):
+    def define_dataset(self, dataloader):
 
-        # TERMINAR
-        self._available_samples = 1000
+        total_samples = 0
+
+        for batch_x, batch_y in dataloader:
+            
+            if hasattr(batch_x, "numpy"):
+                batch_x = batch_x.numpy()
+                batch_y = batch_y.numpy()
+
+                total_samples += batch_x[0]
+
+        self._available_samples = total_samples
         self._has_defined_dataset = True
     
     def define_sample_count_and_batch_size(self, total_samples: int, batch_size: int):
@@ -131,10 +142,6 @@ class TestbenchManager:
         overall_status = "YES" if status_dataset == "OK" and status_targets == "OK" else "NO"
         print(f"\nReady? {overall_status}")
 
-    def run_c_simulation(self):
-        import subprocess
-        subprocess.run(["vitis_hls", "-f", "run.tcl"], cwd="tcl_test")
-
 def test_testbench_manager():
 
     tb_manager = TestbenchManager((784,), 10, 10, True, "tcl_test")
@@ -144,6 +151,5 @@ def test_testbench_manager():
     tb_manager.create_testbench_file()
 
     tb_manager.get_status()
-    tb_manager.run_c_simulation()
 
 test_testbench_manager()
