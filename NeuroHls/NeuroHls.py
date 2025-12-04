@@ -1,10 +1,14 @@
 import subprocess
+from .FileGenUtils import *
 
 class NeuroHls:
 
-    def __init__(self, folder_path: str):
+    def __init__(self, folder_path: str, should_create_files = True):
 
         self._folder_path = folder_path
+
+        if should_create_files:
+            copy_backend_to(folder_path)
 
         self._has_parsed_nir = False
         self._has_created_testbench = False
@@ -39,5 +43,5 @@ class NeuroHls:
         
         subprocess.run(["vitis_hls", "-f", "run.tcl"], cwd = self._folder_path)
 
-    def run_csynth(self):
+    def run_synth(self):
         pass
