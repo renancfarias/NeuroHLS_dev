@@ -28,3 +28,5 @@ __pycache__/
 data/
 tcl_test/
 gen_test/
+
+.venv/
