@@ -1,7 +1,7 @@
 from pathlib import Path
 import shutil
-from FileGenUtils import *
-from HeaderCreator import HeaderCreator
+from NeuroHls.FileGenUtils import *
+from NeuroHls.HeaderCreator import HeaderCreator
 
 class ImplementationManager:
 
@@ -208,7 +208,7 @@ class ImplementationManager:
         with open(f"{folder_path}/snn_implementation.cpp", "w") as f:
             f.write(self._cpp)
 
-        copy_folder_from_backend("neuro_hls_functions", folder_path)
+        # copy_folder_from_backend("neuro_hls_functions", folder_path)
 
         self._generate_types_and_parameters_file(folder_path)
         self._generate_header_file(folder_path)
@@ -222,14 +222,4 @@ class ImplementationManager:
 
 #     test_cpp.generate_files("gen_test")
 
-def test_dense():
 
-    test_cpp = ImplementationManager(784)
-
-    test_cpp.dense(784, 128, "potential_t")
-    test_cpp.dense(128, 10, "potential_t", is_output_layer=True)
-    
-    test_cpp.generate_files("gen_test")
-
-# test_conv()
-test_dense()

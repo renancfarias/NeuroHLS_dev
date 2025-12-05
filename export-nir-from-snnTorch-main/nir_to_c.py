@@ -9,7 +9,12 @@ import nir
 import numpy as np
 import os
 import re
+import sys
 from typing import Dict, List, Tuple, Any, Iterable
+
+# Adiciona o diretório pai ao path para encontrar NeuroHls
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from NeuroHls.ImplementationManager import ImplementationManager
 
 
 class NIRToCppParser:
@@ -227,6 +232,87 @@ class NIRToCppParser:
             "}"
         ]
         return "\n".join(main_code)
+
+    def generate_hls_files(self, output_dir: str):
+        """Gera arquivos HLS usando ImplementationManager."""
+        
+        # Tenta determinar o shape de entrada
+        input_shape = None
+        if 'input' in self.nodes:
+            input_node = self.nodes['input']
+            if hasattr(input_node, 'input_type'):
+                # Dependendo da versão do NIR, input_type pode ser diferente
+                if isinstance(input_node.input_type, dict):
+                     # Pega o primeiro valor
+                     first_val = next(iter(input_node.input_type.values()))
+                     if isinstance(first_val, np.ndarray):
+                         input_shape = tuple(first_val.flatten().tolist())
+                     elif hasattr(first_val, 'shape'):
+                         input_shape = tuple(first_val.shape)
+                elif hasattr(input_node.input_type, 'shape'):
+                     input_shape = tuple(input_node.input_type.shape)
+                elif isinstance(input_node.input_type, np.ndarray):
+                     input_shape = tuple(input_node.input_type.flatten().tolist())
+
+        # Se não encontrou, tenta inferir do primeiro nó Affine
+        if input_shape is None:
+             for node_name in self.execution_order:
+                 node = self.nodes[node_name]
+                 node_type = type(node).__name__
+                 if node_type == 'Affine':
+                     # weight shape is [out, in]
+                     if hasattr(node, 'weight') and node.weight is not None:
+                        input_shape = (node.weight.shape[1],)
+                        break
+        
+        if input_shape is None:
+            print("Aviso: Não foi possível determinar o shape de entrada. Usando padrão (784,).")
+            input_shape = (784,)
+            
+        # Remove dimensão de batch se existir (assumindo batch=1)
+        if len(input_shape) > 1 and input_shape[0] == 1:
+            input_shape = input_shape[1:]
+
+        # Inicializa o ImplementationManager
+        impl = ImplementationManager(input_shape)
+        
+        # Itera sobre os nós na ordem de execução
+        for node_name in self.execution_order:
+            node = self.nodes[node_name]
+            node_type = type(node).__name__
+            
+            if node_type == 'Flatten':
+                # Hack: Atualiza o shape esperado do ImplementationManager
+                # Assumindo flatten total
+                current_shape = impl._expected_input_shape
+                total_elements = np.prod(current_shape)
+                impl._define_new_expected_input_shape((total_elements,))
+            
+            elif node_type == 'Affine':
+                # Extrai parâmetros
+                weight = node.weight
+                out_features = weight.shape[0]
+                in_features = weight.shape[1]
+                
+                # Verifica se é camada de saída
+                # Verifica se conecta diretamente ao nó 'output'
+                is_output = False
+                for src, dst in self.edges:
+                    if src == node_name and dst == 'output':
+                        is_output = True
+                        break
+                
+                # Chama .dense()
+                # Assumindo activation="LIF" e result_type="potential_t" por padrão
+                impl.dense(
+                    n_inputs=in_features,
+                    n_neurons=out_features,
+                    result_type="potential_t",
+                    is_output_layer=is_output
+                )
+                
+        # Gera os arquivos
+        impl.generate_files(output_dir)
     
     def print_network_info(self):
         """Imprime informações sobre a rede."""
@@ -506,7 +592,7 @@ def demo_simple_export():
 
 def main():
     """Função principal."""
-    nir_file = "csnn_mnist.nir"
+    nir_file = "dense_only_linear.nir"
     
     try:
         # Cria o parser
@@ -547,6 +633,8 @@ def main():
         # Salva os arquivos
         print("\n" + "="*50)
         parser.save_cpp_files("cpp_output")
+
+        parser.generate_hls_files("gen_test_hls")
         
     except FileNotFoundError:
         print(f"Erro: Arquivo {nir_file} não encontrado!")
