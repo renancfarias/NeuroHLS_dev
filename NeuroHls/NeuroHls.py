@@ -27,19 +27,27 @@ class NeuroHls:
         self._has_parsed_nir = True
 
     def create_test_dataset(self, dataloader, step_count: int, different_sample_per_step: bool):
-        pass
+        
+        self._tb_manager.define_dataset(dataloader, step_count, different_sample_per_step)
 
     def define_testbench_parameters(self, total_samples: int, batch_size: int):
-        pass
+        
+        used_total_samples, used_batch_size = self._tb_manager.define_sample_count_and_batch_size(total_samples, batch_size)
 
-    def create_testbench(self, step_count: int, different_sample_per_step: bool):
+        print(f"Total samples used: {used_total_samples} of {self._tb_manager.get_number_of_available_samples()}")
+        print(f"Batch size: {used_batch_size}")
+        print(f"Total batches: {used_total_samples // used_batch_size}")
+
+    def create_testbench(self):
 
         if not self._has_parsed_nir:
             print("ERROR: The network architecture must be defined before creating the testbench files.")
             return
         
-        self._tb_manager.create_testbench_file(self._input_shape, self._output_size, step_count, different_sample_per_step)
+        self._tb_manager.create_testbench_file(self._input_shape, self._output_size)
         self._has_created_testbench = True
+
+        print("Testbench Criado")
 
     def run_csim(self):
 

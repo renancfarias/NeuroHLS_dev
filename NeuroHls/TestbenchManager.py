@@ -76,6 +76,8 @@ class TestbenchManager:
         total_labels = 0
 
         for batch_x, batch_y in dataloader:
+
+            # FALTA CRIAR ARQUIVO TXT
             
             if hasattr(batch_x, "numpy"):
                 batch_x = batch_x.numpy()
@@ -84,8 +86,23 @@ class TestbenchManager:
                 total_samples += batch_x.shape[0]
                 total_labels += batch_y.shape[0]
 
+        if different_sample_per_step and total_samples != total_labels * step_count:
+
+            raise Exception(f"Number of samples does not match. {total_samples} != {total_labels} * {step_count}")
+        
+        if not different_sample_per_step and total_samples != total_labels:
+
+            raise Exception(f"Number of samples does not match. {total_samples} != {total_labels}")
+        
         self._available_samples = total_samples
+        self._step_count = step_count
+        self._different_sample_per_step = different_sample_per_step
+
         self._has_defined_dataset = True
+
+    def get_number_of_available_samples(self):
+
+        return self._available_samples
     
     def define_sample_count_and_batch_size(self, total_samples: int, batch_size: int):
 
@@ -101,12 +118,12 @@ class TestbenchManager:
         self._constants["TOTAL_SAMPLES"] = total_samples
         self._constants["BATCH_SIZE"] = batch_size
 
-    def create_testbench_file(self, input_shape: tuple, output_size: int, step_count: int, different_sample_per_step: bool):
+        return (total_samples, batch_size)
+
+    def create_testbench_file(self, input_shape: tuple, output_size: int):
 
         self._input_shape = input_shape
         self._output_size = output_size
-        self._step_count = step_count
-        self._different_sample_per_step = different_sample_per_step
 
         # copy_file_from_backend("testbench.cpp", self._folder_path)
 
@@ -146,15 +163,15 @@ class TestbenchManager:
         overall_status = "YES" if status_dataset == "OK" and status_targets == "OK" else "NO"
         print(f"\nReady? {overall_status}")
 
-def test_testbench_manager():
+# def test_testbench_manager():
 
-    tb_manager = TestbenchManager("tcl_test")
+#     tb_manager = TestbenchManager("tcl_test")
 
-    # tb_manager.define_dataset("blabla")
-    # tb_manager.define_sample_count_and_batch_size(100, 1)
+#     # tb_manager.define_dataset("blabla")
+#     # tb_manager.define_sample_count_and_batch_size(100, 1)
 
-    tb_manager.create_testbench_file((784,), 10, 10, True)
+#     tb_manager.create_testbench_file((784,), 10, 10, True)
 
-    tb_manager.get_status()
+#     tb_manager.get_status()
 
 # test_testbench_manager()
