@@ -5,21 +5,16 @@ from .FileGenUtils import *
 
 class TestbenchManager:
 
-    def __init__(self, input_shape: tuple, output_size: int, step_count: int, different_sample_per_step: bool, folder_path: str):
+    def __init__(self, folder_path: str):
 
-        self._input_shape = input_shape
-        self._output_size = output_size
-        self._step_count = step_count
-        self._different_sample_per_step = different_sample_per_step
         self._folder_path = folder_path
-
         self._has_defined_dataset = False
-        
-        self._build_constants_dict()
+
+        self._constants = {}
 
     def _build_constants_dict(self):
 
-        self._constants = {}
+        # self._constants = {}
 
         for idx, dim in enumerate(self._input_shape, start=1):
             self._constants[f"DIM_{idx}"] = dim
@@ -28,6 +23,8 @@ class TestbenchManager:
         self._constants["STEP_COUNT"] = self._step_count
 
     def _get_decl_constants_code(self):
+
+        self._build_constants_dict()
 
         constants_str = ""
 
@@ -73,9 +70,10 @@ class TestbenchManager:
         read_batch.append_line(input_file_read + ";")
         return read_batch.get_text()
     
-    def define_dataset(self, dataloader):
+    def define_dataset(self, dataloader, step_count: int, different_sample_per_step: bool):
 
         total_samples = 0
+        total_labels = 0
 
         for batch_x, batch_y in dataloader:
             
@@ -83,7 +81,8 @@ class TestbenchManager:
                 batch_x = batch_x.numpy()
                 batch_y = batch_y.numpy()
 
-                total_samples += batch_x[0]
+                total_samples += batch_x.shape[0]
+                total_labels += batch_y.shape[0]
 
         self._available_samples = total_samples
         self._has_defined_dataset = True
@@ -102,9 +101,14 @@ class TestbenchManager:
         self._constants["TOTAL_SAMPLES"] = total_samples
         self._constants["BATCH_SIZE"] = batch_size
 
-    def create_testbench_file(self):
+    def create_testbench_file(self, input_shape: tuple, output_size: int, step_count: int, different_sample_per_step: bool):
 
-        copy_file_from_backend("testbench.cpp", self._folder_path)
+        self._input_shape = input_shape
+        self._output_size = output_size
+        self._step_count = step_count
+        self._different_sample_per_step = different_sample_per_step
+
+        # copy_file_from_backend("testbench.cpp", self._folder_path)
 
         tb_name = f"{self._folder_path}/testbench.cpp"
 
@@ -144,12 +148,13 @@ class TestbenchManager:
 
 def test_testbench_manager():
 
-    tb_manager = TestbenchManager((784,), 10, 10, True, "tcl_test")
+    tb_manager = TestbenchManager("tcl_test")
 
-    tb_manager.define_dataset("blabla")
-    tb_manager.define_sample_count_and_batch_size(100, 1)
-    tb_manager.create_testbench_file()
+    # tb_manager.define_dataset("blabla")
+    # tb_manager.define_sample_count_and_batch_size(100, 1)
+
+    tb_manager.create_testbench_file((784,), 10, 10, True)
 
     tb_manager.get_status()
 
-test_testbench_manager()
+# test_testbench_manager()
