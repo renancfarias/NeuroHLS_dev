@@ -1,0 +1,5 @@
+torch==2.8.0 
+torchvision
+snntorch==0.9.4
+nir==1.0.6 
+nirtorch==2.0.5
