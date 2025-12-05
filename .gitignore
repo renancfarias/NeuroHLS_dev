@@ -30,3 +30,8 @@ tcl_test/
 gen_test/
 
 .venv/
+*.nir
+
+cpp_output/
+
+gen_test_hls/
