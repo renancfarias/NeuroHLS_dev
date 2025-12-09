@@ -28,6 +28,7 @@ __pycache__/
 data/
 tcl_test/
 gen_test/
+z_test/
 
 .venv/
 *.nir
