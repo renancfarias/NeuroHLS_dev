@@ -3,6 +3,7 @@ import os
 
 from .FileGenUtils import *
 from .TestbenchManager import *
+from .ModelConfig import *
 
 class NeuroHls:
 
@@ -18,13 +19,23 @@ class NeuroHls:
 
         self._tb_manager = TestbenchManager(folder_path)
 
-    def parse_nir(self, nir):
+    def get_model_config_from_nir(self, nir):
 
         # Obter esses valores com o NIR
+
         self._input_shape = (784,)
         self._output_size = 10
 
         self._has_parsed_nir = True
+
+        model_config = ModelConfig()
+        model_config.add_layer(DenseLayerConfig(784, 128))
+        model_config.add_layer(DenseLayerConfig(128, 10))
+
+        return model_config
+    
+    def create_files_from_config(self, model_config: ModelConfig):
+        pass
 
     def create_test_dataset(self, dataloader, step_count: int, different_sample_per_step: bool):
         
