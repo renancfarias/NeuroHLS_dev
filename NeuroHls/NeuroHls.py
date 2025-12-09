@@ -4,6 +4,7 @@ import os
 from .FileGenUtils import *
 from .TestbenchManager import *
 from .ModelConfig import *
+from .ImplementationManager import *
 
 class NeuroHls:
 
@@ -34,8 +35,21 @@ class NeuroHls:
 
         return model_config
     
-    def create_files_from_config(self, model_config: ModelConfig):
-        pass
+    def implement_model_from_config(self, model_config: ModelConfig):
+        
+        # REFATORAR IMPLEMENTATION_MANAGER
+
+        impl_manager = ImplementationManager((784, ))
+
+        for i in range(len(model_config.layers)):
+            
+            is_activation_layer = (i == len(model_config.layers) - 1)
+            layer = model_config.layers[i]
+
+            if isinstance(layer, DenseLayerConfig):
+                impl_manager.dense(layer.n_inputs, layer.n_neurons, "potential_t", is_activation_layer)
+
+        impl_manager.generate_files(self._folder_path)
 
     def create_test_dataset(self, dataloader, step_count: int, different_sample_per_step: bool):
         
