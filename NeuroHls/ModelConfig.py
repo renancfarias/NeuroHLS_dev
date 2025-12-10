@@ -66,19 +66,31 @@ class DenseLayerConfig(LayerConfig):
         else:
             print(f"Used fire unroll factor: {correct_fire_unroll_factor}")
 
+    def get_input_shape(self):
+
+        return (self.n_inputs, )
+    
+    def get_output_shape(self):
+        
+        return (self.n_neurons, )
+    
 class ModelConfig:
     
     def __init__(self):
 
         self.layers: List[LayerConfig] = []
 
-    def __str__(self):
-        s = ""
+        self.input_total_bits = 16
+        self.input_int_bits = 8
 
+    def __str__(self):
+        
+        s = ""
         for idx, layer in enumerate(self.layers):
 
             if idx > 0:
                 s += "\n"
+
             s += 30 * "-" + "\n"
             s += f"Layer {idx+1}: {layer.__str__()}"
         
@@ -87,3 +99,8 @@ class ModelConfig:
     def add_layer(self, layer: LayerConfig):
 
         self.layers.append(layer)
+
+    def set_input_quantization(self, total_bits, int_bits):
+
+        self.input_total_bits = total_bits
+        self.input_int_bits = int_bits
