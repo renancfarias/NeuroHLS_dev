@@ -21,17 +21,33 @@ class NeuroHls:
         self._tb_manager = TestbenchManager(folder_path)
 
     def get_model_config_from_nir(self, nir):
-
-        # Obter esses valores com o NIR
-
-        self._input_shape = (784,)
-        self._output_size = 10
-
+        """
+        Extrai a configuração do modelo a partir de um arquivo NIR.
+        
+        Args:
+            nir: Caminho para o arquivo .nir ou objeto NIR
+        
+        Returns:
+            ModelConfig: Configuração do modelo extraída do NIR
+        """
+        # Importa o parser NIR do mesmo pacote
+        from .nir_to_c import NIRToCppParser
+        
+        # Se nir é uma string, assume que é o caminho do arquivo
+        if isinstance(nir, str):
+            parser = NIRToCppParser(nir)
+        else:
+            # Se não for string, pode ser que já seja o objeto nir_graph
+            # Neste caso, cria um parser temporário
+            raise ValueError("Por favor, forneça o caminho para o arquivo .nir como string")
+        
+        # Extrai o ModelConfig do parser
+        model_config, input_shape, output_size = parser.get_model_config_from_nir()
+        
+        # Armazena os valores extraídos
+        self._input_shape = input_shape
+        self._output_size = output_size
         self._has_parsed_nir = True
-
-        model_config = ModelConfig()
-        model_config.add_layer(DenseLayerConfig(784, 128))
-        model_config.add_layer(DenseLayerConfig(128, 10))
 
         return model_config
     

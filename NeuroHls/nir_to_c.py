@@ -12,9 +12,8 @@ import re
 import sys
 from typing import Dict, List, Tuple, Any, Iterable
 
-# Adiciona o diretório pai ao path para encontrar NeuroHls
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from NeuroHls.ImplementationManager import ImplementationManager
+# Importa diretamente do mesmo pacote
+from .ImplementationManager import ImplementationManager
 
 
 class NIRToCppParser:
@@ -319,7 +318,7 @@ class NIRToCppParser:
         Cria um ModelConfig a partir do gráfico NIR.
         Retorna o ModelConfig e o input_shape inferido.
         """
-        from NeuroHls.ModelConfig import ModelConfig, DenseLayerConfig
+        from .ModelConfig import ModelConfig, DenseLayerConfig
         
         # Tenta determinar o shape de entrada
         input_shape = None
@@ -670,7 +669,7 @@ def demo_simple_export():
 
 def main():
     """Função principal."""
-    nir_file = "dense_only_linear1.nir"
+    nir_file = "dense_only_linear.nir"
     
     try:
         # Cria o parser
