@@ -1,37 +1,56 @@
 from pathlib import Path
 import shutil
+
+from NeuroHls.ModelConfig import *
 from NeuroHls.FileGenUtils import *
-from NeuroHls.HeaderCreator import HeaderCreator
+from NeuroHls.CodeCreator import *
 
 class ImplementationManager:
 
-    def __init__(self, input_shape: tuple):
+    def __init__(self, folder_path: str):
+
+        self._folder_path = folder_path
+        self._AVAILABLE_ACTIVATIONS = {"LIF"} # Usar Json?
+
+    def create_files_from_config(self, model_config: ModelConfig):
+
+        net_input_shape = model_config.layers[0].get_input_shape()
+        net_output_shape = model_config.layers[-1].get_output_shape()
+
+        self._create_network_header_and_prototype(net_input_shape, net_output_shape)
+        
         self._cur_layer = 1
-        self._define_new_expected_input_shape(input_shape)
         self._last_output_name = "input"
-
-        input_type = "input_t"
-
-        self.implemented_activations = {"LIF"}
-        self.used_types = {input_type}
+        self._define_new_expected_input_shape(net_input_shape)
+    
+        self.used_types = {"input_t" : (model_config.input_total_bits, model_config.input_int_bits)}
         self.has_defined_output_layer = False
 
-        if not isinstance(input_shape, tuple):
-            input_shape = (input_shape, )
-
-        self.input_shape = input_shape
+    def _create_network_header_and_prototype(self, input_shape, output_shape):
 
         bracket_input_shape = get_bracket_notation_of_tuple(input_shape)
+        bracket_output_shape = get_bracket_notation_of_tuple(output_shape)
 
-        self._header = "\n#include \"types_and_params.h\"\n\n"
-
-        self._header += "#include \"neuro_hls_functions/bit_type.h\"\n"
-        self._header += "#include \"neuro_hls_functions/dense.h\"\n"
+        self._implementation_header = CodeCreator("snn_implementation", self._folder_path)
         
-        self._header += f"\nvoid snn_to_hls({input_type} input{bracket_input_shape}, bit_t output"
+        self._implementation_header.add_include("types_and_params.h")
+        self._implementation_header.add_include("neuro_hls_functions/bit_type.h")
+        self._implementation_header.add_include("neuro_hls_functions/dense.h")
 
-        self._prototype = f"void snn_to_hls(input_t input{bracket_input_shape}, bit_t output"
+        self._implementation_header.add_code(f"void snn_to_hls(input_t input{bracket_input_shape}, bit_t output{bracket_output_shape})\n{'{'}\n")
+        
+        # FINALIZAR CODE_CREATOR
+
+        self._prototype = f"void snn_to_hls(input_t input{bracket_input_shape}, bit_t output{bracket_output_shape});\n"
         self._cpp = ""
+
+    # def _finish_header(self, output_shape):
+
+    #     if not isinstance(output_shape, str):
+    #         output_shape = get_bracket_notation_of_tuple(output_shape)
+        
+    #     self._implementation_header += output_shape + ")\n{\n"
+    #     self._prototype += output_shape + ");\n"
 
     def _print_cur_layer(self):
         num_dashes = 50
@@ -47,16 +66,13 @@ class ImplementationManager:
 
     def _define_new_expected_input_shape(self, new_input_shape):
 
-        if not isinstance(new_input_shape, tuple):
-            new_input_shape = (new_input_shape, )
-
         self._expected_input_shape = new_input_shape
 
     def _get_activation_function(self, activation):
 
         activation = activation.upper()
 
-        if activation not in self.implemented_activations:
+        if activation not in self._AVAILABLE_ACTIVATIONS:
             raise Exception(f"Activation {activation} not implemented")
         
         return activation
@@ -67,14 +83,6 @@ class ImplementationManager:
 
     def _append_line(self, line):
         self._cpp += "\t" + line + "\n"
-
-    def _finish_header(self, output_shape):
-
-        if not isinstance(output_shape, str):
-            output_shape = get_bracket_notation_of_tuple(output_shape)
-        
-        self._header += output_shape + ")\n{\n"
-        self._prototype += output_shape + ");\n"
 
     def _check_output_shape(self, output_shape):
         
@@ -186,7 +194,7 @@ class ImplementationManager:
 
     def _generate_header_file(self, folder_path):
 
-        header = HeaderCreator("snn_implementation", folder_path)
+        header = CodeCreator("snn_implementation", folder_path)
 
         header.add_include("types_and_params.h")
         header.add_include("neuro_hls_functions/bit_type.h")
@@ -200,7 +208,7 @@ class ImplementationManager:
         if not self.has_defined_output_layer:
             raise Exception("Cannot generate files because output layer was not defined")
 
-        self._cpp = self._header + self._cpp
+        self._cpp = self._implementation_header + self._cpp
         self._cpp += "}\n"
 
         Path(folder_path).mkdir(parents=True, exist_ok=True)

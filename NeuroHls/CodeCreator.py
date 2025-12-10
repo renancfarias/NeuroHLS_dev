@@ -1,6 +1,6 @@
 from pathlib import Path
 
-class HeaderCreator:
+class CodeCreator:
     
     def __init__(self, file_name: str, folder_path: str):
         
@@ -17,7 +17,19 @@ class HeaderCreator:
         
         self._code += code
 
+    # GET_CPP -> RETORNA CODIGO
+    # GET_H -> RETORNA CÓDIGO + DEFINES _H_
+
+    def get_cpp(self):
+        
+        return self._includes + self._code
+
+    def get_h(self):
+        pass
+
     def create_header(self):
+
+        # REMOVER METODO
 
         file_define_name = self._file_name.upper() + "_H_"
 
@@ -33,15 +45,15 @@ class HeaderCreator:
         with open(f"{self._folder_path}/{self._file_name}.h", "w") as f:
             f.write(final_str)
 
-def test_header_creator():
+# def test_header_creator():
 
-    header = HeaderCreator("test_header", "gen_test")
+#     header = HeaderCreator("test_header", "gen_test")
 
-    header.add_include("include_aleatorio.h")
+#     header.add_include("include_aleatorio.h")
 
-    header.add_code("int x = 10;")
+#     header.add_code("int x = 10;")
 
-    header.create_header()
+#     header.create_header()
 
-test_header_creator()
+# test_header_creator()
 
