@@ -104,3 +104,16 @@ class ModelConfig:
 
         self.input_total_bits = total_bits
         self.input_int_bits = int_bits
+
+    def set_default_potential_quantization(self, total_bits, int_bits):
+
+        self.input_total_bits = total_bits
+        self.input_int_bits = int_bits
+
+        for layer in self.layers:
+            layer.set_potential_quantization(total_bits, int_bits)
+
+    def set_default_unroll_factors(self, accum_unroll_factor, fire_unroll_factor):
+
+        for layer in self.layers:
+            layer.set_unroll_factors(accum_unroll_factor, fire_unroll_factor)
