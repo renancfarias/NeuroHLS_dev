@@ -2,12 +2,11 @@ from pathlib import Path
 
 class CodeCreator:
     
-    def __init__(self, file_name: str, folder_path: str):
+    def __init__(self, folder_path: str):
         
         self._includes = ""
         self._code = ""
         self._folder_path = folder_path
-        self._file_name = file_name
 
     def add_include(self, file_name: str):
 
@@ -17,43 +16,25 @@ class CodeCreator:
         
         self._code += code
 
-    # GET_CPP -> RETORNA CODIGO
-    # GET_H -> RETORNA CÓDIGO + DEFINES _H_
+    def create_header_file(self, file_name: str):
 
-    def get_cpp(self):
+        file_content = "#pragma once\n\n"
+
+        file_content += self._includes + "\n"
+        file_content += self._code
+
+        self._create_file(f"{file_name}.h", file_content)
+
+    def create_code_file(self, file_name: str):
         
-        return self._includes + self._code
+        file_content = self._includes + "\n"
+        file_content += self._code
 
-    def get_h(self):
-        pass
+        self._create_file(f"{file_name}.cpp", file_content)
 
-    def create_header(self):
-
-        # REMOVER METODO
-
-        file_define_name = self._file_name.upper() + "_H_"
-
-        final_str = f"#ifndef {file_define_name}\n#define {file_define_name}\n\n"
-
-        final_str += self._includes + "\n"
-        final_str += self._code
-
-        final_str += "\n#endif"
-
+    def _create_file(self, file_name: str, file_content: str):
+        
         Path(self._folder_path).mkdir(parents=True, exist_ok=True)
 
-        with open(f"{self._folder_path}/{self._file_name}.h", "w") as f:
-            f.write(final_str)
-
-# def test_header_creator():
-
-#     header = HeaderCreator("test_header", "gen_test")
-
-#     header.add_include("include_aleatorio.h")
-
-#     header.add_code("int x = 10;")
-
-#     header.create_header()
-
-# test_header_creator()
-
+        with open(f"{self._folder_path}/{file_name}", "w") as f:
+            f.write(file_content)
