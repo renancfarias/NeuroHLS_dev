@@ -24,6 +24,11 @@ class ImplementationManager:
         self._last_output_name = "input"
         self.used_types = {"input_t" : (model_config.input_total_bits, model_config.input_int_bits)}
 
+        only_one_potential_quantization_has_been_used = model_config.only_one_potential_quantization_has_been_used()
+
+        if only_one_potential_quantization_has_been_used:
+            self.used_types["potential_t"] = model_config.layers[0].get_quantization()
+
         self._cur_layer = 1
         self._define_new_expected_input_shape(net_input_shape)
     
@@ -31,9 +36,15 @@ class ImplementationManager:
 
             layer = model_config.layers[idx]
             is_last_layer = (idx == len(model_config.layers) - 1)
+
+            if not only_one_potential_quantization_has_been_used:
+                potential_type = f"potential_t{idx+1}"
+                self.used_types[potential_type] = layer.get_quantization()
+            else:
+                potential_type = "potential_t"
             
             if isinstance(layer, DenseLayerConfig):
-                self._dense(layer.n_inputs, layer.n_neurons, "potential_t", layer.get_accum_unroll_factor(), layer.get_fire_unroll_factor(), is_last_layer)
+                self._dense(layer.n_inputs, layer.n_neurons, potential_type, layer.get_accum_unroll_factor(), layer.get_fire_unroll_factor(), is_last_layer)
 
         self._impl_code.add_code("}")
 
@@ -49,7 +60,7 @@ class ImplementationManager:
         bracket_input_shape = get_bracket_notation_of_tuple(input_shape)
         bracket_output_shape = get_bracket_notation_of_tuple(output_shape)
 
-        self._impl_code.add_include("types_and_params.h")
+        self._impl_code.add_include("net_types.h")
         self._impl_code.add_include("neuro_hls_functions/bit_type.h")
         self._impl_code.add_include("neuro_hls_functions/dense.h")
 
@@ -149,7 +160,6 @@ class ImplementationManager:
         self._define_new_expected_input_shape(output_shape)
 
         activation = self._get_activation_function(activation)
-        # self.used_types.add(result_type)
 
         output_shape = get_bracket_notation_of_tuple(output_shape)
 
@@ -170,12 +180,6 @@ class ImplementationManager:
         self._append_line(f"dense<{n_inputs}, {n_neurons}, {accum_unroll_factor}>({self._last_output_name}, {potentials_var_name}, {weight_var_name}, {bias_var_name});")
         self._append_line(f"dense_{activation}<{n_neurons}, {fire_unroll_factor}>({potentials_var_name}, {spikes_var_name});")
 
-        # if is_output_layer:
-        #     self._finish_header(output_shape)
-        #     self.has_defined_output_layer = True
-        # else:
-        #     self._prepare_for_next_layer()
-
         if not is_output_layer:
             self._prepare_for_next_layer()
 
@@ -195,7 +199,7 @@ class ImplementationManager:
 
         header = CodeCreator(self._folder_path)
 
-        header.add_include("types_and_params.h")
+        header.add_include("net_types.h")
         header.add_include("neuro_hls_functions/bit_type.h")
         header.add_include("neuro_hls_functions/dense.h")
 

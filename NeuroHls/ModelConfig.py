@@ -31,6 +31,10 @@ class LayerConfig:
         self._accum_unroll_factor = accum_unroll_factor
         self._fire_unroll_factor = fire_unroll_factor
 
+    def get_quantization(self):
+
+        return (self._potentials_total_bits, self._potentials_int_bits)
+
     def get_accum_unroll_factor(self):
         
         return self._accum_unroll_factor
@@ -115,9 +119,6 @@ class ModelConfig:
 
     def set_default_potential_quantization(self, total_bits, int_bits):
 
-        self.input_total_bits = total_bits
-        self.input_int_bits = int_bits
-
         for layer in self.layers:
             layer.set_potential_quantization(total_bits, int_bits)
 
@@ -125,3 +126,17 @@ class ModelConfig:
 
         for layer in self.layers:
             layer.set_unroll_factors(accum_unroll_factor, fire_unroll_factor)
+
+    def only_one_potential_quantization_has_been_used(self):
+
+        if len(self.layers) == 0:
+            raise Exception("No Layer was defined in Model Config.")
+        
+        cur_quant = self.layers[0].get_quantization()
+
+        for layer in self.layers:
+
+            if cur_quant != layer.get_quantization():
+                return False
+        
+        return True
