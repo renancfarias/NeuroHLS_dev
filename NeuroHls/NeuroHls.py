@@ -19,6 +19,7 @@ class NeuroHls:
         self._has_created_testbench = False
 
         self._tb_manager = TestbenchManager(folder_path)
+        self._impl_manager = ImplementationManager(folder_path)
 
     def get_model_config_from_nir(self, nir):
         """
@@ -53,19 +54,7 @@ class NeuroHls:
     
     def implement_model_from_config(self, model_config: ModelConfig):
         
-        # REFATORAR IMPLEMENTATION_MANAGER
-
-        impl_manager = ImplementationManager((784, ))
-
-        for i in range(len(model_config.layers)):
-            
-            is_activation_layer = (i == len(model_config.layers) - 1)
-            layer = model_config.layers[i]
-
-            if isinstance(layer, DenseLayerConfig):
-                impl_manager.dense(layer.n_inputs, layer.n_neurons, "potential_t", is_activation_layer)
-
-        impl_manager.generate_files(self._folder_path)
+        self._impl_manager.create_files_from_config(model_config)
 
     def create_test_dataset(self, dataloader, step_count: int, different_sample_per_step: bool):
         

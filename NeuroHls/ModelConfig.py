@@ -31,6 +31,14 @@ class LayerConfig:
         self._accum_unroll_factor = accum_unroll_factor
         self._fire_unroll_factor = fire_unroll_factor
 
+    def get_accum_unroll_factor(self):
+        
+        return self._accum_unroll_factor
+    
+    def get_fire_unroll_factor(self):
+
+        return self._fire_unroll_factor
+
 class DenseLayerConfig(LayerConfig):
 
     def __init__(self, n_inputs: int, n_neurons: int):

@@ -304,10 +304,10 @@ class NIRToCppParser:
                 
                 # Chama .dense()
                 # Assumindo activation="LIF" e result_type="potential_t" por padrão
-                impl.dense(
+                impl._dense(
                     n_inputs=in_features,
                     n_neurons=out_features,
-                    result_type="potential_t",
+                    potential_type="potential_t",
                     is_output_layer=is_output
                 )
                 
