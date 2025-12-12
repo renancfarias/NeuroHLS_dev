@@ -19,16 +19,32 @@ class ImplementationManager:
 
         self._impl_code = CodeCreator(self._folder_path)
 
-        self._create_network_header_and_prototype(net_input_shape, net_output_shape)
+        self._create_prototype_and_start_net_impl(net_input_shape, net_output_shape)
         
-        self._cur_layer = 1
         self._last_output_name = "input"
+        self.used_types = {"input_t" : (model_config.input_total_bits, model_config.input_int_bits)}
+
+        self._cur_layer = 1
         self._define_new_expected_input_shape(net_input_shape)
     
-        self.used_types = {"input_t" : (model_config.input_total_bits, model_config.input_int_bits)}
-        self.has_defined_output_layer = False
+        for idx in range(len(model_config.layers)):
 
-    def _create_network_header_and_prototype(self, input_shape, output_shape):
+            layer = model_config.layers[idx]
+            is_last_layer = (idx == len(model_config.layers) - 1)
+            
+            if isinstance(layer, DenseLayerConfig):
+                self._dense(layer.n_inputs, layer.n_neurons, "potential_t", layer.get_accum_unroll_factor(), layer.get_fire_unroll_factor(), is_last_layer)
+
+        self._impl_code.add_code("}")
+
+        header_file = self._generate_header_file()
+        types_file = self._generate_types_file()
+
+        self._impl_code.create_code_file("snn_implementation")
+        header_file.create_header_file("snn_implementation")
+        types_file.create_header_file("net_types")
+
+    def _create_prototype_and_start_net_impl(self, input_shape, output_shape):
 
         bracket_input_shape = get_bracket_notation_of_tuple(input_shape)
         bracket_output_shape = get_bracket_notation_of_tuple(output_shape)
@@ -47,6 +63,10 @@ class ImplementationManager:
         self._impl_code.add_code("\n//" + num_dashes * "-" + "\n")
         self._impl_code.add_code(f"//\tLayer {self._cur_layer}\n")
         self._impl_code.add_code("//" + num_dashes * "-" + "\n\n")
+
+    def _append_line(self, line):
+
+        self._impl_code.add_code(f"\t{line}\n")
 
     def _check_input_shape(self, input_shape):
         
@@ -70,19 +90,12 @@ class ImplementationManager:
         self._last_output_name = f"spikes_{self._cur_layer}"
         self._cur_layer += 1
 
-    def _append_line(self, line):
-
-        self._impl_code.add_code(f"\t{line}\n")
-
     def _check_output_shape(self, output_shape):
         
         if len(output_shape) != 1:
             raise Exception("No support for output shape with dim != 1")
 
-    # def conv_2d(self, in_h : int, in_w : int, ker_h : int, ker_w : int, c_in : int, c_out : int, stride : int, result_type : str, is_output_layer = False, activation = "LIF"):
-        
-    #     if self.has_defined_output_layer:
-    #         raise Exception("Output has already been defined. Cannot add any other layer")
+    # def conv_2d(self, in_h: int, in_w: int, ker_h: int, ker_w: int, c_in: int, c_out: int, stride: int, result_type: str, is_output_layer = False, activation = "LIF"):
         
     #     out_conv_h = (in_h - ker_h) // stride + 1
     #     out_conv_w = (in_w - ker_w) // stride + 1
@@ -124,10 +137,7 @@ class ImplementationManager:
     #     else:
     #         self._prepare_for_next_layer()
 
-    def dense(self, n_inputs : int, n_neurons : int, result_type : str, is_output_layer = False, activation = "LIF"):
-        
-        if self.has_defined_output_layer:
-            raise Exception("Output has already been defined. Cannot add any other layer")
+    def _dense(self, n_inputs: int, n_neurons: int, potential_type: str, accum_unroll_factor: int, fire_unroll_factor: int, is_output_layer = False, activation = "LIF"):
         
         input_shape = (n_inputs, )
         output_shape = (n_neurons, )
@@ -139,7 +149,7 @@ class ImplementationManager:
         self._define_new_expected_input_shape(output_shape)
 
         activation = self._get_activation_function(activation)
-        self.used_types.add(result_type)
+        # self.used_types.add(result_type)
 
         output_shape = get_bracket_notation_of_tuple(output_shape)
 
@@ -150,61 +160,45 @@ class ImplementationManager:
         weight_var_name = f"weights_{self._cur_layer}"
         bias_var_name = f"bias_{self._cur_layer}"
 
-        self._append_line(f"static {result_type} {potentials_var_name}{output_shape} = {{}};")
+        self._append_line(f"static {potential_type} {potentials_var_name}{output_shape} = {{}};")
 
         if not is_output_layer:
             self._append_line(f"bit_t {spikes_var_name}{output_shape};\n")
         else:
             self._append_line("")
 
-        self._append_line(f"dense<{n_inputs}, {n_neurons}>({self._last_output_name}, {potentials_var_name}, {weight_var_name}, {bias_var_name});")
-        self._append_line(f"dense_{activation}<{n_neurons}>({potentials_var_name}, {spikes_var_name});")
+        self._append_line(f"dense<{n_inputs}, {n_neurons}, {accum_unroll_factor}>({self._last_output_name}, {potentials_var_name}, {weight_var_name}, {bias_var_name});")
+        self._append_line(f"dense_{activation}<{n_neurons}, {fire_unroll_factor}>({potentials_var_name}, {spikes_var_name});")
 
-        if is_output_layer:
-            self._finish_header(output_shape)
-            self.has_defined_output_layer = True
-        else:
+        # if is_output_layer:
+        #     self._finish_header(output_shape)
+        #     self.has_defined_output_layer = True
+        # else:
+        #     self._prepare_for_next_layer()
+
+        if not is_output_layer:
             self._prepare_for_next_layer()
 
-    def _generate_types_file(self, path):
+    def _generate_types_file(self):
 
         types_file = CodeCreator(self._folder_path)
 
         types_file.add_include("ap_fixed.h")
         types_file.add_include("neuro_hls_functions/bit_type.h")
+        
+        for type_name, quant in self.used_types.items():
+            types_file.add_code(f"typedef ap_fixed<{quant[0]}, {quant[1]}> {type_name};\n")
+            
+        return types_file
 
-        # FINALIZAR PARA USAR DICT
+    def _generate_header_file(self):
 
-        for type in self.used_types:
-            types_and_params += f"typedef ap_fixed<16, 8> {type};\n"
-
-        types_file.create_header_file("net_types")
-
-    def _generate_header_file(self, folder_path):
-
-        header = CodeCreator(folder_path)
+        header = CodeCreator(self._folder_path)
 
         header.add_include("types_and_params.h")
         header.add_include("neuro_hls_functions/bit_type.h")
         header.add_include("neuro_hls_functions/dense.h")
 
         header.add_code(self._prototype)
-        header.create_header()
 
-    def generate_files(self, folder_path):
-
-        if not self.has_defined_output_layer:
-            raise Exception("Cannot generate files because output layer was not defined")
-
-        self._cpp = self._impl_code + self._cpp
-        self._cpp += "}\n"
-
-        Path(folder_path).mkdir(parents=True, exist_ok=True)
-
-        with open(f"{folder_path}/snn_implementation.cpp", "w") as f:
-            f.write(self._cpp)
-
-        # copy_folder_from_backend("neuro_hls_functions", folder_path)
-
-        self._generate_types_file(folder_path)
-        self._generate_header_file(folder_path)
+        return header
