@@ -21,6 +21,8 @@ class NeuroHls:
         self._tb_manager = TestbenchManager(folder_path)
         self._impl_manager = ImplementationManager(folder_path)
 
+        self._has_defined_project_and_solution = False
+
     def get_model_config_from_nir(self, nir):
         """
         Extrai a configuração do modelo a partir de um arquivo NIR.
@@ -79,13 +81,32 @@ class NeuroHls:
 
         print("Testbench Criado")
 
+    def define_project_and_solution(self, project_name, solution_name):
+
+        self._project_name = project_name
+        self._solution_name = solution_name
+
+        self._has_defined_project_and_solution = True
+
+
+    # As funcoes abaixo estao improvisadas para testar os novos arquivos TCL
+
+    def create_project(self):
+
+        subprocess.run(["vitis_hls", "0_create_project.tcl", self._project_name], cwd = self._folder_path)
+
     def run_csim(self):
 
-        if not self._has_created_testbench:
-            print("ERROR: The testbench files must be created before running the C-Simulation.")
-            return
+        # if not self._has_defined_project_and_solution:
+        #     print("ERROR: The project's and solution's name must be defined before running the C-Simulation")
+        #     return
         
-        subprocess.run(["vitis_hls", "-f", "run_csim.tcl"], cwd = self._folder_path)
+        # if not self._has_created_testbench:
+        #     print("ERROR: The testbench files must be created before running the C-Simulation.")
+        #     return
+        
+        subprocess.run(["vitis_hls", "1_csim.tcl", self._project_name, self._solution_name], cwd = self._folder_path)
 
-    def run_synth(self):
-        pass
+    def run_synth(self, clk_period: int, part = "xc7z020clg400-1"):
+        
+        subprocess.run(["vitis_hls", "2_synth.tcl", self._project_name, self._solution_name, str(clk_period), part], cwd = self._folder_path)
