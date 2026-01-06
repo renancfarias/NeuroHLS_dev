@@ -58,9 +58,9 @@ class NeuroHls:
         
         self._impl_manager.create_files_from_config(model_config)
 
-    def create_test_dataset(self, dataloader, step_count: int, different_sample_per_step: bool):
+    def create_test_dataset(self, npz_file: str, data_is_binary: bool, step_count: int, different_sample_per_step: bool):
         
-        self._tb_manager.define_dataset(dataloader, step_count, different_sample_per_step)
+        self._tb_manager.define_dataset(npz_file, data_is_binary, step_count, different_sample_per_step)
 
     def define_testbench_parameters(self, total_samples: int, batch_size: int):
         
