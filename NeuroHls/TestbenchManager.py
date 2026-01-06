@@ -70,29 +70,31 @@ class TestbenchManager:
         read_batch.append_line(input_file_read + ";")
         return read_batch.get_text()
     
-    def define_dataset(self, dataloader, step_count: int, different_sample_per_step: bool):
+    def define_dataset(self, npz_file: str, data_is_binary: bool, step_count: int, different_sample_per_step: bool):
 
-        total_samples = 0
-        total_labels = 0
+        dataset = np.load(npz_file)
 
-        for batch_x, batch_y in dataloader:
+        data = dataset["data"]
+        labels = dataset["labels"]
 
-            # FALTA CRIAR ARQUIVO TXT
-            
-            if hasattr(batch_x, "numpy"):
-                batch_x = batch_x.numpy()
-                batch_y = batch_y.numpy()
-
-                total_samples += batch_x.shape[0]
-                total_labels += batch_y.shape[0]
+        total_samples = data.shape[0]
+        total_labels = labels.shape[0]
 
         if different_sample_per_step and total_samples != total_labels * step_count:
 
-            raise Exception(f"Number of samples does not match. {total_samples} != {total_labels} * {step_count}")
+            raise Exception(f"Number of samples does not match. {total_samples} samples != {total_labels} labels * {step_count} steps")
         
         if not different_sample_per_step and total_samples != total_labels:
 
-            raise Exception(f"Number of samples does not match. {total_samples} != {total_labels}")
+            raise Exception(f"Number of samples does not match. {total_samples} samples != {total_labels} labels")
+
+        if data.ndim > 1:
+            data = data.reshape(data.shape[0], -1)
+
+        os.makedirs(f"{self._folder_path}/tb_data", exist_ok=True)
+
+        np.savetxt(f"{self._folder_path}/tb_data/data.txt", data, fmt="%.6f" if not data_is_binary else "%d")
+        np.savetxt(f"{self._folder_path}/tb_data/targets.txt", labels, fmt="%d")
         
         self._available_samples = total_samples
         self._step_count = step_count

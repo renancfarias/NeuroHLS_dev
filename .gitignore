@@ -36,3 +36,4 @@ z_test/
 cpp_output/
 
 gen_test_hls/
+data_test.npz
