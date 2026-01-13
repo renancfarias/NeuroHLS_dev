@@ -54,6 +54,22 @@ class NeuroHls:
 
         return model_config
     
+    def get_dummy_model_config(self):
+        
+        model_config = ModelConfig()
+
+        layer1 = DenseLayerConfig(784, 128)
+        layer2 = DenseLayerConfig(128, 10)
+
+        model_config.add_layer(layer1)
+        model_config.add_layer(layer2)
+
+        self._input_shape = (784,)
+        self._output_size = 10
+        self._has_parsed_nir = True
+
+        return model_config
+    
     def implement_model_from_config(self, model_config: ModelConfig):
         
         self._impl_manager.create_files_from_config(model_config)
