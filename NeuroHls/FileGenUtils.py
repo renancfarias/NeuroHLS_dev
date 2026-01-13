@@ -94,6 +94,16 @@ def copy_file_from_backend(path_inside_backend, to_path):
 
     shutil.copy(backend_path, to_path)
 
+def get_testbench_cpp():
+
+    base_dir = os.path.dirname(__file__)    
+    path = os.path.join(base_dir, "backend/testbench.cpp")
+
+    with open(path, "r", encoding="utf-8") as f:
+        tb_cpp = f.read()
+
+    return tb_cpp
+
 def get_closest_divisor(number: int, candidite_divisor: int):
     
     smaller_divisor = candidite_divisor

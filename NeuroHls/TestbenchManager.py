@@ -126,13 +126,11 @@ class TestbenchManager:
 
         self._input_shape = input_shape
         self._output_size = output_size
+        
+        tb_cpp = get_testbench_cpp()
 
-        # copy_file_from_backend("testbench.cpp", self._folder_path)
-
-        tb_name = f"{self._folder_path}/testbench.cpp"
-
-        with open(tb_name, "r", encoding="utf-8") as f:
-            tb_cpp = f.read()
+        # Remove unedited tag
+        tb_cpp = tb_cpp.replace("//<unedited>", "")
 
         # Declaration input_data
         tb_cpp = tb_cpp.replace("//<decl_input_data>", self._get_decl_input_data_code())
@@ -146,6 +144,7 @@ class TestbenchManager:
         # Define constants, such as the number of steps, output size, etc
         tb_cpp = tb_cpp.replace("//<decl_constants>", self._get_decl_constants_code())
 
+        tb_name = f"{self._folder_path}/testbench.cpp"
         with open(tb_name, "w", encoding="utf-8") as f:
             f.write(tb_cpp)
 
