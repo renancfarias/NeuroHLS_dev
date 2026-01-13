@@ -37,3 +37,6 @@ cpp_output/
 
 gen_test_hls/
 data_test.npz
+
+z_mini_tf.npz
+z_mini_torch.npz
