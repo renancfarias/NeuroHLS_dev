@@ -17,8 +17,6 @@ void dense(input_type input [n_inputs],
     #pragma HLS ARRAY_PARTITION variable=input factor=unroll_factor dim=1 type=cyclic
     #pragma HLS ARRAY_PARTITION variable=aux factor=unroll_factor dim=1 type=cyclic
 
-    // OBS: unroll_factor precisa dividir n_inputs
-
     dense_inputs:
     for (int i = 0; i < n_inputs; i += unroll_factor)
     {

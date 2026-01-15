@@ -1,5 +1,6 @@
 import os
 import numpy as np
+from pathlib import Path
 
 from .FileGenUtils import *
 
@@ -148,31 +149,49 @@ class TestbenchManager:
         with open(tb_name, "w", encoding="utf-8") as f:
             f.write(tb_cpp)
 
-    def get_status(self):
+    def is_ready(self):
 
-        test_dataset_path = f"{self._folder_path}/tb_data/data.txt"
-        test_targets_path = f"{self._folder_path}/tb_data/targets.txt"
+        test_data_path = Path(self._folder_path) / "tb_data" / "data.txt"
+        test_targets_path = Path(self._folder_path) / "tb_data" / "targets.txt"
+        testbench_file_path = Path(self._folder_path) / "testbench.cpp"
 
-        status_dataset = "OK" if os.path.exists(test_dataset_path) else "MISSING"
-        status_targets = "OK" if os.path.exists(test_targets_path) else "MISSING"
+        is_ready = True
 
-        print("\nTestbench Status:")
+        print("-" * 30)
+        print("Testbench Status")
+        print("-" * 30 + "\n")
 
-        print(f" - Test dataset: {status_dataset}")
-        print(f" - Test targets: {status_targets}")
+        # --------------------
+        # Test Data
+        # --------------------
 
-        overall_status = "YES" if status_dataset == "OK" and status_targets == "OK" else "NO"
-        print(f"\nReady? {overall_status}")
+        if not os.path.exists(test_data_path):
+            is_ready = False
+            print(f" - Test dataset: MISSING")
+        else:
+            print(f" - Test dataset: OK")
 
-# def test_testbench_manager():
+        # --------------------
+        # Test Targets
+        # --------------------
 
-#     tb_manager = TestbenchManager("tcl_test")
+        if not os.path.exists(test_targets_path):
+            is_ready = False
+            print(f" - Test targets: MISSING")
+        else:
+            print(f" - Test targets: OK")
 
-#     # tb_manager.define_dataset("blabla")
-#     # tb_manager.define_sample_count_and_batch_size(100, 1)
+        # --------------------
+        # Testbench file
+        # --------------------
 
-#     tb_manager.create_testbench_file((784,), 10, 10, True)
+        if not os.path.exists(testbench_file_path):
+            is_ready = False
+            print(f" - Testbench file: MISSING")
+        else:
+            print(f" - Testbench file: OK")
 
-#     tb_manager.get_status()
+        overall_status = "YES" if is_ready else "NO"
+        print(f"\n   Ready? {overall_status}")
 
-# test_testbench_manager()
+        return is_ready

@@ -1,5 +1,6 @@
 import subprocess
 import os
+from pathlib import Path
 
 from .FileGenUtils import *
 from .TestbenchManager import *
@@ -21,7 +22,7 @@ class NeuroHls:
         self._tb_manager = TestbenchManager(folder_path)
         self._impl_manager = ImplementationManager(folder_path)
 
-        self._has_defined_project_and_solution = False
+        self._project_name = "vitis_proj"
 
     def get_model_config_from_nir(self, nir):
         """
@@ -74,55 +75,55 @@ class NeuroHls:
         
         self._impl_manager.create_files_from_config(model_config)
 
-    def create_test_dataset(self, npz_file: str, data_is_binary: bool, step_count: int, different_sample_per_step: bool):
+    def define_test_dataset(self, npz_file: str, data_is_binary: bool, step_count: int, different_sample_per_step: bool):
         
         self._tb_manager.define_dataset(npz_file, data_is_binary, step_count, different_sample_per_step)
 
-    def define_testbench_parameters(self, total_samples: int, batch_size: int):
+    def create_testbench(self, total_samples: int, batch_size: int):
+
+        if not self._has_parsed_nir:
+            print("ERROR: The network architecture must be defined before creating the testbench files.")
+            return
         
         used_total_samples, used_batch_size = self._tb_manager.define_sample_count_and_batch_size(total_samples, batch_size)
 
         print(f"Total samples used: {used_total_samples} of {self._tb_manager.get_number_of_available_samples()}")
         print(f"Batch size: {used_batch_size}")
         print(f"Total batches: {used_total_samples // used_batch_size}")
-
-    def create_testbench(self):
-
-        if not self._has_parsed_nir:
-            print("ERROR: The network architecture must be defined before creating the testbench files.")
-            return
         
         self._tb_manager.create_testbench_file(self._input_shape, self._output_size)
         self._has_created_testbench = True
 
-        print("Testbench Criado")
+        print("Testbench was created.")
 
-    def define_project_and_solution(self, project_name, solution_name):
+    def _create_vitis_project_if_needed(self):
 
-        self._project_name = project_name
-        self._solution_name = solution_name
+        proj_path = Path(self._folder_path) / self._project_name
 
-        self._has_defined_project_and_solution = True
-
-
-    # As funcoes abaixo estao improvisadas para testar os novos arquivos TCL
-
-    def create_project(self):
+        if os.path.exists(proj_path):
+            return
+        
+        print("Creating Vitis Project...\n")
+        
+        if not self._tb_manager.is_ready():
+            print("\n*** Project creation aborted.")
+            raise Exception("Missing file")
 
         subprocess.run(["vitis_hls", "0_create_project.tcl", self._project_name], cwd = self._folder_path)
 
-    def run_csim(self):
+    def run_csim(self, solution_name = "sol"):
+        
+        try:
+            self._create_vitis_project_if_needed()
+            subprocess.run(["vitis_hls", "1_csim.tcl", self._project_name, solution_name], cwd = self._folder_path)
+        except Exception:
+            print("\n*** Unable to run C-Simulation.")
 
-        # if not self._has_defined_project_and_solution:
-        #     print("ERROR: The project's and solution's name must be defined before running the C-Simulation")
-        #     return
-        
-        # if not self._has_created_testbench:
-        #     print("ERROR: The testbench files must be created before running the C-Simulation.")
-        #     return
-        
-        subprocess.run(["vitis_hls", "1_csim.tcl", self._project_name, self._solution_name], cwd = self._folder_path)
+    def run_synth(self, clk_period_ms: int, part = "xc7z020clg400-1", solution_name = "sol"):
 
-    def run_synth(self, clk_period: int, part = "xc7z020clg400-1"):
+        try:
+            self._create_vitis_project_if_needed()
+            subprocess.run(["vitis_hls", "2_synth.tcl", self._project_name, solution_name, str(clk_period_ms), part], cwd = self._folder_path)
+        except Exception:
+            print("\n*** Unable to run Synthesis.")
         
-        subprocess.run(["vitis_hls", "2_synth.tcl", self._project_name, self._solution_name, str(clk_period), part], cwd = self._folder_path)
