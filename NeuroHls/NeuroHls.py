@@ -48,6 +48,17 @@ class NeuroHls:
         # Extrai o ModelConfig do parser
         model_config, input_shape, output_size = parser.get_model_config_from_nir()
         
+        # Exporta os pesos e bias para arquivo header
+        weights_header_path = os.path.join(self._folder_path, "nir_weights.h")
+        parser.export_weights_to_c_header(
+            header_path=weights_header_path,
+            ctype="float",
+            emit_typedef_if_builtin=True,
+            line_wrap=10,
+            float_fmt=".8f",
+            verbose=True
+        )
+        
         # Armazena os valores extraídos
         self._input_shape = input_shape
         self._output_size = output_size
