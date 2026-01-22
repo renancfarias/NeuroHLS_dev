@@ -523,6 +523,36 @@ class AvgPool2d(LayerConfig):
     def get_output_shape(self):
         return self.output_shape
 
+class Linear(LayerConfig):
+    
+    def __init__(self, input_shape: tuple, output_shape: tuple, weight: np.ndarray):
+        """
+        Linear transform without bias configuration.
+        
+        Args:
+            input_shape: Shape of the input tensor
+            output_shape: Shape of the output tensor (calculated by NIR)
+            weight: Weight matrix
+        """
+        super().__init__()
+        self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
+        self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
+        self.weight = weight
+    
+    def __str__(self):
+        s = f"Linear (input: {tuple(self.input_shape)}, output: {tuple(self.output_shape)})\n"
+        s += f"\tWeight shape: {self.weight.shape}\n"
+        s += "-" * 30 + "\n\n"
+        s += super().__str__()
+        
+        return s
+    
+    def get_input_shape(self):
+        return self.input_shape
+    
+    def get_output_shape(self):
+        return self.output_shape
+
 class DenseLayerConfig(LayerConfig):
 
     def __init__(self, n_inputs: int, n_neurons: int):
