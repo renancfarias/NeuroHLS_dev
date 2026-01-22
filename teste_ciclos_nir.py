@@ -14,7 +14,56 @@ def get_bracket_str(arr):
 
     return ""
 
-def teste(nir_file: str):
+class LayerConf:
+    def __init__(self, name, func_name, input_shape, output_shape):
+        self.dependencies = []
+        self.name = name
+        self.func_name = func_name
+        self.input_shape = input_shape
+        self.output_shape = output_shape
+        self.is_recurrent = False
+
+    def add_dependency(self, name: str, is_recurrent: bool):
+        self.dependencies.append((name, is_recurrent))
+
+    def __str__(self):
+        s = "\n------------\n"
+        s += f"layer: {self.name}\n"
+        s += f"input {self.input_shape}\n"
+        s += f"output: {self.output_shape}\n"
+        s += f"is recurrent: {'yes' if self.is_recurrent else 'no'}\n"
+
+        s += "dependencies:\n"
+        for (name, is_recurrent) in self.dependencies:
+            s += f"  - {name} ({'recurrent' if is_recurrent else 'ready'})\n"
+
+        return s
+
+
+class ModelConf:
+    def __init__(self):
+        self.layers = []
+    
+    def define_input(self, layer: LayerConf):
+        self.layers.append(layer)
+        self.input_shape = layer.input_shape
+
+    def define_output(self, layer: LayerConf):
+        self.layers.append(layer)
+        self.output_shape = layer.output_shape
+
+    def add_layer(self, layer: LayerConf):
+        self.layers.append(layer)
+
+    def __str__(self):
+        s = ""
+
+        for layer in self.layers:
+            s += layer.__str__()
+
+        return s
+
+def read_nir(nir_file: str):
 
     print("\n" + "-" * 60)
     print(f"Abrindo {nir_file}")
@@ -36,6 +85,8 @@ def teste(nir_file: str):
     visited = set()
     queue = deque()
 
+    model_conf = ModelConf()
+
     queue.append("input")
     while queue:
         cur = queue.popleft()
@@ -44,44 +95,81 @@ def teste(nir_file: str):
         node_info = nodes[cur]
         func_name = type(node_info).__name__
 
-        output_bracket = get_bracket_str(node_info.output_type['output'])
+        input_shape = node_info.input_type['input']
+        output_shape = node_info.output_type['output']
+
+        cur_layer = LayerConf(cur, func_name, input_shape, output_shape)
 
         for node in graph[cur]:
             if node not in visited:
                 queue.append(node)
 
-        if func_name == "Input":
-            print(f"snn_hls(input{output_bracket})")
-            continue
+        ### Checking if layer is recurrent
 
-        ### Should declare potential (not recurrent)
-
-        should_decl_potential = True
         for node in graph[cur]:
             if node in visited:
-                should_decl_potential = False
-
-        if should_decl_potential:
-            print(f"    {cur}{output_bracket} = {{}}")
+                cur_layer.is_recurrent = True
 
         ### Declaring dependencies (if recurrent)
 
         for dep in dependencies[cur]:
+            is_dep_recurrent = False
+
             if dep not in visited:
-                print(f"    {dep}{get_bracket_str(nodes[dep].input_type['input'])} = {{}} // recurrent")
+                is_dep_recurrent = True
+            
+            cur_layer.add_dependency(dep, is_dep_recurrent)
 
-        ### Adding dependecies
-
-        if len(dependencies[cur]) == 0:
+        if func_name == "Input":
+            model_conf.define_input(cur_layer)
             continue
 
-        if len(dependencies[cur]) == 1: # Sem recorrencia
-            print(f"    {func_name}({dependencies[cur][0]}, {cur});")
-        else:
-            for dep in dependencies[cur][1:]:
-                print(f"    merge({dependencies[cur][0]}, {dep});")
-            print(f"    {func_name}({dependencies[cur][0]}, {cur});")
-        print()
+        if func_name == "Output":
+            model_conf.define_output(cur_layer)
+            continue
+
+        model_conf.add_layer(cur_layer)
+    
+    return model_conf
+
+def implement_model(model: ModelConf):
+
+    # (id da camada do NIR, nome a ser usado na impl)
+    layer_names = {}
+    rec_layer_names = {}
+    
+    print("Implementacao dummy:\n\n")
+    print(f"snn_to_hls(input_t input{get_bracket_str(model.input_shape)}, bit_t output{get_bracket_str(model.output_shape)})\n{'{'}", end="")
+
+    for layer in model.layers[1:-1]:
+
+        print(f"\n    // implementacao {layer.name}\n")
+
+        if not layer.is_recurrent:
+            # precisa declarar potenciais da camada
+
+            name = f"layer_{len(layer_names) + 1}"
+            layer_names[layer.name] = name
+
+            print(f"    type_t {name}{get_bracket_str(layer.output_shape)} = {{}};")
+
+        # accum_name = layer.dependencies[0][0]
+        for (i, (dep_name, is_recurrent)) in enumerate(layer.dependencies):
+            
+            impl_dep_name = f"rec_{len(rec_layer_names) + 1}"
+
+            if is_recurrent:
+                # precisa declarar potenciais recorrentes
+                print(f"    type_t {impl_dep_name}{get_bracket_str(layer.input_shape)} = {{}};")
+
+            # if i > 0:
+            #     print(f"    merge({}, {name});")
+    
+    print("}")
+
+def teste(nir_file):
+    model = read_nir(nir_file)
+    implement_model(model)
 
 # teste("z_nir_examples/lif_norse.nir")
 # teste("z_nir_examples/cnn_sinabs.nir")
