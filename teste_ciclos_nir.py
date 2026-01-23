@@ -136,34 +136,48 @@ def implement_model(model: ModelConf):
 
     # (id da camada do NIR, nome a ser usado na impl)
     layer_names = {}
-    rec_layer_names = {}
+    rec_count = 0
     
     print("Implementacao dummy:\n\n")
     print(f"snn_to_hls(input_t input{get_bracket_str(model.input_shape)}, bit_t output{get_bracket_str(model.output_shape)})\n{'{'}", end="")
 
-    for layer in model.layers[1:-1]:
+    for (idx, layer) in enumerate(model.layers[1:-1]):
 
-        print(f"\n    // implementacao {layer.name}\n")
+        print(f"\n// implementation of '{layer.name}' layer\n")
 
-        if not layer.is_recurrent:
-            # precisa declarar potenciais da camada
+        # Declarando potenciais de camadas recorrentes que a camada atual usa
 
-            name = f"layer_{len(layer_names) + 1}"
-            layer_names[layer.name] = name
+        for (dep_name, is_recurrent) in layer.dependencies:
 
-            print(f"    type_t {name}{get_bracket_str(layer.output_shape)} = {{}};")
+            if is_recurrent and dep_name not in layer_names:
+                
+                rec_count += 1
+                impl_dep_name = f"rec_{rec_count}"
+                layer_names[dep_name] = impl_dep_name
 
-        # accum_name = layer.dependencies[0][0]
-        for (i, (dep_name, is_recurrent)) in enumerate(layer.dependencies):
-            
-            impl_dep_name = f"rec_{len(rec_layer_names) + 1}"
-
-            if is_recurrent:
-                # precisa declarar potenciais recorrentes
                 print(f"    type_t {impl_dep_name}{get_bracket_str(layer.input_shape)} = {{}};")
 
-            # if i > 0:
-            #     print(f"    merge({}, {name});")
+        # Dando merge nos inputs (caso tenha mais de um)
+
+        input_accum_name = layer_names.get(layer.dependencies[0][0], layer.dependencies[0][0])
+        for (dep_name, is_recurrent) in layer.dependencies[1:]:
+            print(f"    merge({input_accum_name}, {layer_names[dep_name]});")
+
+        # Declarando potencial da camada, caso ela nao seja recorrente
+
+        if not layer.is_recurrent:
+
+            if idx == len(model.layers) - 3:
+                name = "output"
+            else:
+                name = f"layer_{len(layer_names) + 1}"
+                layer_names[layer.name] = name
+                print(f"    type_t {name}{get_bracket_str(layer.output_shape)} = {{}};")
+        else:
+            name = layer_names[layer.name]
+
+        # Chamando a funcao
+        print(f"    {layer.func_name}({input_accum_name}, {name});")
     
     print("}")
 
