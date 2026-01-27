@@ -1,6 +1,7 @@
-from typing import List, Union, Tuple, Optional
+from typing import List, Union, Tuple, Optional, Any
 import numpy as np
 from .FileGenUtils import get_closest_divisor
+import nir
 
 class LayerConfig:
 
@@ -622,4 +623,357 @@ class ModelConfig:
 
         self.layers.append(layer)
 
+
+def get_info_from_node(node: Any, input_shape: tuple, output_shape: tuple) -> Optional[LayerConfig]:
+    """
+    Extrai informações de um nó NIR e retorna a instância da classe apropriada.
     
+    Args:
+        node: Nó do grafo NIR
+        input_shape: Shape da entrada para esta camada
+        output_shape: Shape da saída desta camada
+        
+    Returns:
+        Instância de LayerConfig apropriada ou None se o tipo não for reconhecido
+    """
+    node_type = type(node).__name__
+    
+    # Affine layer (camada linear com bias)
+    if node_type == 'Affine':
+        # Affine tem weight de shape [out, in] e bias de shape [out]
+        if hasattr(node, 'weight') and node.weight is not None:
+            n_neurons = node.weight.shape[0]
+            n_inputs = node.weight.shape[1]
+            return Affine(n_inputs, n_neurons)
+        else:
+            raise ValueError(f"Nó Affine sem weight: {node}")
+    
+    # Flatten layer
+    elif node_type == 'Flatten':
+        start_dim = getattr(node, 'start_dim', 1)
+        end_dim = getattr(node, 'end_dim', -1)
+        return Flatten(input_shape, output_shape, start_dim, end_dim)
+    
+    # Conv1d layer
+    elif node_type == 'Conv1d':
+        weight = node.weight
+        stride = getattr(node, 'stride', 1)
+        padding = getattr(node, 'padding', 0)
+        dilation = getattr(node, 'dilation', 1)
+        groups = getattr(node, 'groups', 1)
+        bias = getattr(node, 'bias', None)
+        
+        return Conv1d(input_shape, output_shape, weight, stride, padding, dilation, groups, bias)
+    
+    # Conv2d layer
+    elif node_type == 'Conv2d':
+        weight = node.weight
+        stride = getattr(node, 'stride', 1)
+        padding = getattr(node, 'padding', 0)
+        dilation = getattr(node, 'dilation', 1)
+        groups = getattr(node, 'groups', 1)
+        bias = getattr(node, 'bias', None)
+        
+        return Conv2d(input_shape, output_shape, weight, stride, padding, dilation, groups, bias)
+    
+    # CubaLI (Current-based Leaky Integrator)
+    elif node_type == 'CubaLI':
+        tau_syn = node.tau_syn
+        tau_mem = node.tau_mem
+        r = node.r
+        v_leak = node.v_leak
+        w_in = node.w_in
+        
+        return CubaLI(input_shape, output_shape, tau_syn, tau_mem, r, v_leak, w_in)
+    
+    # CubaLIF (Current-based Leaky Integrate-and-Fire)
+    elif node_type == 'CubaLIF':
+        tau_syn = node.tau_syn
+        tau_mem = node.tau_mem
+        r = node.r
+        v_leak = node.v_leak
+        v_threshold = node.v_threshold
+        v_reset = node.v_reset
+        w_in = node.w_in
+        
+        return CubaLIF(input_shape, output_shape, tau_syn, tau_mem, r, v_leak, v_threshold, v_reset, w_in)
+    
+    # I (Integrator)
+    elif node_type == 'I':
+        r = node.r
+        return I(input_shape, output_shape, r)
+    
+    # IF (Integrate-and-Fire)
+    elif node_type == 'IF':
+        r = node.r
+        v_threshold = node.v_threshold
+        v_reset = node.v_reset
+        
+        return IF(input_shape, output_shape, r, v_threshold, v_reset)
+    
+    # LI (Leaky Integrator)
+    elif node_type == 'LI':
+        tau = node.tau
+        r = node.r
+        v_leak = node.v_leak
+        
+        return LI(input_shape, output_shape, tau, r, v_leak)
+    
+    # LIF (Leaky Integrate-and-Fire)
+    elif node_type == 'LIF':
+        tau = node.tau
+        r = node.r
+        v_leak = node.v_leak
+        v_threshold = node.v_threshold
+        v_reset = node.v_reset
+        
+        return LIF(input_shape, output_shape, tau, r, v_leak, v_threshold, v_reset)
+    
+    # SumPool2d
+    elif node_type == 'SumPool2d':
+        kernel_size = getattr(node, 'kernel_size', 2)
+        stride = getattr(node, 'stride', None)
+        if stride is None:
+            stride = kernel_size
+        padding = getattr(node, 'padding', 0)
+        
+        return SumPool2d(input_shape, output_shape, kernel_size, stride, padding)
+    
+    # AvgPool2d
+    elif node_type == 'AvgPool2d':
+        kernel_size = getattr(node, 'kernel_size', 2)
+        stride = getattr(node, 'stride', None)
+        if stride is None:
+            stride = kernel_size
+        padding = getattr(node, 'padding', 0)
+        
+        return AvgPool2d(input_shape, output_shape, kernel_size, stride, padding)
+    
+    # Linear (sem bias)
+    elif node_type == 'Linear':
+        weight = node.weight
+        return Linear(input_shape, output_shape, weight)
+    
+    # Tipos especiais que não geram camadas
+    elif node_type in ['Input', 'Output']:
+        return None
+    
+    # Tipo não reconhecido
+    else:
+        raise ValueError(f"Tipo de nó não reconhecido: {node_type}")
+
+def build_model_from_nir(nir_file: str) -> ModelConfig:
+    """
+    Constrói um ModelConfig a partir de um arquivo NIR usando busca em largura (BFS).
+    
+    Args:
+        nir_file: Caminho para o arquivo .nir
+        
+    Returns:
+        ModelConfig com todas as camadas configuradas
+    """
+    from collections import deque
+    
+    # Lê o grafo NIR
+    nir_graph = nir.read(nir_file)
+    nodes = nir_graph.nodes
+    edges = nir_graph.edges
+    
+    # Constrói o grafo de adjacências
+    graph = {}
+    for node_name in nodes.keys():
+        graph[node_name] = []
+    
+    for src, dst in edges:
+        if src in graph:
+            graph[src].append(dst)
+    
+    # Inicializa a busca em largura
+    visited = set()
+    queue = deque()
+    model_config = ModelConfig()
+    
+    # Começa do nó 'input'
+    queue.append('input')
+    
+    # Dicionário para guardar os shapes calculados de cada nó
+    shapes = {}
+    
+    # Processa o nó de entrada
+    if 'input' in nodes:
+        input_node = nodes['input']
+        if hasattr(input_node, 'output_type') and 'output' in input_node.output_type:
+            input_shape = tuple(input_node.output_type['output'])
+        elif hasattr(input_node, 'input_type') and 'input' in input_node.input_type:
+            input_shape = tuple(input_node.input_type['input'])
+        else:
+            raise ValueError("Não foi possível determinar o shape de entrada do NIR")
+        
+        shapes['input'] = input_shape
+    
+    # BFS
+    while queue:
+        current_node_name = queue.popleft()
+        
+        if current_node_name in visited:
+            continue
+            
+        visited.add(current_node_name)
+        
+        # Pega o nó atual
+        if current_node_name not in nodes:
+            continue
+            
+        current_node = nodes[current_node_name]
+        
+        # Determina o input_shape para este nó
+        # (vem do shape de saída do nó anterior)
+        if current_node_name == 'input':
+            current_input_shape = shapes['input']
+        else:
+            # Encontra o predecessor (assumindo que há apenas um por enquanto)
+            predecessors = [src for src, dst in edges if dst == current_node_name]
+            if predecessors:
+                # Pega o shape do primeiro predecessor
+                current_input_shape = shapes.get(predecessors[0], None)
+                if current_input_shape is None:
+                    print(f"Aviso: Shape de entrada não encontrado para {current_node_name}")
+                    current_input_shape = (1,)  # placeholder
+            else:
+                current_input_shape = (1,)  # placeholder
+        
+        # Determina o output_shape
+        if hasattr(current_node, 'output_type') and 'output' in current_node.output_type:
+            current_output_shape = tuple(current_node.output_type['output'])
+        elif hasattr(current_node, 'input_type') and 'output' in current_node.input_type:
+            current_output_shape = tuple(current_node.input_type['output'])
+        else:
+            # Tenta inferir do próprio nó
+            current_output_shape = current_input_shape  # placeholder
+        
+        # Salva o shape de saída deste nó
+        shapes[current_node_name] = current_output_shape
+        
+        # Extrai informações do nó e cria a camada
+        try:
+            layer = get_info_from_node(current_node, current_input_shape, current_output_shape)
+            
+            # Adiciona a camada ao modelo (se não for None)
+            if layer is not None:
+                model_config.add_layer(layer)
+                print(f"Camada adicionada: {current_node_name} ({type(current_node).__name__})")
+        
+        except Exception as e:
+            print(f"Erro ao processar nó {current_node_name}: {e}")
+        
+        # Adiciona os vizinhos à fila
+        for neighbor in graph.get(current_node_name, []):
+            if neighbor not in visited:
+                queue.append(neighbor)
+    
+    return model_config
+
+def create_model_config_from_nir(nir_graph) -> ModelConfig:
+    """
+    Constrói um ModelConfig a partir de um objeto NIR Graph.
+    
+    Args:
+        nir_graph: Objeto NIRGraph já carregado
+        
+    Returns:
+        ModelConfig com todas as camadas configuradas
+    """
+    from collections import deque
+    
+    nodes = nir_graph.nodes
+    edges = nir_graph.edges
+    
+    # Constrói o grafo de adjacências
+    graph = {}
+    for node_name in nodes.keys():
+        graph[node_name] = []
+    
+    for src, dst in edges:
+        if src in graph:
+            graph[src].append(dst)
+    
+    # Inicializa a busca em largura
+    visited = set()
+    queue = deque()
+    model_config = ModelConfig()
+    
+    # Começa do nó 'input'
+    queue.append('input')
+    
+    # Dicionário para guardar os shapes calculados de cada nó
+    shapes = {}
+    
+    # Processa o nó de entrada
+    if 'input' in nodes:
+        input_node = nodes['input']
+        if hasattr(input_node, 'output_type') and 'output' in input_node.output_type:
+            input_shape = tuple(input_node.output_type['output'])
+        elif hasattr(input_node, 'input_type') and 'input' in input_node.input_type:
+            input_shape = tuple(input_node.input_type['input'])
+        else:
+            raise ValueError("Não foi possível determinar o shape de entrada do NIR")
+        
+        shapes['input'] = input_shape
+    
+    # BFS
+    while queue:
+        current_node_name = queue.popleft()
+        
+        if current_node_name in visited:
+            continue
+            
+        visited.add(current_node_name)
+        
+        # Pega o nó atual
+        if current_node_name not in nodes:
+            continue
+            
+        current_node = nodes[current_node_name]
+        
+        # Determina o input_shape para este nó
+        if current_node_name == 'input':
+            current_input_shape = shapes['input']
+        else:
+            # Encontra o predecessor
+            predecessors = [src for src, dst in edges if dst == current_node_name]
+            if predecessors:
+                current_input_shape = shapes.get(predecessors[0], None)
+                if current_input_shape is None:
+                    print(f"Aviso: Shape de entrada não encontrado para {current_node_name}")
+                    current_input_shape = (1,)
+            else:
+                current_input_shape = (1,)
+        
+        # Determina o output_shape
+        if hasattr(current_node, 'output_type') and 'output' in current_node.output_type:
+            current_output_shape = tuple(current_node.output_type['output'])
+        elif hasattr(current_node, 'input_type') and 'output' in current_node.input_type:
+            current_output_shape = tuple(current_node.input_type['output'])
+        else:
+            current_output_shape = current_input_shape
+        
+        # Salva o shape de saída deste nó
+        shapes[current_node_name] = current_output_shape
+        
+        # Extrai informações do nó e cria a camada
+        try:
+            layer = get_info_from_node(current_node, current_input_shape, current_output_shape)
+            
+            if layer is not None:
+                model_config.add_layer(layer)
+                print(f"Camada adicionada: {current_node_name} ({type(current_node).__name__})")
+        
+        except Exception as e:
+            print(f"Erro ao processar nó {current_node_name}: {e}")
+        
+        # Adiciona os vizinhos à fila
+        for neighbor in graph.get(current_node_name, []):
+            if neighbor not in visited:
+                queue.append(neighbor)
+    
+    return model_config
