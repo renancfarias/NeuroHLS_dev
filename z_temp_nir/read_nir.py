@@ -80,7 +80,7 @@ def read_nir(nir_file: str):
         visited.add(cur)
 
         node_info = get_node_info(graph, dependencies, nodes, cur)
-        cur_layer = create_layer_config_from_node(node_info)
+        cur_layer = create_layer_config_from_node(cur, node_info)
 
         for node in graph[cur]:
             if node not in visited:

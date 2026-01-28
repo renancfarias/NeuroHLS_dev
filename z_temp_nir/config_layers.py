@@ -2,14 +2,15 @@ from typing import List, Union, Tuple, Optional, Any
 import numpy as np
 import nir
 
-NUM_DASHES = 50
+NUM_DASHES = 55
 
 class LayerConfig:
 
-    def __init__(self):
+    def __init__(self, name):
 
         self.is_recurrent = False
         self.dependencies = []
+        self.name = name
 
     def add_dependency(self, name: str, is_recurrent: bool):
         self.dependencies.append((name, is_recurrent))
@@ -25,14 +26,14 @@ class LayerConfig:
     
 class Input(LayerConfig):
     
-    def __init__(self, input_shape):
+    def __init__(self, name: str, input_shape):
 
-        super().__init__()
+        super().__init__(name)
         self.input_shape = input_shape
 
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"Input ({self.input_shape})\n"
+        s += f"Input ({self.input_shape}) - layer name: '{self.name}'\n"
         s += "-" * NUM_DASHES + "\n"
 
         s += super().__str__()
@@ -40,14 +41,14 @@ class Input(LayerConfig):
     
 class Output(LayerConfig):
     
-    def __init__(self, output_shape):
+    def __init__(self, name: str, output_shape):
 
-        super().__init__()
+        super().__init__(name)
         self.output_shape = output_shape
 
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"Output ({self.output_shape})\n"
+        s += f"Output ({self.output_shape}) - layer name: '{self.name}'\n"
         s += "-" * NUM_DASHES + "\n"
 
         s += super().__str__()
@@ -55,15 +56,15 @@ class Output(LayerConfig):
     
 class Affine(LayerConfig):
     
-    def __init__(self, n_inputs: int, n_neurons: int):
+    def __init__(self, name: str, n_inputs: int, n_neurons: int):
 
-        super().__init__()
+        super().__init__(name)
         self.n_inputs = n_inputs
         self.n_neurons = n_neurons
 
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"Affine ({self.n_inputs}, {self.n_neurons})\n"
+        s += f"Affine ({self.n_inputs}, {self.n_neurons}) - layer name: '{self.name}'\n"
         s += "-" * NUM_DASHES + "\n"
         
         s += super().__str__()
@@ -71,7 +72,7 @@ class Affine(LayerConfig):
 
 class Flatten(LayerConfig):
     
-    def __init__(self, input_shape: tuple, output_shape: tuple, start_dim: int = 1, end_dim: int = -1):
+    def __init__(self, name: str, input_shape: tuple, output_shape: tuple, start_dim: int = 1, end_dim: int = -1):
         """
         Flatten layer configuration.
         
@@ -81,7 +82,7 @@ class Flatten(LayerConfig):
             start_dim: First dimension to flatten (default: 1)
             end_dim: Last dimension to flatten (default: -1, meaning last dimension)
         """
-        super().__init__()
+        super().__init__(name)
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         self.start_dim = start_dim
@@ -89,7 +90,7 @@ class Flatten(LayerConfig):
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"Flatten (input: {self.input_shape}, output: {self.output_shape})\n"
+        s += f"Flatten (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
         # s += f"\tstart_dim={self.start_dim}, end_dim={self.end_dim}\n"
         s += "-" * NUM_DASHES + "\n"
         
@@ -98,7 +99,7 @@ class Flatten(LayerConfig):
 
 class Conv1d(LayerConfig):
     
-    def __init__(self, input_shape: tuple, output_shape: tuple, weight: np.ndarray, 
+    def __init__(self, name: str, input_shape: tuple, output_shape: tuple, weight: np.ndarray, 
                  stride: int, padding: Union[int, str], dilation: int, 
                  groups: int, bias: np.ndarray):
         """
@@ -114,7 +115,7 @@ class Conv1d(LayerConfig):
             groups: Groups
             bias: Bias array of shape (C_out,)
         """
-        super().__init__()
+        super().__init__(name)
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         self.weight = weight
@@ -126,7 +127,7 @@ class Conv1d(LayerConfig):
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"Conv1d (input: {self.input_shape}, output: {self.output_shape})\n"
+        s += f"Conv1d (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
         s += "-" * NUM_DASHES + "\n"
 
         s += f"\tWeight shape: {self.weight.shape}\n"
@@ -138,7 +139,7 @@ class Conv1d(LayerConfig):
 
 class Conv2d(LayerConfig):
     
-    def __init__(self, input_shape: tuple, output_shape: tuple, weight: np.ndarray,
+    def __init__(self, name: str, input_shape: tuple, output_shape: tuple, weight: np.ndarray,
                  stride: Union[int, Tuple[int, int]], 
                  padding: Union[int, Tuple[int, int], str],
                  dilation: Union[int, Tuple[int, int]], 
@@ -156,7 +157,7 @@ class Conv2d(LayerConfig):
             groups: Groups
             bias: Bias array of shape (C_out,)
         """
-        super().__init__()
+        super().__init__(name)
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         self.weight = weight
@@ -171,7 +172,7 @@ class Conv2d(LayerConfig):
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"Conv2d (input: {self.input_shape}, output: {self.output_shape})\n"
+        s += f"Conv2d (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
         s += "-" * NUM_DASHES + "\n"
 
         s += f"\tWeight shape: {self.weight.shape}\n"
@@ -183,7 +184,7 @@ class Conv2d(LayerConfig):
 
 class CubaLI(LayerConfig):
     
-    def __init__(self, input_shape: tuple, output_shape: tuple, 
+    def __init__(self, name: str, input_shape: tuple, output_shape: tuple, 
                  tau_syn: np.ndarray, tau_mem: np.ndarray, 
                  r: np.ndarray, v_leak: np.ndarray, w_in: np.ndarray):
         """
@@ -198,7 +199,7 @@ class CubaLI(LayerConfig):
             v_leak: Leak voltage array
             w_in: Input current weight array
         """
-        super().__init__()
+        super().__init__(name)
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         self.tau_syn = tau_syn
@@ -209,7 +210,7 @@ class CubaLI(LayerConfig):
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"CubaLI (input: {self.input_shape}, output: {self.output_shape})\n"
+        s += f"CubaLI (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
         s += "-" * NUM_DASHES + "\n"
 
         s += f"\tParameter shapes: {self.tau_syn.shape}\n"
@@ -224,7 +225,7 @@ class CubaLI(LayerConfig):
 
 class CubaLIF(LayerConfig):
     
-    def __init__(self, input_shape: tuple, output_shape: tuple,
+    def __init__(self, name: str, input_shape: tuple, output_shape: tuple,
                  tau_syn: np.ndarray, tau_mem: np.ndarray,
                  r: np.ndarray, v_leak: np.ndarray,
                  v_threshold: np.ndarray, v_reset: np.ndarray, w_in: np.ndarray):
@@ -242,7 +243,7 @@ class CubaLIF(LayerConfig):
             v_reset: Reset potential array
             w_in: Input current weight array
         """
-        super().__init__()
+        super().__init__(name)
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         self.tau_syn = tau_syn
@@ -255,7 +256,7 @@ class CubaLIF(LayerConfig):
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"CubaLIF (input: {self.input_shape}, output: {self.output_shape})\n"
+        s += f"CubaLIF (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
         s += "-" * NUM_DASHES + "\n"
 
         s += f"\tParameter shapes: {self.tau_syn.shape}\n"
@@ -272,7 +273,7 @@ class CubaLIF(LayerConfig):
 
 class I(LayerConfig):
     
-    def __init__(self, input_shape: tuple, output_shape: tuple, r: np.ndarray):
+    def __init__(self, name: str, input_shape: tuple, output_shape: tuple, r: np.ndarray):
         """
         Integrator neuron model configuration.
         
@@ -281,14 +282,14 @@ class I(LayerConfig):
             output_shape: Shape of the output tensor (calculated by NIR)
             r: Resistance array
         """
-        super().__init__()
+        super().__init__(name)
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         self.r = r
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"Integrator (input: {self.input_shape}, output: {self.output_shape})\n"
+        s += f"Integrator (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
         s += "-" * NUM_DASHES + "\n"
 
         s += f"\tParameter shape: {self.r.shape}\n"
@@ -299,7 +300,7 @@ class I(LayerConfig):
 
 class IF(LayerConfig):
     
-    def __init__(self, input_shape: tuple, output_shape: tuple,
+    def __init__(self, name: str, input_shape: tuple, output_shape: tuple,
                  r: np.ndarray, v_threshold: np.ndarray, v_reset: np.ndarray):
         """
         Integrate-and-fire neuron model configuration.
@@ -311,7 +312,7 @@ class IF(LayerConfig):
             v_threshold: Firing threshold array
             v_reset: Reset potential array
         """
-        super().__init__()
+        super().__init__(name)
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         self.r = r
@@ -320,7 +321,7 @@ class IF(LayerConfig):
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"IF (input: {self.input_shape}, output: {self.output_shape})\n"
+        s += f"IF (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
         s += "-" * NUM_DASHES + "\n"
 
         s += f"\tParameter shape: {self.r.shape}\n"
@@ -333,7 +334,7 @@ class IF(LayerConfig):
 
 class LI(LayerConfig):
     
-    def __init__(self, input_shape: tuple, output_shape: tuple,
+    def __init__(self, name: str, input_shape: tuple, output_shape: tuple,
                  tau: np.ndarray, r: np.ndarray, v_leak: np.ndarray):
         """
         Leaky integrator neuron model configuration.
@@ -345,7 +346,7 @@ class LI(LayerConfig):
             r: Resistance array
             v_leak: Leak voltage array
         """
-        super().__init__()
+        super().__init__(name)
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         self.tau = tau
@@ -354,7 +355,7 @@ class LI(LayerConfig):
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"LI (input: {self.input_shape}, output: {self.output_shape})\n"
+        s += f"LI (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
         s += "-" * NUM_DASHES + "\n"
 
         s += f"\tParameter shape: {self.tau.shape}\n"
@@ -367,7 +368,7 @@ class LI(LayerConfig):
 
 class LIF(LayerConfig):
     
-    def __init__(self, input_shape: tuple, output_shape: tuple,
+    def __init__(self, name: str, input_shape: tuple, output_shape: tuple,
                  tau: np.ndarray, r: np.ndarray, v_leak: np.ndarray,
                  v_threshold: np.ndarray, v_reset: np.ndarray):
         """
@@ -382,7 +383,7 @@ class LIF(LayerConfig):
             v_threshold: Firing threshold array
             v_reset: Reset potential array
         """
-        super().__init__()
+        super().__init__(name)
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         self.tau = tau
@@ -393,7 +394,7 @@ class LIF(LayerConfig):
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"LIF (input: {self.input_shape}, output: {self.output_shape})\n"
+        s += f"LIF (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
         s += "-" * NUM_DASHES + "\n"
 
         s += f"\tParameter shape: {self.tau.shape}\n"
@@ -408,7 +409,7 @@ class LIF(LayerConfig):
 
 class SumPool2d(LayerConfig):
     
-    def __init__(self, input_shape: tuple, output_shape: tuple,
+    def __init__(self, name: str, input_shape: tuple, output_shape: tuple,
                  kernel_size: Union[int, Tuple[int, int]], 
                  stride: Union[int, Tuple[int, int]],
                  padding: Union[int, Tuple[int, int]]):
@@ -422,7 +423,7 @@ class SumPool2d(LayerConfig):
             stride: Stride (Height, Width)
             padding: Padding (Height, Width)
         """
-        super().__init__()
+        super().__init__(name)
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         
@@ -433,7 +434,7 @@ class SumPool2d(LayerConfig):
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"SumPool2d (input: {self.input_shape}, output: {self.output_shape})\n"
+        s += f"SumPool2d (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
         s += "-" * NUM_DASHES + "\n"
 
         s += f"\tKernel size: {self.kernel_size}\n"
@@ -445,7 +446,7 @@ class SumPool2d(LayerConfig):
 
 class AvgPool2d(LayerConfig):
     
-    def __init__(self, input_shape: tuple, output_shape: tuple,
+    def __init__(self, name: str, input_shape: tuple, output_shape: tuple,
                  kernel_size: Union[int, Tuple[int, int]], 
                  stride: Union[int, Tuple[int, int]],
                  padding: Union[int, Tuple[int, int]]):
@@ -459,7 +460,7 @@ class AvgPool2d(LayerConfig):
             stride: Stride (Height, Width)
             padding: Padding (Height, Width)
         """
-        super().__init__()
+        super().__init__(name)
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         
@@ -470,7 +471,7 @@ class AvgPool2d(LayerConfig):
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"AvgPool2d (input: {self.input_shape}, output: {self.output_shape})\n"
+        s += f"AvgPool2d (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
         s += "-" * NUM_DASHES + "\n"
 
         s += f"\tKernel size: {self.kernel_size}\n"
@@ -482,7 +483,7 @@ class AvgPool2d(LayerConfig):
 
 class Linear(LayerConfig):
     
-    def __init__(self, input_shape: tuple, output_shape: tuple, weight: np.ndarray):
+    def __init__(self, name: str, input_shape: tuple, output_shape: tuple, weight: np.ndarray):
         """
         Linear transform without bias configuration.
         
@@ -491,14 +492,14 @@ class Linear(LayerConfig):
             output_shape: Shape of the output tensor (calculated by NIR)
             weight: Weight matrix
         """
-        super().__init__()
+        super().__init__(name)
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         self.weight = weight
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"Linear (input: {self.input_shape}, output: {self.output_shape})\n"
+        s += f"Linear (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
         s += "-" * NUM_DASHES + "\n"
 
         s += f"\tWeight shape: {self.weight.shape}\n"
@@ -530,225 +531,3 @@ class ModelConfig:
     def add_layer(self, layer: LayerConfig):
 
         self.layers.append(layer)
-
-# def build_model_from_nir(nir_file: str) -> ModelConfig:
-#     """
-#     Constrói um ModelConfig a partir de um arquivo NIR usando busca em largura (BFS).
-    
-#     Args:
-#         nir_file: Caminho para o arquivo .nir
-        
-#     Returns:
-#         ModelConfig com todas as camadas configuradas
-#     """
-#     from collections import deque
-    
-#     # Lê o grafo NIR
-#     nir_graph = nir.read(nir_file)
-#     nodes = nir_graph.nodes
-#     edges = nir_graph.edges
-    
-#     # Constrói o grafo de adjacências
-#     graph = {}
-#     for node_name in nodes.keys():
-#         graph[node_name] = []
-    
-#     for src, dst in edges:
-#         if src in graph:
-#             graph[src].append(dst)
-    
-#     # Inicializa a busca em largura
-#     visited = set()
-#     queue = deque()
-#     model_config = ModelConfig()
-    
-#     # Começa do nó 'input'
-#     queue.append('input')
-    
-#     # Dicionário para guardar os shapes calculados de cada nó
-#     shapes = {}
-    
-#     # Processa o nó de entrada
-#     if 'input' in nodes:
-#         input_node = nodes['input']
-#         if hasattr(input_node, 'output_type') and 'output' in input_node.output_type:
-#             input_shape = tuple(input_node.output_type['output'])
-#         elif hasattr(input_node, 'input_type') and 'input' in input_node.input_type:
-#             input_shape = tuple(input_node.input_type['input'])
-#         else:
-#             raise ValueError("Não foi possível determinar o shape de entrada do NIR")
-        
-#         shapes['input'] = input_shape
-    
-#     # BFS
-#     while queue:
-#         current_node_name = queue.popleft()
-        
-#         if current_node_name in visited:
-#             continue
-            
-#         visited.add(current_node_name)
-        
-#         # Pega o nó atual
-#         if current_node_name not in nodes:
-#             continue
-            
-#         current_node = nodes[current_node_name]
-        
-#         # Determina o input_shape para este nó
-#         # (vem do shape de saída do nó anterior)
-#         if current_node_name == 'input':
-#             current_input_shape = shapes['input']
-#         else:
-#             # Encontra o predecessor (assumindo que há apenas um por enquanto)
-#             predecessors = [src for src, dst in edges if dst == current_node_name]
-#             if predecessors:
-#                 # Pega o shape do primeiro predecessor
-#                 current_input_shape = shapes.get(predecessors[0], None)
-#                 if current_input_shape is None:
-#                     print(f"Aviso: Shape de entrada não encontrado para {current_node_name}")
-#                     current_input_shape = (1,)  # placeholder
-#             else:
-#                 current_input_shape = (1,)  # placeholder
-        
-#         # Determina o output_shape
-#         if hasattr(current_node, 'output_type') and 'output' in current_node.output_type:
-#             current_output_shape = tuple(current_node.output_type['output'])
-#         elif hasattr(current_node, 'input_type') and 'output' in current_node.input_type:
-#             current_output_shape = tuple(current_node.input_type['output'])
-#         else:
-#             # Tenta inferir do próprio nó
-#             current_output_shape = current_input_shape  # placeholder
-        
-#         # Salva o shape de saída deste nó
-#         shapes[current_node_name] = current_output_shape
-        
-#         # Extrai informações do nó e cria a camada
-#         try:
-#             layer = get_info_from_node(current_node, current_input_shape, current_output_shape)
-            
-#             # Adiciona a camada ao modelo (se não for None)
-#             if layer is not None:
-#                 model_config.add_layer(layer)
-#                 print(f"Camada adicionada: {current_node_name} ({type(current_node).__name__})")
-        
-#         except Exception as e:
-#             print(f"Erro ao processar nó {current_node_name}: {e}")
-        
-#         # Adiciona os vizinhos à fila
-#         for neighbor in graph.get(current_node_name, []):
-#             if neighbor not in visited:
-#                 queue.append(neighbor)
-    
-#     return model_config
-
-# def create_model_config_from_nir(nir_graph) -> ModelConfig:
-#     """
-#     Constrói um ModelConfig a partir de um objeto NIR Graph.
-    
-#     Args:
-#         nir_graph: Objeto NIRGraph já carregado
-        
-#     Returns:
-#         ModelConfig com todas as camadas configuradas
-#     """
-#     from collections import deque
-    
-#     nodes = nir_graph.nodes
-#     edges = nir_graph.edges
-    
-#     # Constrói o grafo de adjacências
-#     graph = {}
-#     for node_name in nodes.keys():
-#         graph[node_name] = []
-    
-#     for src, dst in edges:
-#         if src in graph:
-#             graph[src].append(dst)
-    
-#     # Inicializa a busca em largura
-#     visited = set()
-#     queue = deque()
-#     model_config = ModelConfig()
-    
-#     # Começa do nó 'input'
-#     queue.append('input')
-    
-#     # Dicionário para guardar os shapes calculados de cada nó
-#     shapes = {}
-    
-#     # Processa o nó de entrada
-#     if 'input' in nodes:
-#         input_node = nodes['input']
-#         if hasattr(input_node, 'output_type') and 'output' in input_node.output_type:
-#             input_shape = tuple(input_node.output_type['output'])
-#         elif hasattr(input_node, 'input_type') and 'input' in input_node.input_type:
-#             input_shape = tuple(input_node.input_type['input'])
-#         else:
-#             raise ValueError("Não foi possível determinar o shape de entrada do NIR")
-        
-#         shapes['input'] = input_shape
-    
-#     # BFS
-#     while queue:
-#         current_node_name = queue.popleft()
-        
-#         if current_node_name in visited:
-#             continue
-            
-#         visited.add(current_node_name)
-        
-#         # Pega o nó atual
-#         if current_node_name not in nodes:
-#             continue
-            
-#         current_node = nodes[current_node_name]
-        
-#         # Determina o input_shape para este nó
-#         if current_node_name == 'input':
-#             current_input_shape = shapes['input']
-#         else:
-#             # Encontra o predecessor
-#             predecessors = [src for src, dst in edges if dst == current_node_name]
-#             if predecessors:
-#                 current_input_shape = shapes.get(predecessors[0], None)
-#                 if current_input_shape is None:
-#                     print(f"Aviso: Shape de entrada não encontrado para {current_node_name}")
-#                     current_input_shape = (1,)
-#             else:
-#                 current_input_shape = (1,)
-        
-#         # Determina o output_shape
-#         if hasattr(current_node, 'output_type') and 'output' in current_node.output_type:
-#             current_output_shape = tuple(current_node.output_type['output'])
-#         elif hasattr(current_node, 'input_type') and 'output' in current_node.input_type:
-#             current_output_shape = tuple(current_node.input_type['output'])
-#         else:
-#             current_output_shape = current_input_shape
-        
-#         # Salva o shape de saída deste nó
-#         shapes[current_node_name] = current_output_shape
-        
-#         # Extrai informações do nó e cria a camada
-#         try:
-#             layer = get_info_from_node(current_node, current_input_shape, current_output_shape)
-            
-#             if layer is not None:
-#                 model_config.add_layer(layer)
-#                 print(f"Camada adicionada: {current_node_name} ({type(current_node).__name__})")
-        
-#         except Exception as e:
-#             print(f"Erro ao processar nó {current_node_name}: {e}")
-        
-#         # Adiciona os vizinhos à fila
-#         for neighbor in graph.get(current_node_name, []):
-#             if neighbor not in visited:
-#                 queue.append(neighbor)
-    
-#     return model_config
-
-# def teste():
-#     model = build_model_from_nir("z_nir_examples/lif_norse.nir")
-#     print(model)
-
-# teste()
