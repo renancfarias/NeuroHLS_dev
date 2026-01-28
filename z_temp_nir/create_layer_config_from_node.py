@@ -1,6 +1,6 @@
 from config_layers import *
 
-def create_layer_config_from_node(node):
+def create_layer_config_from_node(node_name, node):
     """
     Extrai informações de um nó NIR e retorna a instância da classe apropriada.
     
@@ -23,7 +23,7 @@ def create_layer_config_from_node(node):
         if hasattr(node, 'weight') and node.weight is not None:
             n_neurons = node.weight.shape[0]
             n_inputs = node.weight.shape[1]
-            return Affine(n_inputs, n_neurons)
+            return Affine(node_name, n_inputs, n_neurons)
         else:
             raise ValueError(f"Nó Affine sem weight: {node}")
     
@@ -31,7 +31,7 @@ def create_layer_config_from_node(node):
     elif node_type == 'Flatten':
         start_dim = getattr(node, 'start_dim', 1)
         end_dim = getattr(node, 'end_dim', -1)
-        return Flatten(input_shape, output_shape, start_dim, end_dim)
+        return Flatten(node_name, input_shape, output_shape, start_dim, end_dim)
     
     # Conv1d layer
     elif node_type == 'Conv1d':
@@ -42,7 +42,7 @@ def create_layer_config_from_node(node):
         groups = getattr(node, 'groups', 1)
         bias = getattr(node, 'bias', None)
         
-        return Conv1d(input_shape, output_shape, weight, stride, padding, dilation, groups, bias)
+        return Conv1d(node_name, input_shape, output_shape, weight, stride, padding, dilation, groups, bias)
     
     # Conv2d layer
     elif node_type == 'Conv2d':
@@ -53,7 +53,7 @@ def create_layer_config_from_node(node):
         groups = getattr(node, 'groups', 1)
         bias = getattr(node, 'bias', None)
         
-        return Conv2d(input_shape, output_shape, weight, stride, padding, dilation, groups, bias)
+        return Conv2d(node_name, input_shape, output_shape, weight, stride, padding, dilation, groups, bias)
     
     # CubaLI (Current-based Leaky Integrator)
     elif node_type == 'CubaLI':
@@ -63,7 +63,7 @@ def create_layer_config_from_node(node):
         v_leak = node.v_leak
         w_in = node.w_in
         
-        return CubaLI(input_shape, output_shape, tau_syn, tau_mem, r, v_leak, w_in)
+        return CubaLI(node_name, input_shape, output_shape, tau_syn, tau_mem, r, v_leak, w_in)
     
     # CubaLIF (Current-based Leaky Integrate-and-Fire)
     elif node_type == 'CubaLIF':
@@ -75,12 +75,12 @@ def create_layer_config_from_node(node):
         v_reset = getattr(node, "v_reset", np.zeros_like(v_threshold))
         w_in = node.w_in
         
-        return CubaLIF(input_shape, output_shape, tau_syn, tau_mem, r, v_leak, v_threshold, v_reset, w_in)
+        return CubaLIF(node_name, input_shape, output_shape, tau_syn, tau_mem, r, v_leak, v_threshold, v_reset, w_in)
     
     # I (Integrator)
     elif node_type == 'I':
         r = node.r
-        return I(input_shape, output_shape, r)
+        return I(node_name, input_shape, output_shape, r)
     
     # IF (Integrate-and-Fire)
     elif node_type == 'IF':
@@ -88,7 +88,7 @@ def create_layer_config_from_node(node):
         v_threshold = node.v_threshold
         v_reset = getattr(node, "v_reset", np.zeros_like(v_threshold))
         
-        return IF(input_shape, output_shape, r, v_threshold, v_reset)
+        return IF(node_name, input_shape, output_shape, r, v_threshold, v_reset)
     
     # LI (Leaky Integrator)
     elif node_type == 'LI':
@@ -96,7 +96,7 @@ def create_layer_config_from_node(node):
         r = node.r
         v_leak = node.v_leak
         
-        return LI(input_shape, output_shape, tau, r, v_leak)
+        return LI(node_name, input_shape, output_shape, tau, r, v_leak)
     
     # LIF (Leaky Integrate-and-Fire)
     elif node_type == 'LIF':
@@ -106,7 +106,7 @@ def create_layer_config_from_node(node):
         v_threshold = node.v_threshold
         v_reset = getattr(node, "v_reset", np.zeros_like(v_threshold))
         
-        return LIF(input_shape, output_shape, tau, r, v_leak, v_threshold, v_reset)
+        return LIF(node_name, input_shape, output_shape, tau, r, v_leak, v_threshold, v_reset)
     
     # SumPool2d
     elif node_type == 'SumPool2d':
@@ -116,7 +116,7 @@ def create_layer_config_from_node(node):
             stride = kernel_size
         padding = getattr(node, 'padding', 0)
         
-        return SumPool2d(input_shape, output_shape, kernel_size, stride, padding)
+        return SumPool2d(node_name, input_shape, output_shape, kernel_size, stride, padding)
     
     # AvgPool2d
     elif node_type == 'AvgPool2d':
@@ -126,18 +126,18 @@ def create_layer_config_from_node(node):
             stride = kernel_size
         padding = getattr(node, 'padding', 0)
         
-        return AvgPool2d(input_shape, output_shape, kernel_size, stride, padding)
+        return AvgPool2d(node_name, input_shape, output_shape, kernel_size, stride, padding)
     
     # Linear (sem bias)
     elif node_type == 'Linear':
         weight = node.weight
-        return Linear(input_shape, output_shape, weight)
+        return Linear(node_name, input_shape, output_shape, weight)
     
     elif node_type == "Input":
-        return Input(input_shape)
+        return Input(node_name, input_shape)
     
     elif node_type == "Output":
-        return Output(output_shape)
+        return Output(node_name, output_shape)
     
     # Tipo não reconhecido
     else:
