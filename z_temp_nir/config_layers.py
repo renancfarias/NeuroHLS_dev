@@ -513,8 +513,8 @@ class ModelConfig:
 
         self.layers: List[LayerConfig] = []
 
-        self.input_total_bits = 16
-        self.input_int_bits = 8
+        self.input_shape = np.array(0)
+        self.output_shape = np.array(0)
 
     def __str__(self):
         
@@ -528,6 +528,12 @@ class ModelConfig:
         
         return s
     
-    def add_layer(self, layer: LayerConfig):
+    def add_layer(self, layer):
+
+        if isinstance(layer, Input):
+            self.input_shape = layer.input_shape
+            
+        elif isinstance(layer, Output):
+            self.output_shape = layer.output_shape
 
         self.layers.append(layer)

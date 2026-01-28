@@ -105,11 +105,3 @@ def read_nir(nir_file: str):
         model_config.add_layer(cur_layer)
     
     return model_config
-
-def teste(nir_file):
-    model = read_nir(nir_file)
-    print(model)
-
-# teste("z_nir_examples/lif_norse.nir")
-teste("z_nir_examples/cnn_sinabs.nir")
-# teste("z_nir_examples/braille_noDelay_bias_zero.nir")
