@@ -5,6 +5,50 @@ from create_layer_config_from_node import *
 from collections import defaultdict
 from collections import deque
 
+def get_node_info(graph, dependencies, nodes, cur_node):
+    
+    node_info = nodes[cur_node]
+
+    input_shape = node_info.input_type['input']
+    output_shape = node_info.output_type['output']
+
+    if input_shape is None:
+
+        # input shape must be inferred
+
+        for dep in dependencies[cur_node]:
+            
+            dep_info = nodes[dep]
+            dep_output_shape = dep_info.output_type['output']
+
+            if dep_output_shape is not None:
+                input_shape = dep_output_shape
+                break
+
+    if output_shape is None:
+
+        # output shape must be inferred
+
+        for next_node in graph[cur_node]:
+
+            next_node_info = nodes[next_node]
+            next_node_input_shape = next_node_info.input_type['input']
+
+            if next_node_input_shape is not None:
+                output_shape = next_node_input_shape
+                break
+
+    if input_shape is None:
+        raise Exception(f"Unable to infer the input shape of {cur_node} layer")
+    
+    if output_shape is None:
+        raise Exception(f"Unable to infer the output shape of {cur_node} layer")
+    
+    node_info.input_type['input'] = input_shape
+    node_info.output_type['output'] = output_shape
+
+    return node_info
+
 def read_nir(nir_file: str):
 
     print("\n" + "-" * 60)
@@ -35,7 +79,7 @@ def read_nir(nir_file: str):
         cur = queue.popleft()
         visited.add(cur)
 
-        node_info = nodes[cur]
+        node_info = get_node_info(graph, dependencies, nodes, cur)
         cur_layer = create_layer_config_from_node(node_info)
 
         for node in graph[cur]:
