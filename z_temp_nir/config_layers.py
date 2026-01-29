@@ -24,6 +24,26 @@ class LayerConfig:
 
         return s
     
+class Merge(LayerConfig):
+
+    def __init__(self, name: str, layer_1: str, layer_2: str, shape):
+        super().__init__(name)
+        
+        self.layer_1 = layer_1
+        self.layer_2 = layer_2
+        self.input_shape = shape
+        self.output_shape = shape
+
+    def __str__(self):
+        s = NUM_DASHES * "-" + "\n"
+        s += f"Merge (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
+        s += NUM_DASHES * "-" + "\n"
+
+        s += f"Layer 1: {self.layer_1}\n"
+        s += f"Layer 2: {self.layer_2}\n"
+
+        return s + super().__str__()
+    
 class Input(LayerConfig):
     
     def __init__(self, name: str, input_shape):
@@ -516,6 +536,8 @@ class ModelConfig:
         self.input_shape = np.array(0)
         self.output_shape = np.array(0)
 
+        self.merge_count = 0
+
     def __str__(self):
         
         s = ""
@@ -535,5 +557,14 @@ class ModelConfig:
             
         elif isinstance(layer, Output):
             self.output_shape = layer.output_shape
+
+        if len(layer.dependencies) > 1:
+            
+            self.merge_count += 1
+            accum_layer_name = f"merge_{self.merge_count}"
+
+            for dep in layer.dependencies:
+
+                self.layers.append(Merge(accum_layer_name, accum_layer_name, dep, layer.input_shape))
 
         self.layers.append(layer)
