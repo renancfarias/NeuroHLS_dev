@@ -39,8 +39,8 @@ class Merge(LayerConfig):
         s += f"Merge (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
         s += NUM_DASHES * "-" + "\n"
 
-        s += f"Layer 1: {self.layer_1}\n"
-        s += f"Layer 2: {self.layer_2}\n"
+        s += f"\tLayer 1: {self.layer_1}\n"
+        s += f"\tLayer 2: {self.layer_2}\n"
 
         return s + super().__str__()
     
@@ -76,15 +76,15 @@ class Output(LayerConfig):
     
 class Affine(LayerConfig):
     
-    def __init__(self, name: str, n_inputs: int, n_neurons: int):
+    def __init__(self, name: str, input_shape, output_shape):
 
         super().__init__(name)
-        self.n_inputs = n_inputs
-        self.n_neurons = n_neurons
+        self.input_shape = np.atleast_1d(input_shape)
+        self.output_shape = np.atleast_1d(output_shape)
 
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
-        s += f"Affine ({self.n_inputs}, {self.n_neurons}) - layer name: '{self.name}'\n"
+        s += f"Affine (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
         s += "-" * NUM_DASHES + "\n"
         
         s += super().__str__()
