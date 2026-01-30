@@ -558,13 +558,38 @@ class ModelConfig:
         elif isinstance(layer, Output):
             self.output_shape = layer.output_shape
 
+        has_created_merge_layer = False
+
         if len(layer.dependencies) > 1:
-            
-            self.merge_count += 1
-            accum_layer_name = f"merge_{self.merge_count}"
 
-            for dep in layer.dependencies:
+            accum_layer_name = get_ready_dependency_layer_name(layer.dependencies)
+            has_created_merge_layer = True
 
-                self.layers.append(Merge(accum_layer_name, accum_layer_name, dep, layer.input_shape))
+            for (dep, is_recurrent) in layer.dependencies:
+
+                if dep == accum_layer_name:
+                    continue
+
+                self.merge_count += 1
+                merge_layer_name = f"merge_{self.merge_count}"
+
+                merge_layer = Merge(merge_layer_name, accum_layer_name, dep, layer.input_shape)
+
+                merge_layer.add_dependency(accum_layer_name, is_recurrent = False)
+                merge_layer.add_dependency(dep, is_recurrent)
+
+                self.layers.append(merge_layer)
+
+        if has_created_merge_layer:
+            layer.dependencies.clear()
+            layer.add_dependency(accum_layer_name, is_recurrent = False)
 
         self.layers.append(layer)
+
+def get_ready_dependency_layer_name(dependencies):
+
+    for (dep_name, is_recurrent) in dependencies:
+        if not is_recurrent:
+            return dep_name
+        
+    raise Exception("Unable to find not recurrent layer")
