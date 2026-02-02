@@ -11,7 +11,6 @@ def implement_model(model):
 
     # (id da camada do NIR, nome a ser usado na impl)
     layer_names = {}
-    rec_count = 0
     
     print(f"snn_to_hls(input_t input{get_bracket_str(model.input_shape)}, bit_t output{get_bracket_str(model.output_shape)})\n{'{'}", end="")
 
@@ -25,17 +24,17 @@ def implement_model(model):
 
             if is_recurrent and dep_name not in layer_names:
                 
-                rec_count += 1
-                impl_dep_name = f"rec_{rec_count}"
+                impl_dep_name = f"layer_{len(layer_names) + 1}_rec"
                 layer_names[dep_name] = impl_dep_name
 
                 print(f"    type_t {impl_dep_name}{get_bracket_str(layer.input_shape)} = {{}};")
 
-        # Dando merge nos inputs (caso tenha mais de um)
+        if isinstance(layer, Merge):
+
+            print(f"    merge({layer_names.get(layer.layer_1)}, {layer_names.get(layer.layer_2)});")
+            continue
 
         input_accum_name = layer_names.get(layer.dependencies[0][0], layer.dependencies[0][0])
-        for (dep_name, is_recurrent) in layer.dependencies[1:]:
-            print(f"    merge({input_accum_name}, {layer_names[dep_name]});")
 
         # Declarando potencial da camada, caso ela nao seja recorrente
 
@@ -51,6 +50,6 @@ def implement_model(model):
             name = layer_names[layer.name]
 
         # Chamando a funcao
-        print(f"    {layer.func_name}({input_accum_name}, {name});")
+        print(f"    {type(layer).__name__}({input_accum_name}, {name});")
     
     print("}")
