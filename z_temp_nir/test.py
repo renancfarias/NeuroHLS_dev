@@ -10,5 +10,5 @@ def teste(nir_file):
     implement_model(model)
 
 # teste("z_nir_examples/lif_norse.nir")
-teste("z_nir_examples/cnn_sinabs.nir")
-# teste("z_nir_examples/braille_noDelay_bias_zero.nir")
+# teste("z_nir_examples/cnn_sinabs.nir")
+teste("z_nir_examples/braille_noDelay_bias_zero.nir")
