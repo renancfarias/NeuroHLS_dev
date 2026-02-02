@@ -95,11 +95,8 @@ def read_nir(nir_file: str):
         ### Adding dependencies and checking if they are recurrent
 
         for dep in dependencies[cur]:
-            is_dep_recurrent = False
 
-            if dep not in visited:
-                is_dep_recurrent = True
-            
+            is_dep_recurrent = dep not in visited
             cur_layer.add_dependency(dep, is_dep_recurrent)
 
         model_config.add_layer(cur_layer)

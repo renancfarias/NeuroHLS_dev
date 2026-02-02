@@ -18,18 +18,17 @@ def implement_model(model):
 
         print(f"\n// implementation of '{layer.name}' layer\n")
 
-        # Declarando potenciais de camadas recorrentes que a camada atual usa
-
-        for (dep_name, is_recurrent) in layer.dependencies:
-
-            if is_recurrent and dep_name not in layer_names:
-                
-                impl_dep_name = f"layer_{len(layer_names) + 1}_rec"
-                layer_names[dep_name] = impl_dep_name
-
-                print(f"    type_t {impl_dep_name}{get_bracket_str(layer.input_shape)} = {{}};")
-
         if isinstance(layer, Merge):
+
+            for (dep_name, is_recurrent) in layer.dependencies:
+
+                if is_recurrent and dep_name not in layer_names:
+                    
+                    impl_dep_name = f"layer_{len(layer_names) + 1}_rec"
+                    layer_names[dep_name] = impl_dep_name
+
+                    rec_layer_output_type = "bit_t" if layer.emits_spike else "type_t"
+                    print(f"    {rec_layer_output_type} {impl_dep_name}{get_bracket_str(layer.input_shape)} = {{}};")
 
             print(f"    merge({layer_names.get(layer.layer_1)}, {layer_names.get(layer.layer_2)});")
             continue
@@ -45,7 +44,8 @@ def implement_model(model):
             else:
                 name = f"layer_{len(layer_names) + 1}"
                 layer_names[layer.name] = name
-                print(f"    type_t {name}{get_bracket_str(layer.output_shape)} = {{}};")
+                output_type = "bit_t" if layer.emits_spike else "type_t"
+                print(f"    {output_type} {name}{get_bracket_str(layer.output_shape)} = {{}};")
         else:
             name = layer_names[layer.name]
 

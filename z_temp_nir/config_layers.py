@@ -11,6 +11,7 @@ class LayerConfig:
         self.is_recurrent = False
         self.dependencies = []
         self.name = name
+        self.emits_spike = False
 
     def add_dependency(self, name: str, is_recurrent: bool):
         self.dependencies.append((name, is_recurrent))
@@ -65,6 +66,7 @@ class Output(LayerConfig):
 
         super().__init__(name)
         self.output_shape = output_shape
+        self.emits_spike = True
 
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -273,6 +275,7 @@ class CubaLIF(LayerConfig):
         self.v_threshold = v_threshold
         self.v_reset = v_reset
         self.w_in = w_in
+        self.emits_spike = True
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -338,6 +341,7 @@ class IF(LayerConfig):
         self.r = r
         self.v_threshold = v_threshold
         self.v_reset = v_reset
+        self.emits_spike = True
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -411,6 +415,7 @@ class LIF(LayerConfig):
         self.v_leak = v_leak
         self.v_threshold = v_threshold
         self.v_reset = v_reset
+        self.emits_spike = True
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -578,6 +583,7 @@ class ModelConfig:
                 merge_layer.add_dependency(accum_layer_name, is_recurrent = False)
                 merge_layer.add_dependency(dep, is_recurrent)
 
+                merge_layer.emits_spike = layer_emits_spike(accum_layer_name, self.layers)
                 self.layers.append(merge_layer)
 
         if has_created_merge_layer:
@@ -585,6 +591,15 @@ class ModelConfig:
             layer.add_dependency(accum_layer_name, is_recurrent = False)
 
         self.layers.append(layer)
+
+def layer_emits_spike(layer_name, layers):
+
+    for layer in layers:
+
+        if layer.name == layer_name:
+            return layer.emits_spike
+    
+    raise Exception(f"Could not find layer '{layer_name}'")
 
 def get_ready_dependency_layer_name(dependencies):
 
