@@ -7,7 +7,7 @@ def teste(nir_file):
 
     # print("IMPLEMENTATION:\n\n")
 
-    # implement_model(model)
+    implement_model(model)
 
 # teste("z_nir_examples/lif_norse.nir")
 teste("z_nir_examples/cnn_sinabs.nir")
