@@ -1,6 +1,8 @@
 from config_layers import *
 from params_extraction_test import extract
 
+from pathlib import Path
+
 NUM_DASHES_COMMENT = 50
 
 def get_bracket_str(arr):
@@ -8,6 +10,13 @@ def get_bracket_str(arr):
         return ''.join(f'[{x}]' for x in arr)
 
     return ""
+
+def create_file(folder_path, file_name: str, file_content: str):
+    
+    Path(folder_path).mkdir(parents=True, exist_ok=True)
+
+    with open(f"{folder_path}/{file_name}", "w") as f:
+        f.write(file_content)
 
 def implement_model(model):
 
@@ -72,10 +81,5 @@ def implement_model(model):
     
     code += "}\n"
 
-    print(code)
-
-    print("\n\n\n")
-
-    print(neuron_params_code)
-
-    print("\n\n\n")
+    create_file("z_temp_nir", "snn_implementation.cpp", code)
+    create_file("z_temp_nir", "neuron_params.h", neuron_params_code)

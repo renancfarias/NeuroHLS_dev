@@ -1,8 +1,6 @@
 from read_nir import read_nir
 from implementation_manager import *
 
-from params_extraction_test import extract
-
 def teste(nir_file):
     model = read_nir(nir_file)
     print(model)
