@@ -16,6 +16,9 @@ class LayerConfig:
     def add_dependency(self, name: str, is_recurrent: bool):
         self.dependencies.append((name, is_recurrent))
 
+    def get_neuron_params(self):
+        raise Exception("LayerConfig.get_neuron_params was not implemented")
+
     def __str__(self):
         s = f"\tIs recurrent: {'YES' if self.is_recurrent else 'NO'}\n"
         s += "\tDependencies:\n"
@@ -35,6 +38,9 @@ class Merge(LayerConfig):
         self.input_shape = shape
         self.output_shape = shape
 
+    def get_neuron_params(self):
+        return {}
+
     def __str__(self):
         s = NUM_DASHES * "-" + "\n"
         s += f"Merge (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
@@ -52,6 +58,9 @@ class Input(LayerConfig):
         super().__init__(name)
         self.input_shape = input_shape
 
+    def get_neuron_params(self):
+        return {}
+
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
         s += f"Input ({self.input_shape}) - layer name: '{self.name}'\n"
@@ -68,6 +77,9 @@ class Output(LayerConfig):
         self.output_shape = output_shape
         self.emits_spike = True
 
+    def get_neuron_params(self):
+        return {}
+
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
         s += f"Output ({self.output_shape}) - layer name: '{self.name}'\n"
@@ -83,6 +95,10 @@ class Affine(LayerConfig):
         super().__init__(name)
         self.input_shape = np.atleast_1d(input_shape)
         self.output_shape = np.atleast_1d(output_shape)
+
+    def get_neuron_params(self):
+        # PROVAVELMENTE, FALTA ADD PESOS
+        return {}
 
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -109,6 +125,9 @@ class Flatten(LayerConfig):
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         self.start_dim = start_dim
         self.end_dim = end_dim
+
+    def get_neuron_params(self):
+        return {}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -146,6 +165,9 @@ class Conv1d(LayerConfig):
         self.dilation = dilation
         self.groups = groups
         self.bias = bias
+
+    def get_neuron_params(self):
+        return {"weights": self.weight}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -191,6 +213,9 @@ class Conv2d(LayerConfig):
         
         self.groups = groups
         self.bias = bias
+
+    def get_neuron_params(self):
+        return {"weights": self.weight}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -229,6 +254,13 @@ class CubaLI(LayerConfig):
         self.r = r
         self.v_leak = v_leak
         self.w_in = w_in
+
+    def get_neuron_params(self):
+        return {"tau_syn": self.tau_syn,
+                "tau_mem": self.tau_mem,
+                "r": self.r,
+                "v_leak": self.v_leak,
+                "w_in": self.w_in}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -276,6 +308,15 @@ class CubaLIF(LayerConfig):
         self.v_reset = v_reset
         self.w_in = w_in
         self.emits_spike = True
+
+    def get_neuron_params(self):
+        return {"tau_syn": self.tau_syn,
+                "tau_mem": self.tau_mem,
+                "r": self.r,
+                "v_leak": self.v_leak,
+                "v_threshold": self.v_threshold,
+                "v_reset": self.v_reset,
+                "w_in": self.w_in}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -309,6 +350,9 @@ class I(LayerConfig):
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         self.r = r
+
+    def get_neuron_params(self):
+        return {"r": self.r}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -342,6 +386,11 @@ class IF(LayerConfig):
         self.v_threshold = v_threshold
         self.v_reset = v_reset
         self.emits_spike = True
+
+    def get_neuron_params(self):
+        return {"r": self.r,
+                "v_threshold": self.v_threshold,
+                "v_reset": self.v_reset}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -376,6 +425,11 @@ class LI(LayerConfig):
         self.tau = tau
         self.r = r
         self.v_leak = v_leak
+
+    def get_neuron_params(self):
+        return {"tau": self.tau,
+                "r": self.r,
+                "v_leak": self.v_leak}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -416,6 +470,13 @@ class LIF(LayerConfig):
         self.v_threshold = v_threshold
         self.v_reset = v_reset
         self.emits_spike = True
+
+    def get_neuron_params(self):
+        return {"tau": self.tau,
+                "r": self.r,
+                "v_leak": self.v_leak,
+                "v_threshold": self.v_threshold,
+                "v_reset": self.v_reset}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -456,6 +517,9 @@ class SumPool2d(LayerConfig):
         self.kernel_size = (kernel_size, kernel_size) if isinstance(kernel_size, int) else tuple(kernel_size)
         self.stride = (stride, stride) if isinstance(stride, int) else tuple(stride)
         self.padding = (padding, padding) if isinstance(padding, int) else tuple(padding)
+
+    def get_neuron_params(self):
+        return {}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -493,6 +557,9 @@ class AvgPool2d(LayerConfig):
         self.kernel_size = (kernel_size, kernel_size) if isinstance(kernel_size, int) else tuple(kernel_size)
         self.stride = (stride, stride) if isinstance(stride, int) else tuple(stride)
         self.padding = (padding, padding) if isinstance(padding, int) else tuple(padding)
+
+    def get_neuron_params(self):
+        return {}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -521,6 +588,9 @@ class Linear(LayerConfig):
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         self.weight = weight
+
+    def get_neuron_params(self):
+        return {"weights": self.weight}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
