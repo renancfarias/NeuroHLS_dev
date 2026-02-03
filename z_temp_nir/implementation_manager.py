@@ -1,4 +1,5 @@
 from config_layers import *
+from params_extraction_test import extract
 
 NUM_DASHES_COMMENT = 50
 
@@ -15,7 +16,7 @@ def implement_model(model):
 
     code_header = f"void snn_to_hls(input_t input{get_bracket_str(model.input_shape)}, bit_t output{get_bracket_str(model.output_shape)})"
     code = f"{code_header}\n{'{'}"
-    
+
     neuron_params_code = ""
 
     for (idx, layer) in enumerate(model.layers[1:-1]):
@@ -39,6 +40,12 @@ def implement_model(model):
             code += f"\tMerge({layer_names.get(layer.layer_1)}, {layer_names.get(layer.layer_2)});\n"
             continue
 
+        cur_layer_number = len(layer_names) + 1
+
+        neuron_params = layer.get_neuron_params()
+        for name, value in neuron_params.items():
+            neuron_params_code += f"weight_t {name}_{cur_layer_number}{get_bracket_str(value.shape)} = {extract(value)};\n\n"
+
         input_accum_name = layer_names.get(layer.dependencies[0][0], layer.dependencies[0][0])
 
         # Declarando potencial da camada, caso ela nao seja recorrente
@@ -56,8 +63,19 @@ def implement_model(model):
             name = layer_names[layer.name]
 
         # Chamando a funcao
-        code += f"\t{type(layer).__name__}({input_accum_name}, {name});\n"
+        neuron_params_call = ", ".join(f"{key}_{cur_layer_number}" for key in neuron_params.keys())
+        
+        if len(neuron_params_call) > 0: 
+            neuron_params_call = ", " + neuron_params_call
+
+        code += f"\t{type(layer).__name__}({input_accum_name}, {name}{neuron_params_call});\n"
     
     code += "}\n"
 
     print(code)
+
+    print("\n\n\n")
+
+    print(neuron_params_code)
+
+    print("\n\n\n")

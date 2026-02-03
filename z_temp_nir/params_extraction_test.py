@@ -11,7 +11,7 @@ def extract(mat, num_tabs = 0):
 
         for i in range(mat.shape[0]):
             
-            s += str(mat[i])
+            s += f"{mat[i]:.4f}"
 
             if i < mat.shape[0] - 1:
                 s += ", "
