@@ -42,18 +42,6 @@ class IndentationMaker:
         self._close_braces()
         return self._str
 
-def get_bracket_notation_of_tuple(shape : tuple):
-
-    if not isinstance(shape, tuple):
-        shape = (shape, )
-
-    brackets = ""
-
-    for i in shape:
-        brackets += f"[{i}]"
-    
-    return brackets
-
 def copy_backend_to(folder_path: str):
 
     if not os.path.exists(folder_path):

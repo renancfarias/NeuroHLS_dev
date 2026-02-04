@@ -16,24 +16,16 @@ class CodeCreator:
         
         self._code += code
 
-    def create_header_file(self, file_name: str):
+    def create_file(self, file_name: str):
 
-        file_content = "#pragma once\n\n"
+        if file_name.split('.')[1] == 'h':
+            file_content = "#pragma once\n\n"
+        else:
+            file_content = ""
 
         file_content += self._includes + "\n"
         file_content += self._code
 
-        self._create_file(f"{file_name}.h", file_content)
-
-    def create_code_file(self, file_name: str):
-        
-        file_content = self._includes + "\n"
-        file_content += self._code
-
-        self._create_file(f"{file_name}.cpp", file_content)
-
-    def _create_file(self, file_name: str, file_content: str):
-        
         Path(self._folder_path).mkdir(parents=True, exist_ok=True)
 
         with open(f"{self._folder_path}/{file_name}", "w") as f:
