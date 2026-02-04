@@ -1,13 +1,16 @@
-from read_nir import read_nir
-from implementation_manager import *
+from z_temp_nir.implementation_manager import implement_model
+from z_temp_nir.read_nir.get_model_config_from_nir import get_model_config_from_nir
 
 def teste(nir_file):
-    model = read_nir(nir_file)
+
+    path = "z_temp_nir"
+
+    model = get_model_config_from_nir(nir_file)
     print(model)
 
     # print("IMPLEMENTATION:\n\n")
 
-    implement_model(model)
+    implement_model(model, path)
 
 
 # teste("z_nir_examples/lif_norse.nir")

@@ -1,4 +1,4 @@
-from config_layers import *
+from .layer_configuration import *
 
 def create_layer_config_from_node(node_name, node):
     """

@@ -1,6 +1,6 @@
 import nir
-from config_layers import *
-from create_layer_config_from_node import *
+from .layer_configuration import *
+from .create_layer_config_from_node import create_layer_config_from_node
 
 from collections import defaultdict
 from collections import deque
@@ -49,20 +49,14 @@ def get_node_info(graph, dependencies, nodes, cur_node):
 
     return node_info
 
-def read_nir(nir_file: str):
+def get_model_config_from_nir(nir_file_path: str):
 
-    print("\n" + "-" * 60)
-    print(f"Abrindo {nir_file}")
-    print("-" * 60 + "\n")
-
-    nir_graph = nir.read(nir_file)
+    nir_graph = nir.read(nir_file_path)
     nodes = nir_graph.nodes
     edges = nir_graph.edges
 
     dependencies = defaultdict(list)
     graph = defaultdict(list)
-
-    print(f"Edges: {edges}\n")
 
     for e in edges:        
         graph[e[0]].append(e[1])
