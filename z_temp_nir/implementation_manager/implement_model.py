@@ -1,5 +1,5 @@
-from config_layers import *
-from params_extraction_test import extract
+from z_temp_nir.read_nir import *
+from .extract_neuron_param_code import extract_neuron_param_code
 
 from pathlib import Path
 
@@ -18,7 +18,7 @@ def create_file(folder_path, file_name: str, file_content: str):
     with open(f"{folder_path}/{file_name}", "w") as f:
         f.write(file_content)
 
-def implement_model(model):
+def implement_model(model, folder_path):
 
     # (id da camada do NIR, nome a ser usado na impl)
     layer_names = {}
@@ -34,7 +34,7 @@ def implement_model(model):
         code += f"\n// implementation of '{layer.name}' layer"
         code += "\n//" + "-" * NUM_DASHES_COMMENT + "\n\n"
 
-        if isinstance(layer, Merge):
+        if isinstance(layer, layer_configuration.Merge):
 
             for (dep_name, is_recurrent) in layer.dependencies:
 
@@ -53,7 +53,7 @@ def implement_model(model):
 
         neuron_params = layer.get_neuron_params()
         for name, value in neuron_params.items():
-            neuron_params_code += f"weight_t {name}_{cur_layer_number}{get_bracket_str(value.shape)} = {extract(value)};\n\n"
+            neuron_params_code += f"weight_t {name}_{cur_layer_number}{get_bracket_str(value.shape)} = {extract_neuron_param_code(value)};\n\n"
 
         input_accum_name = layer_names.get(layer.dependencies[0][0], layer.dependencies[0][0])
 
@@ -81,5 +81,5 @@ def implement_model(model):
     
     code += "}\n"
 
-    create_file("z_temp_nir", "snn_implementation.cpp", code)
-    create_file("z_temp_nir", "neuron_params.h", neuron_params_code)
+    create_file(folder_path, "snn_implementation.cpp", code)
+    create_file(folder_path, "neuron_params.h", neuron_params_code)

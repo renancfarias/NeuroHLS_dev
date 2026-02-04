@@ -1,6 +1,5 @@
-from typing import List, Union, Tuple, Optional, Any
+from typing import List, Union, Tuple
 import numpy as np
-import nir
 
 NUM_DASHES = 55
 
