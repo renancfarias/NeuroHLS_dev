@@ -31,7 +31,6 @@ gen_test/
 z_test/
 
 .venv/
-*.nir
 
 cpp_output/
 
@@ -40,5 +39,3 @@ data_test.npz
 
 z_mini_tf.npz
 z_mini_torch.npz
-
-z_nir_examples/
