@@ -1,4 +1,4 @@
-from NeuroHls.read_nir import *
+from neuro_hls.read_nir import *
 from .extract_neuron_param_code import extract_neuron_param_code
 from .code_creator import CodeCreator
 

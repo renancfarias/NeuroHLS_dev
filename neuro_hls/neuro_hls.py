@@ -2,8 +2,10 @@ import subprocess
 import os
 from pathlib import Path
 
-from .FileGenUtils import *
-from .TestbenchManager import *
+from .backend_utils import copy_backend_to
+from .read_nir import get_model_config_from_nir
+from .testbench_manager import TestbenchManager
+from .implementation_manager import implement_model
 
 class NeuroHls:
 
@@ -22,67 +24,13 @@ class NeuroHls:
 
         self._project_name = "vitis_proj"
 
-    # def get_model_config_from_nir(self, nir):
-    #     """
-    #     Extrai a configuração do modelo a partir de um arquivo NIR.
+    def read_nir_file(self, nir_file_path):
         
-    #     Args:
-    #         nir: Caminho para o arquivo .nir ou objeto NIR
-        
-    #     Returns:
-    #         ModelConfig: Configuração do modelo extraída do NIR
-    #     """
-    #     # Importa o parser NIR do mesmo pacote
-    #     from .nir_to_c import NIRToCppParser
-        
-    #     # Se nir é uma string, assume que é o caminho do arquivo
-    #     if isinstance(nir, str):
-    #         parser = NIRToCppParser(nir)
-    #     else:
-    #         # Se não for string, pode ser que já seja o objeto nir_graph
-    #         # Neste caso, cria um parser temporário
-    #         raise ValueError("Por favor, forneça o caminho para o arquivo .nir como string")
-        
-    #     # Extrai o ModelConfig do parser
-    #     model_config, input_shape, output_size = parser.get_model_config_from_nir()
-        
-    #     # Exporta os pesos e bias para arquivo header
-    #     weights_header_path = os.path.join(self._folder_path, "nir_weights.h")
-    #     parser.export_weights_to_c_header(
-    #         header_path=weights_header_path,
-    #         ctype="float",
-    #         emit_typedef_if_builtin=True,
-    #         line_wrap=10,
-    #         float_fmt=".8f",
-    #         verbose=True
-    #     )
-        
-    #     # Armazena os valores extraídos
-    #     self._input_shape = input_shape
-    #     self._output_size = output_size
-    #     self._has_parsed_nir = True
+        return get_model_config_from_nir(nir_file_path)
 
-    #     return model_config
-    
-    # def get_dummy_model_config(self):
-        
-    #     model_config = ModelConfig()
+    def implement_model(self, model):
 
-    #     layer1 = DenseLayerConfig(784, 128)
-    #     layer2 = DenseLayerConfig(128, 10)
-
-    #     model_config.add_layer(layer1)
-    #     model_config.add_layer(layer2)
-
-    #     self._input_shape = (784,)
-    #     self._output_size = 10
-    #     self._has_parsed_nir = True
-
-    #     return model_config
-    
-    # def implement_model_from_config(self, model_config: ModelConfig):
-        
-    #     self._impl_manager.create_files_from_config(model_config)
+        implement_model(model, self._folder_path)
 
     # def define_test_dataset(self, npz_file: str, data_is_binary: bool, step_count: int, different_sample_per_step: bool):
         

@@ -2,7 +2,9 @@ import os
 import numpy as np
 from pathlib import Path
 
-from .FileGenUtils import *
+from .get_closest_divisor import get_closest_divisor
+from .indentation_maker import IndentationMaker
+from neuro_hls.backend_utils import get_testbench_content
 
 class TestbenchManager:
 
@@ -128,7 +130,7 @@ class TestbenchManager:
         self._input_shape = input_shape
         self._output_size = output_size
         
-        tb_cpp = get_testbench_cpp()
+        tb_cpp = get_testbench_content()
 
         # Remove unedited tag
         tb_cpp = tb_cpp.replace("//<unedited>", "")

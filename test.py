@@ -1,5 +1,5 @@
-from NeuroHls.implementation_manager import implement_model
-from NeuroHls.read_nir.get_model_config_from_nir import get_model_config_from_nir
+from neuro_hls.implementation_manager import implement_model
+from neuro_hls.read_nir.get_model_config_from_nir import get_model_config_from_nir
 
 def teste(nir_file):
 
