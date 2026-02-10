@@ -612,6 +612,10 @@ class ModelConfig:
 
         self.merge_count = 0
 
+        self.input_quantization = (16, 8)
+        self.weight_quantization = (16, 8)
+        self.potential_quantization = (16, 8)
+
     def __str__(self):
         
         s = ""
@@ -660,6 +664,15 @@ class ModelConfig:
             layer.add_dependency(accum_layer_name, is_recurrent = False)
 
         self.layers.append(layer)
+
+    def define_input_quantization(self, total_bits, int_bits):
+        self.input_quantization = (total_bits, int_bits)
+
+    def define_weight_quantization(self, total_bits, int_bits):
+        self.weight_quantization = (total_bits, int_bits)
+
+    def define_potential_quantization(self, total_bits, int_bits):
+        self.potential_quantization = (total_bits, int_bits)
 
 def layer_emits_spike(layer_name, layers):
 

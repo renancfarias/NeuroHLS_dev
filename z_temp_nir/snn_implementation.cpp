@@ -1,4 +1,7 @@
+#include "neuro_hls_functions/bit_type.h"
+#include "quantization.h"
 #include "neuron_params.h"
+#include "snn_implementation.h"
 
 void snn_to_hls(input_t input[12], bit_t output[7])
 {
@@ -6,7 +9,7 @@ void snn_to_hls(input_t input[12], bit_t output[7])
 // implementation of 'fc1' layer
 //--------------------------------------------------
 
-	type_t layer_1[38] = {};
+	potential_t layer_1[38] = {};
 	Affine(input, layer_1);
 
 //--------------------------------------------------
@@ -33,7 +36,7 @@ void snn_to_hls(input_t input[12], bit_t output[7])
 // implementation of 'fc2' layer
 //--------------------------------------------------
 
-	type_t layer_4[7] = {};
+	potential_t layer_4[7] = {};
 	Affine(layer_3, layer_4);
 
 //--------------------------------------------------
