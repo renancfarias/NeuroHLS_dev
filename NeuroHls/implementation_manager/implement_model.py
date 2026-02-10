@@ -19,7 +19,8 @@ def implement_model(model, folder_path):
 
     model_cpp = CodeCreator(folder_path)
     model_h = CodeCreator(folder_path)
-    neuron_params_code = CodeCreator(folder_path)
+    neuron_params_h = CodeCreator(folder_path)
+    quantization_h = CodeCreator(folder_path)
 
     model_h.add_code(f"{model_prototype};")
     model_cpp.add_code(f"{model_prototype}\n{'{'}")
@@ -49,7 +50,7 @@ def implement_model(model, folder_path):
 
         neuron_params = layer.get_neuron_params()
         for name, value in neuron_params.items():
-            neuron_params_code.add_code(f"weight_t {name}_{cur_layer_number}{get_bracket_str(value.shape)} = {extract_neuron_param_code(value)};\n\n")
+            neuron_params_h.add_code(f"weight_t {name}_{cur_layer_number}{get_bracket_str(value.shape)} = {extract_neuron_param_code(value)};\n\n")
 
         input_accum_name = layer_names.get(layer.dependencies[0][0], layer.dependencies[0][0])
 
@@ -62,7 +63,7 @@ def implement_model(model, folder_path):
             else:
                 name = f"layer_{len(layer_names) + 1}"
                 layer_names[layer.name] = name
-                output_type = "bit_t" if layer.emits_spike else "type_t"
+                output_type = "bit_t" if layer.emits_spike else "potential_t"
                 model_cpp.add_code(f"\t{output_type} {name}{get_bracket_str(layer.output_shape)} = {{}};\n")
         else:
             name = layer_names[layer.name]
@@ -77,10 +78,24 @@ def implement_model(model, folder_path):
     
     model_cpp.add_code("}\n")
 
-    neuron_params_code.create_file("neuron_params.h")
+    quantization_h.add_include("ap_int.h")
+    quantization_h.add_code(f"typedef ap_int<{model.input_quantization[0]}, {model.input_quantization[1]}> input_t;\n")
+    quantization_h.add_code(f"typedef ap_int<{model.weight_quantization[0]}, {model.weight_quantization[1]}, AP_RND> weight_t;\n")
+    quantization_h.add_code(f"typedef ap_int<{model.potential_quantization[0]}, {model.potential_quantization[1]}> potential_t;\n")
 
-    model_h.create_file("snn_implementation.h")
+    model_h.add_include("neuro_hls_functions/bit_type.h")
+    model_h.add_include("quantization.h")
 
+    model_cpp.add_include("neuro_hls_functions/bit_type.h")
+    model_cpp.add_include("quantization.h")
     model_cpp.add_include("neuron_params.h")
+    model_cpp.add_include("snn_implementation.h")
+
+    neuron_params_h.add_include("quantization.h")
+    
+    model_h.create_file("snn_implementation.h")
     model_cpp.create_file("snn_implementation.cpp")
+    neuron_params_h.create_file("neuron_params.h")
+    quantization_h.create_file("quantization.h")
+    
     
