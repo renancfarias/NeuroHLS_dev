@@ -7,7 +7,7 @@
 #include "snn_implementation.h"
 
 using namespace std;
-//<unedited>
+
 //<decl_constants>
 
 int main (int argc, char **argv)

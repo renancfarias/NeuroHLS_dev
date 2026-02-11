@@ -2,6 +2,12 @@ import os
 import numpy as np
 from pathlib import Path
 
+import torch
+from torch.utils.data import TensorDataset
+import torch.serialization
+
+torch.serialization.add_safe_globals([TensorDataset])
+
 from .get_closest_divisor import get_closest_divisor
 from .indentation_maker import IndentationMaker
 from neuro_hls.backend_utils import get_testbench_content
@@ -16,8 +22,6 @@ class TestbenchManager:
         self._constants = {}
 
     def _build_constants_dict(self):
-
-        # self._constants = {}
 
         for idx, dim in enumerate(self._input_shape, start=1):
             self._constants[f"DIM_{idx}"] = dim
@@ -73,29 +77,37 @@ class TestbenchManager:
         read_batch.append_line(input_file_read + ";")
         return read_batch.get_text()
     
-    def define_dataset(self, npz_file: str, data_is_binary: bool, step_count: int, different_sample_per_step: bool):
+    def define_dataset(self, dataset_file: str, data_is_binary: bool, step_count: int, different_sample_per_step: bool):
 
-        dataset = np.load(npz_file)
+        if dataset_file.split('.')[1] == "npz":
+            dataset = np.load(dataset_file)
 
-        data = dataset["data"]
-        labels = dataset["labels"]
+            data = dataset["data"]
+            labels = dataset["labels"]
+
+        else:
+            dataset = torch.load("nir_examples/rnn_test.pt")
+
+            data, labels = dataset.tensors
+
+            data = data.cpu()
+            labels = labels.cpu()
 
         total_samples = data.shape[0]
         total_labels = labels.shape[0]
 
-        if different_sample_per_step and total_samples != total_labels * step_count:
+        # if different_sample_per_step and total_samples != total_labels * step_count:
 
-            raise Exception(f"Number of samples does not match. {total_samples} samples != {total_labels} labels * {step_count} steps")
+        #     raise Exception(f"Number of samples does not match. {total_samples} samples != {total_labels} labels * {step_count} steps")
         
-        if not different_sample_per_step and total_samples != total_labels:
+        # if not different_sample_per_step and total_samples != total_labels:
 
-            raise Exception(f"Number of samples does not match. {total_samples} samples != {total_labels} labels")
+        #     raise Exception(f"Number of samples does not match. {total_samples} samples != {total_labels} labels")
 
         if data.ndim > 1:
             data = data.reshape(data.shape[0], -1)
 
         os.makedirs(f"{self._folder_path}/tb_data", exist_ok=True)
-
         np.savetxt(f"{self._folder_path}/tb_data/data.txt", data, fmt="%.6f" if not data_is_binary else "%d")
         np.savetxt(f"{self._folder_path}/tb_data/targets.txt", labels, fmt="%d")
         
@@ -131,9 +143,6 @@ class TestbenchManager:
         self._output_size = output_size
         
         tb_cpp = get_testbench_content()
-
-        # Remove unedited tag
-        tb_cpp = tb_cpp.replace("//<unedited>", "")
 
         # Declaration input_data
         tb_cpp = tb_cpp.replace("//<decl_input_data>", self._get_decl_input_data_code())

@@ -9,49 +9,54 @@ from .implementation_manager import implement_model
 
 class NeuroHls:
 
-    def __init__(self, folder_path: str, should_recreate_files = True):
+    def __init__(self, folder_path: str):
 
         self._folder_path = folder_path
 
-        if should_recreate_files or not os.path.exists(folder_path):
+        if not os.path.exists(folder_path):
             copy_backend_to(folder_path)
 
         self._has_parsed_nir = False
         self._has_created_testbench = False
 
-        # self._tb_manager = TestbenchManager(folder_path)
-        # self._impl_manager = ImplementationManager(folder_path)
+        self._tb_manager = TestbenchManager(folder_path)
 
         self._project_name = "vitis_proj"
 
     def read_nir_file(self, nir_file_path):
+
+        model = get_model_config_from_nir(nir_file_path)
+        self._input_shape = model.input_shape
+        self._output_shape = model.output_shape
+
+        self._has_parsed_nir = True
         
-        return get_model_config_from_nir(nir_file_path)
+        return model 
 
     def implement_model(self, model):
 
         implement_model(model, self._folder_path)
 
-    # def define_test_dataset(self, npz_file: str, data_is_binary: bool, step_count: int, different_sample_per_step: bool):
+    def define_test_dataset(self, dataset_file_path: str, data_is_binary: bool, step_count: int, different_sample_per_step: bool):
         
-    #     self._tb_manager.define_dataset(npz_file, data_is_binary, step_count, different_sample_per_step)
+        self._tb_manager.define_dataset(dataset_file_path, data_is_binary, step_count, different_sample_per_step)
 
-    # def create_testbench(self, total_samples: int, batch_size: int):
+    def create_testbench(self, total_samples: int, batch_size: int):
 
-    #     if not self._has_parsed_nir:
-    #         print("ERROR: The network architecture must be defined before creating the testbench files.")
-    #         return
+        if not self._has_parsed_nir:
+            print("ERROR: The network architecture must be defined before creating the testbench files.")
+            return
         
-    #     used_total_samples, used_batch_size = self._tb_manager.define_sample_count_and_batch_size(total_samples, batch_size)
+        used_total_samples, used_batch_size = self._tb_manager.define_sample_count_and_batch_size(total_samples, batch_size)
 
-    #     print(f"Total samples used: {used_total_samples} of {self._tb_manager.get_number_of_available_samples()}")
-    #     print(f"Batch size: {used_batch_size}")
-    #     print(f"Total batches: {used_total_samples // used_batch_size}")
+        print(f"Total samples used: {used_total_samples} of {self._tb_manager.get_number_of_available_samples()}")
+        print(f"Batch size: {used_batch_size}")
+        print(f"Total batches: {used_total_samples // used_batch_size}")
         
-    #     self._tb_manager.create_testbench_file(self._input_shape, self._output_size)
-    #     self._has_created_testbench = True
+        self._tb_manager.create_testbench_file(self._input_shape, self._output_shape[0])
+        self._has_created_testbench = True
 
-    #     print("Testbench was created.")
+        print("Testbench was created.")
 
     def _create_vitis_project_if_needed(self):
 
