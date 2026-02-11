@@ -1,18 +1,16 @@
-from neuro_hls.implementation_manager import implement_model
-from neuro_hls.read_nir.get_model_config_from_nir import get_model_config_from_nir
+import torch
+from torch.utils.data import TensorDataset
+import torch.serialization
+import numpy as np
 
-def teste(nir_file):
+torch.serialization.add_safe_globals([TensorDataset])
 
-    path = "z_temp_nir"
+ds_test = torch.load("nir_examples/rnn_test.pt")
 
-    model = get_model_config_from_nir(nir_file)
-    print(model)
+X_test, y_test = ds_test.tensors
 
-    # print("IMPLEMENTATION:\n\n")
+X_test = X_test.cpu()
+y_test = y_test.cpu()
 
-    implement_model(model, path)
-
-
-# teste("nir_examples/lif_norse.nir")
-# teste("nir_examples/cnn_sinabs.nir")
-teste("nir_examples/braille_noDelay_bias_zero.nir")
+np.savetxt("inputs.txt", X_test.flatten(1).numpy(), fmt="%d")
+np.savetxt("labels.txt", y_test.flatten().numpy(), fmt="%d")
