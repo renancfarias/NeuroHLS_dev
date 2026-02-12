@@ -21,9 +21,7 @@ def create_layer_config_from_node(node_name, node):
     if node_type == 'Affine':
         # Affine tem weight de shape [out, in] e bias de shape [out]
         if hasattr(node, 'weight') and node.weight is not None:
-            n_neurons = node.weight.shape[0]
-            n_inputs = node.weight.shape[1]
-            return Affine(node_name, n_inputs, n_neurons)
+            return Affine(node_name, node.weight, node.bias)
         else:
             raise ValueError(f"Nó Affine sem weight: {node}")
     
