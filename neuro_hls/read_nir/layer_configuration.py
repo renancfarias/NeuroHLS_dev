@@ -89,15 +89,19 @@ class Output(LayerConfig):
     
 class Affine(LayerConfig):
     
-    def __init__(self, name: str, input_shape, output_shape):
+    def __init__(self, name: str, weight, bias):
 
         super().__init__(name)
-        self.input_shape = np.atleast_1d(input_shape)
-        self.output_shape = np.atleast_1d(output_shape)
+
+        self.weight = weight
+        self.bias = bias
+
+        self.input_shape = np.atleast_1d(weight.shape[1])
+        self.output_shape = np.atleast_1d(weight.shape[0])
 
     def get_neuron_params(self):
-        # PROVAVELMENTE, FALTA ADD PESOS
-        return {}
+        return {"weights": self.weight,
+                "bias": self.bias}
 
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"

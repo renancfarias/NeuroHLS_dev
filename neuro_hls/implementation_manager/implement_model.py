@@ -46,11 +46,14 @@ def implement_model(model, folder_path):
             model_cpp.add_code(f"\tMerge({layer_names.get(layer.layer_1)}, {layer_names.get(layer.layer_2)});\n")
             continue
 
-        cur_layer_number = len(layer_names) + 1
+        if layer.name in layer_names:
+            cur_layer_id = "_".join(layer_names[layer.name].split("_")[1:])
+        else:
+            cur_layer_id = len(layer_names) + 1
 
         neuron_params = layer.get_neuron_params()
         for name, value in neuron_params.items():
-            neuron_params_h.add_code(f"weight_t {name}_{cur_layer_number}{get_bracket_str(value.shape)} = {extract_neuron_param_code(value)};\n\n")
+            neuron_params_h.add_code(f"weight_t {name}_{cur_layer_id}{get_bracket_str(value.shape)} = {extract_neuron_param_code(value)};\n\n")
 
         input_accum_name = layer_names.get(layer.dependencies[0][0], layer.dependencies[0][0])
 
@@ -69,7 +72,7 @@ def implement_model(model, folder_path):
             name = layer_names[layer.name]
 
         # Chamando a funcao
-        neuron_params_call = ", ".join(f"{key}_{cur_layer_number}" for key in neuron_params.keys())
+        neuron_params_call = ", ".join(f"{key}_{cur_layer_id}" for key in neuron_params.keys())
         
         if len(neuron_params_call) > 0: 
             neuron_params_call = ", " + neuron_params_call
