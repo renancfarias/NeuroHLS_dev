@@ -319,7 +319,9 @@ class CubaLIF(LayerConfig):
                 "v_leak": self.v_leak,
                 "v_threshold": self.v_threshold,
                 "v_reset": self.v_reset,
-                "w_in": self.w_in}
+                "w_in": self.w_in,
+                "u_state": np.zeros(self.output_shape),
+                "v_state": np.zeros(self.output_shape)}   # VER COMO ADD PARAMETRO 'dt'
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"

@@ -15,7 +15,7 @@ def implement_model(model, folder_path):
     # (id da camada do NIR, nome a ser usado na impl)
     layer_names = {}
 
-    model_prototype = f"void snn_to_hls(input_t input{get_bracket_str(model.input_shape)}, bit_t output{get_bracket_str(model.output_shape)})"
+    model_prototype = f"void snn_to_hls(input_t (&input){get_bracket_str(model.input_shape)}, bit_t (&output){get_bracket_str(model.output_shape)})"
 
     model_cpp = CodeCreator(folder_path)
     model_h = CodeCreator(folder_path)
@@ -40,8 +40,8 @@ def implement_model(model, folder_path):
                     impl_dep_name = f"layer_{len(layer_names) + 1}_rec"
                     layer_names[dep_name] = impl_dep_name
 
-                    rec_layer_output_type = "bit_t" if layer.emits_spike else "type_t"
-                    model_cpp.add_code(f"\t{rec_layer_output_type} {impl_dep_name}{get_bracket_str(layer.input_shape)} = {{}};\n")
+                    rec_layer_output_type = "bit_t" if layer.emits_spike else "potential_t"
+                    model_cpp.add_code(f"\tstatic {rec_layer_output_type} {impl_dep_name}{get_bracket_str(layer.input_shape)} = {{}};\n")
 
             model_cpp.add_code(f"\tMerge({layer_names.get(layer.layer_1)}, {layer_names.get(layer.layer_2)});\n")
             continue
@@ -67,7 +67,7 @@ def implement_model(model, folder_path):
                 name = f"layer_{len(layer_names) + 1}"
                 layer_names[layer.name] = name
                 output_type = "bit_t" if layer.emits_spike else "potential_t"
-                model_cpp.add_code(f"\t{output_type} {name}{get_bracket_str(layer.output_shape)} = {{}};\n")
+                model_cpp.add_code(f"\tstatic {output_type} {name}{get_bracket_str(layer.output_shape)} = {{}};\n")
         else:
             name = layer_names[layer.name]
 
@@ -82,14 +82,16 @@ def implement_model(model, folder_path):
     model_cpp.add_code("}\n")
 
     quantization_h.add_include("ap_int.h")
-    quantization_h.add_code(f"typedef ap_int<{model.input_quantization[0]}, {model.input_quantization[1]}> input_t;\n")
-    quantization_h.add_code(f"typedef ap_int<{model.weight_quantization[0]}, {model.weight_quantization[1]}, AP_RND> weight_t;\n")
-    quantization_h.add_code(f"typedef ap_int<{model.potential_quantization[0]}, {model.potential_quantization[1]}> potential_t;\n")
+    quantization_h.add_include("neuro_hls_functions/bit_type.h")
+    quantization_h.add_code(f"typedef ap_fixed<{model.input_quantization[0]}, {model.input_quantization[1]}> input_t;\n")
+    quantization_h.add_code(f"typedef ap_fixed<{model.weight_quantization[0]}, {model.weight_quantization[1]}, AP_RND> weight_t;\n")
+    quantization_h.add_code(f"typedef ap_fixed<{model.potential_quantization[0]}, {model.potential_quantization[1]}> potential_t;\n")
 
     model_h.add_include("neuro_hls_functions/bit_type.h")
     model_h.add_include("quantization.h")
 
     model_cpp.add_include("neuro_hls_functions/bit_type.h")
+    model_cpp.add_include("neuro_hls_functions/dense.h")
     model_cpp.add_include("quantization.h")
     model_cpp.add_include("neuron_params.h")
     model_cpp.add_include("snn_implementation.h")

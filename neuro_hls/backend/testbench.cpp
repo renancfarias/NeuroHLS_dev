@@ -3,7 +3,7 @@
 #include <fstream>
 #include <vector>
 
-#include "types_and_params.h"
+#include "quantization.h"
 #include "snn_implementation.h"
 
 using namespace std;
