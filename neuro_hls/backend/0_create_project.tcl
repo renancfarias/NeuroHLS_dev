@@ -14,8 +14,8 @@ open_project -reset $PROJ
 
 add_files snn_implementation.cpp
 add_files snn_implementation.h
-add_files weights.h
-add_files types_and_params.h
+add_files neuron_params.h
+add_files quantization.h
 
 # ---------------------------------------------
 # Adding testbench data

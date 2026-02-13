@@ -386,7 +386,7 @@ template <
     int IN_DIM,
     int OUT_DIM
 >
-void affine_layer(
+void Affine(
     const T_DATA input[IN_DIM],              // Vetor I
     const T_DATA weights[OUT_DIM][IN_DIM],   // Matriz W [Linhas=Saída][Cols=Entrada]
     const T_DATA bias[OUT_DIM],              // Vetor b
@@ -1056,7 +1056,7 @@ void affine_test()
     int out[N_OUT];
 
     // Execução
-    affine_layer<int, N_IN, N_OUT>(I, W, b, out);
+    Affine<int, N_IN, N_OUT>(I, W, b, out);
 
     // Verificação e Prova Real
     std::cout << "\n=== Teste Affine (Fully Connected) ===\n";
