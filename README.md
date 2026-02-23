@@ -1,5 +1,6 @@
 Testar primitivas (implementação paralela):
 - [ ] Merge
+- [ ] Merge em rede recorrente
 - [ ] Affine
 - [ ] Sum Pooling
 - [ ] Avg Pooling (falta implementar em C++)
