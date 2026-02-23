@@ -1,0 +1,14 @@
+Testar primitivas (implementação paralela):
+- [ ] Merge
+- [ ] Affine
+- [ ] Sum Pooling
+- [ ] Avg Pooling (falta implementar em C++)
+- [ ] Conv2D
+- [ ] Integrate
+- [ ] IF
+- [ ] LI
+- [ ] LIF
+- [ ] CuBaLI
+- [ ] CubaLIF
+- [ ] Linear
+- [ ] Scale
