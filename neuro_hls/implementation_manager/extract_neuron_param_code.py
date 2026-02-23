@@ -6,7 +6,7 @@ def extract_neuron_param_code(mat, num_tabs = 0):
 
         for i in range(mat.shape[0]):
             
-            s += f"{mat[i]:.4f}"
+            s += f"{mat[i]:.10f}"
 
             if i < mat.shape[0] - 1:
                 s += ", "
