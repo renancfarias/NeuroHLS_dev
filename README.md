@@ -1,5 +1,5 @@
 Testar primitivas (implementação paralela):
-- [ ] Merge
+- [x] Merge
 - [ ] Merge em rede recorrente
 - [ ] Affine
 - [ ] Sum Pooling
