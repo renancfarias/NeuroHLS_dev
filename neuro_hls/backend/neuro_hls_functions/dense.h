@@ -75,11 +75,36 @@
 //     }
 // }
 
-template<typename input_type, int dim> void Merge(input_type (&receiver)[dim], input_type (&other)[dim])
+template<typename input_type, int size> void Merge(input_type (&receiver)[size], input_type (&other)[size])
 {
-    for (int i = 0; i < dim; i++)
+    for (int i = 0; i < size; i++)
     {
         receiver[i] += other[i];
+    }
+}
+
+template<typename input_type, int channels, int width> void Merge(input_type (&receiver)[channels][width], input_type (&other)[channels][width])
+{
+    for (int ch = 0; ch < channels; ch++)
+    {
+        for (int w = 0; w < width; w++)
+        {
+            receiver[ch][w] += other[ch][w];
+        }
+    }
+}
+
+template<typename input_type, int channels, int height, int width> void Merge(input_type (&receiver)[channels][height][width], input_type (&other)[channels][height][width])
+{
+    for (int ch = 0; ch < channels; ch++)
+    {
+        for (int h = 0; h < height; h++)
+        {
+            for (int w = 0; w < width; w++)
+            {
+                receiver[ch][h][w] += other[ch][h][w];
+            }
+        }
     }
 }
 
