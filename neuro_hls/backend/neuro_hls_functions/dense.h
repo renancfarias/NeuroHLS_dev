@@ -2,49 +2,6 @@
 
 #include "bit_type.h"
 
-// template<int n_inputs, int n_neurons, int unroll_factor, typename input_type, typename potential_type>
-// void dense(input_type input [n_inputs],
-//            potential_type potentials [n_neurons],
-//            weight_t weights [n_neurons][n_inputs],
-//            weight_t bias[n_neurons])
-// {
-//     potential_type aux[unroll_factor];
-
-//     #pragma HLS ARRAY_PARTITION variable=potentials dim=1 type=complete
-//     #pragma HLS ARRAY_PARTITION variable=bias dim=1 type=complete
-
-//     #pragma HLS ARRAY_PARTITION variable=input factor=unroll_factor dim=1 type=cyclic
-//     #pragma HLS ARRAY_PARTITION variable=aux factor=unroll_factor dim=1 type=cyclic
-
-//     dense_inputs:
-//     for (int i = 0; i < n_inputs; i += unroll_factor)
-//     {
-//     #pragma HLS PIPELINE off
-        
-//         dense_neurons:
-//         for (int n = 0; n < n_neurons; n++)
-//         {
-//             #pragma HLS PIPELINE off
-
-//             dense_mult_batch:
-//             for (int k = 0; k < unroll_factor; k++)
-//             {
-//                 #pragma HLS UNROLL
-
-//                 aux[k] = weights[n][i + k] * input[i + k];
-//                 potentials[n] += aux[k];
-//             }
-//         }
-//     }
-
-//     dense_bias:
-//     for (int n = 0; n < n_neurons; n++)
-//     {
-//         #pragma HLS UNROLL factor=unroll_factor
-//         potentials[n] += bias[n];
-//     }
-// };
-
 // template<int n_neurons, int unroll_factor, typename potential_type>
 // void dense_LIF(potential_type potentials[n_neurons], bit_t output[n_neurons])
 // {
@@ -108,43 +65,94 @@ template<typename input_type, int channels, int height, int width> void Merge(in
     }
 }
 
-/**
- * Affine Layer (Fully Connected) para Vitis HLS
- * ----------------------------------------------------------------
- * Operação: Output = (Weights * Input) + Bias
- * * T_DATA: Tipo de dado (float, int, ap_fixed)
- * IN_DIM: Tamanho do vetor de entrada (Input Features)
- * OUT_DIM: Tamanho do vetor de saída (Output Neurons)
- */
-template <typename T_DATA, typename OUT_DATA, typename W_DATA, int IN_DIM, int OUT_DIM> void Affine(
-    const T_DATA (&input)[IN_DIM],              // Vetor I
-    OUT_DATA (&output)[OUT_DIM],                  // Resultado
-    const W_DATA (&weights)[OUT_DIM][IN_DIM],   // Matriz W [Linhas=Saída][Cols=Entrada]
-    const W_DATA (&bias)[OUT_DIM]               // Vetor b
-) {
-    // Diretiva para particionar o array de entrada se quiser paralelismo total
-    // #pragma HLS ARRAY_PARTITION variable=input complete
-    
-    // Loop sobre os neurônios de SAÍDA
-    loop_out: for (int i = 0; i < OUT_DIM; ++i) {
-        
-        // O Pipeline aqui permite calcular um neurônio de saída a cada ciclo (se unrolled)
-        // ou otimizar o loop interno de soma.
-        #pragma HLS PIPELINE II=1
-        
-        // 1. Inicia com o valor do Bias (b)
-        T_DATA acc = bias[i];
+template<
+    int unroll_factor,
+    int n_inputs,
+    int n_neurons,
+    typename input_type,
+    typename result_type,
+    typename params_type>
+void multiply_and_accumulate(input_type (&input)[n_inputs],
+                             result_type (&result)[n_neurons],
+                             params_type (&weights)[n_neurons][n_inputs])
+{
+    result_type aux[unroll_factor];
 
-        // 2. Produto Escalar (Dot Product): W * I
-        loop_in: for (int j = 0; j < IN_DIM; ++j) {
-            // Em HLS, para latência mínima, pode-se usar #pragma HLS UNROLL aqui
-            acc += input[j] * weights[i][j];
+    // #pragma HLS ARRAY_PARTITION variable=result dim=1 type=complete
+    // #pragma HLS ARRAY_PARTITION variable=input factor=unroll_factor dim=1 type=cyclic
+    // #pragma HLS ARRAY_PARTITION variable=aux factor=unroll_factor dim=1 type=cyclic
+
+    mult_and_accum_inputs:
+    for (int i = 0; i < n_inputs; i += unroll_factor)
+    {
+    // #pragma HLS PIPELINE off
+        
+        mult_and_accum_neurons:
+        for (int n = 0; n < n_neurons; n++)
+        {
+            // #pragma HLS PIPELINE off
+
+            mult_and_accum_batch:
+            for (int k = 0; k < unroll_factor; k++)
+            {
+                // #pragma HLS UNROLL
+
+                aux[k] = weights[n][i + k] * input[i + k];
+                result[n] += aux[k];
+            }
         }
-
-        // 3. Atribui ao output
-        output[i] = acc;
     }
-}
+};
+
+template<
+    int unroll_factor,
+    int n_inputs,
+    int n_neurons,
+    typename input_type,
+    typename result_type,
+    typename params_type>
+void Linear(input_type (&input)[n_inputs],
+           result_type (&result)[n_neurons],
+           params_type (&weights)[n_neurons][n_inputs])
+{
+    // #pragma HLS ARRAY_PARTITION variable=result dim=1 type=complete
+    // #pragma HLS ARRAY_PARTITION variable=input factor=unroll_factor dim=1 type=cyclic
+    
+    linear_bias:
+    for (int n = 0; n < n_neurons; n++)
+    {
+        // #pragma HLS UNROLL factor=unroll_factor
+        result[n] = 0;
+    }
+
+    multiply_and_accumulate<unroll_factor>(input, result, weights);
+};
+
+template<
+    int unroll_factor,
+    int n_inputs,
+    int n_neurons,
+    typename input_type,
+    typename result_type,
+    typename params_type>
+void Affine(input_type (&input)[n_inputs],
+           result_type (&result)[n_neurons],
+           params_type (&weights)[n_neurons][n_inputs],
+           params_type (&bias)[n_neurons])
+{
+    // #pragma HLS ARRAY_PARTITION variable=result dim=1 type=complete
+    // #pragma HLS ARRAY_PARTITION variable=bias dim=1 type=complete
+    // #pragma HLS ARRAY_PARTITION variable=input factor=unroll_factor dim=1 type=cyclic
+    
+    affine_bias:
+    for (int n = 0; n < n_neurons; n++)
+    {
+        // #pragma HLS UNROLL factor=unroll_factor
+        result[n] = bias[n];
+    }
+
+    multiply_and_accumulate<unroll_factor>(input, result, weights);
+};
 
 /**
  * SumPooling HLS Paramétrico
@@ -516,46 +524,6 @@ void integrate_and_fire(
                           membrane_potential[c][i][j], output_spikes[c][i][j]);
             }
         }
-    }
-}
-
-/**
- * Linear Layer para Vitis HLS
- * ----------------------------------------------------------------
- * Operação: Output = Weights * Input
- * Diferença para Affine: Não possui soma de Bias.
- * * T_DATA: Tipo de dado (float, int, ap_fixed)
- * IN_DIM: Tamanho do vetor de entrada (Features)
- * OUT_DIM: Tamanho do vetor de saída (Neurons)
- */
-template <
-    typename T_DATA,
-    int IN_DIM,
-    int OUT_DIM
->
-void linear_layer(
-    const T_DATA input[IN_DIM],              // Vetor I
-    const T_DATA weights[OUT_DIM][IN_DIM],   // Matriz W
-    T_DATA output[OUT_DIM]                   // Vetor Saída
-) {
-    // Diretivas HLS opcionais para particionamento de memória
-    // #pragma HLS ARRAY_PARTITION variable=weights cyclic factor=IN_DIM dim=2
-    
-    // Loop sobre cada neurônio de saída
-    loop_out: for (int i = 0; i < OUT_DIM; ++i) {
-        
-        // Pipeline permite iniciar o cálculo do próximo neurônio enquanto o atual finaliza
-        #pragma HLS PIPELINE II=1
-        
-        T_DATA acc = 0; // Acumulador inicia em ZERO (diferente do Affine que inicia com Bias)
-
-        // Produto Escalar (Dot Product): Linha da Matriz * Vetor Entrada
-        loop_in: for (int j = 0; j < IN_DIM; ++j) {
-            // Unroll aqui paralelizaria as multiplicações se houver DSPs suficientes
-            acc += input[j] * weights[i][j];
-        }
-
-        output[i] = acc;
     }
 }
 

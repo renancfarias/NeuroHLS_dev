@@ -1,7 +1,7 @@
 Testar primitivas (implementação paralela):
 - [x] Merge
 - [ ] Merge em rede recorrente
-- [ ] Affine
+- [x] Affine
 - [ ] Sum Pooling
 - [ ] Avg Pooling (falta implementar em C++)
 - [ ] Conv2D
@@ -11,5 +11,5 @@ Testar primitivas (implementação paralela):
 - [ ] LIF
 - [ ] CuBaLI
 - [ ] CubaLIF
-- [ ] Linear
+- [x] Linear
 - [ ] Scale

@@ -59,7 +59,7 @@ def debug_net(net, sample_data, primitive_name):
     
     print()
 
-def debug_linear():
+def debug_affine():
 
     net = torch.nn.Sequential(
         torch.nn.Linear(5, 2)
@@ -73,7 +73,7 @@ def debug_linear():
         
         net[0].bias = torch.nn.Parameter(torch.tensor([0.5, -0.5]))
 
-    debug_net(net, [torch.tensor([[1., 2., 3., 4., 5.]]), torch.tensor([[3., 5., 7., 9., 11.]])], "linear")
+    debug_net(net, [torch.tensor([[1., 2., 3., 4., 5.]]), torch.tensor([[3., 5., 7., 9., 11.]])], "affine")
 
-debug_linear()
+debug_affine()
 
