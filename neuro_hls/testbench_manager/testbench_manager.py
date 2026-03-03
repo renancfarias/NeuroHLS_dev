@@ -86,7 +86,7 @@ class TestbenchManager:
             labels = dataset["labels"]
 
         else:
-            dataset = torch.load("nir_examples/rnn_test.pt")
+            dataset = torch.load(dataset_file)
 
             data, labels = dataset.tensors
 
