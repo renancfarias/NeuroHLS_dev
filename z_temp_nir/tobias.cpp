@@ -857,6 +857,59 @@ void cuba_lif_neuron(
     }
 }
 
+/**
+ * AveragePooling 2D
+ * ----------------------------------------------------------------
+ * Composição: 
+ * 1. SumPooling (Agrupa e soma os elementos da janela)
+ * 2. Linear Scale (Multiplica a soma pelo inverso da área do kernel)
+ */
+template <
+    typename T,
+    int IN_H, int IN_W,
+    int K_H,  int K_W,
+    int S_H,  int S_W,
+    int P_H,  int P_W
+>
+void avg_pooling_custom(
+    const T input[IN_H][IN_W],
+    T output[(IN_H + 2*P_H - K_H) / S_H + 1][(IN_W + 2*P_W - K_W) / S_W + 1]
+) {
+    #pragma HLS INLINE // Fused modules: otimiza o hardware fundindo as operações
+
+    // Constantes de dimensão
+    const int OUT_H = (IN_H + 2 * P_H - K_H) / S_H + 1;
+    const int OUT_W = (IN_W + 2 * P_W - K_W) / S_W + 1;
+    const int OUT_DIM = OUT_H * OUT_W;
+
+    // Buffer intermediário para armazenar a saída do SumPooling
+    T sum_buffer[OUT_H][OUT_W];
+    
+    // O fator de escala da média é 1 / (Altura * Largura do Kernel)
+    // Feito em tempo de compilação para evitar divisões no FPGA
+    T scale_factor = (T)1.0 / (T)(K_H * K_W);
+    
+    // A função linear_scale exige um array de "pesos". 
+    // Criamos um array preenchido com a constante de escala.
+    T scale_weights[OUT_DIM];
+    
+    init_weights: for (int i = 0; i < OUT_DIM; ++i) {
+        #pragma HLS UNROLL // Desenrola pois é uma inicialização simples e estática
+        scale_weights[i] = scale_factor;
+    }
+
+    // ---------------------------------------------------------
+    // ESTÁGIO 1: Soma da Janela
+    // ---------------------------------------------------------
+    sum_pooling_custom<T, IN_H, IN_W, K_H, K_W, S_H, S_W, P_H, P_W>(input, sum_buffer);
+
+    // ---------------------------------------------------------
+    // ESTÁGIO 2: Escala (Média)
+    // ---------------------------------------------------------
+    // Tratamos a matriz 2D como um vetor 1D para reaproveitar a linear_scale
+    linear_scale<T, OUT_DIM>((const T*)sum_buffer, scale_weights, (T*)output);
+}
+
 // --------------------------------------------------------
 // Testbench - SumPooling Paramétrico
 // --------------------------------------------------------
@@ -904,6 +957,53 @@ void sum_pooling_test()
         std::cout << "[ ";
         for(int j=0; j<OUT_W; j++) {
             std::cout << img_out[i][j] << " ";
+        }
+        std::cout << "]\n";
+    }
+}
+
+// --------------------------------------------------------
+// Testbench - AveragePooling (Sum + Linear Scale)
+// --------------------------------------------------------
+void avg_pooling_test()
+{
+    // Configuração: Imagem 4x4, Kernel 2x2, Stride 2, sem padding.
+    const int IN_H = 4, IN_W = 4;
+    const int K_H = 2,  K_W = 2;
+    const int S_H = 2,  S_W = 2;
+    const int P_H = 0,  P_W = 0;
+
+    const int OUT_H = (IN_H + 2*P_H - K_H) / S_H + 1;
+    const int OUT_W = (IN_W + 2*P_W - K_W) / S_W + 1;
+
+    // Imagem 4x4
+    float input[IN_H][IN_W] = {
+        {2.0, 2.0,  6.0, 6.0},
+        {2.0, 2.0,  6.0, 6.0},
+        {4.0, 4.0,  8.0, 8.0},
+        {4.0, 4.0,  8.0, 8.0}
+    };
+
+    float output[OUT_H][OUT_W];
+
+    // Execução
+    avg_pooling_custom<float, IN_H, IN_W, K_H, K_W, S_H, S_W, P_H, P_W>(input, output);
+
+    // Verificação visual
+    std::cout << "\n=== Teste AveragePooling (Sum + Linear Scale) ===\n";
+    std::cout << "Kernel Area = " << (K_H * K_W) << " -> Fator Multiplicador: " << 1.0/(K_H*K_W) << "\n";
+    std::cout << "Saida (" << OUT_H << "x" << OUT_W << "):\n";
+
+    // Esperado:
+    // Q1: (2+2+2+2)/4 = 2
+    // Q2: (6+6+6+6)/4 = 6
+    // Q3: (4+4+4+4)/4 = 4
+    // Q4: (8+8+8+8)/4 = 8
+
+    for (int i = 0; i < OUT_H; ++i) {
+        std::cout << "[ ";
+        for (int j = 0; j < OUT_W; ++j) {
+            std::cout << output[i][j] << " ";
         }
         std::cout << "]\n";
     }
@@ -1545,6 +1645,7 @@ void cuba_lif_dimensionality_test()
 int main() {
     
     sum_pooling_test();
+    avg_pooling_test();
     conv2d_test();
     integrate_and_fire_test();
     affine_test();
