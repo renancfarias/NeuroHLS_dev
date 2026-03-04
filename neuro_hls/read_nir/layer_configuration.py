@@ -190,7 +190,8 @@ class Conv2d(LayerConfig):
                  stride: Union[int, Tuple[int, int]], 
                  padding: Union[int, Tuple[int, int], str],
                  dilation: Union[int, Tuple[int, int]], 
-                 groups: int, bias: np.ndarray):
+                 groups: int,
+                 bias: np.ndarray):
         """
         Conv2d layer configuration.
         
@@ -218,7 +219,8 @@ class Conv2d(LayerConfig):
         self.bias = bias
 
     def get_neuron_params(self):
-        return {"weights": self.weight}
+        return {"weights": self.weight,
+                "bias": self.bias}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"

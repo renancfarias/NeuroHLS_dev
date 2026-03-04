@@ -4,6 +4,7 @@ Testar primitivas (implementação paralela):
 - [x] Affine
 - [ ] Sum Pooling
 - [x] Avg Pooling
+- [ ] Conv1D
 - [ ] Conv2D
 - [ ] Integrate
 - [ ] IF
