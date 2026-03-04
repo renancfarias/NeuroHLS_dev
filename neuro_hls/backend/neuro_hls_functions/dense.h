@@ -225,8 +225,8 @@ void sum_pooling_custom(
  * Conv2D Genérica para Vitis HLS
  * ------------------------------------------------------------------
  * Suporta: Weights, Bias, Stride, Padding, Dilation, Groups.
- * * T_DATA: Tipo dos dados (input/output)
- * T_WEIGHT: Tipo dos pesos e bias
+ * * input_type: Tipo dos dados (input/output)
+ * params_type: Tipo dos pesos e bias
  * * Dimensões (Template Parameters para Síntese Estática):
  * C_IN, H_IN, W_IN: Dimensões de Entrada
  * C_OUT: Canais de Saída
@@ -237,32 +237,25 @@ void sum_pooling_custom(
  * GROUPS: Número de grupos (1 = Conv Normal, C_IN = Depthwise)
  */
 template <
-    typename T_DATA, typename T_WEIGHT,
-    int C_IN, int H_IN, int W_IN,
-    int C_OUT,
     int K_H, int K_W,
     int S_H, int S_W,
     int P_H, int P_W,
     int D_H, int D_W,
-    int GROUPS
->
-void conv2d_generic(
-    const T_DATA input[C_IN][H_IN][W_IN],
-    const T_WEIGHT weights[C_OUT][C_IN / GROUPS][K_H][K_W], // Pesos divididos por grupo
-    const T_WEIGHT bias[C_OUT],
-    // Dimensões de saída calculadas com Dilation
-    T_DATA output[C_OUT][(H_IN + 2*P_H - (D_H * (K_H - 1) + 1)) / S_H + 1]
-                        [(W_IN + 2*P_W - (D_W * (K_W - 1) + 1)) / S_W + 1]
-) {
-    // 1. Cálculo das Dimensões de Saída (Compile-Time)
-    // Fórmula: Output = (Input + 2*Pad - Effective_Kernel) / Stride + 1
-    // Effective_Kernel = Kernel + (Kernel-1)*(Dilation-1)
-    const int K_H_EFF = K_H + (K_H - 1) * (D_H - 1);
-    const int K_W_EFF = K_W + (K_W - 1) * (D_W - 1);
+    int GROUPS,
+    int C_IN, int H_IN, int W_IN,
+    int C_OUT,
+    typename input_type,
+    typename result_type,
+    typename params_type>
+void Conv2D(
+    const input_type (&input)[C_IN][H_IN][W_IN],
+    result_type output[C_OUT][(H_IN + 2*P_H - (D_H * (K_H - 1) + 1)) / S_H + 1][(W_IN + 2*P_W - (D_W * (K_W - 1) + 1)) / S_W + 1],
+    const params_type weights[C_OUT][C_IN / GROUPS][K_H][K_W],
+    const params_type (&bias)[C_OUT])
+{
+    const int H_OUT = (H_IN + 2*P_H - (D_H * (K_H - 1) + 1)) / S_H + 1;
+    const int W_OUT = (W_IN + 2*P_W - (D_W * (K_W - 1) + 1)) / S_W + 1;
     
-    const int H_OUT = (H_IN + 2 * P_H - K_H_EFF) / S_H + 1;
-    const int W_OUT = (W_IN + 2 * P_W - K_W_EFF) / S_W + 1;
-
     // Constantes para controle de Grupos
     const int C_IN_GROUP = C_IN / GROUPS;   // Canais de entrada por grupo
     const int C_OUT_GROUP = C_OUT / GROUPS; // Canais de saída por grupo
@@ -286,7 +279,7 @@ void conv2d_generic(
                 #pragma HLS PIPELINE II=1
                 
                 // Inicializa acumulador com o BIAS
-                T_DATA sum = (T_DATA)bias[oc];
+                result_type sum = (result_type)bias[oc];
 
                 // --- Operação de Convolução ---
                 
@@ -330,8 +323,8 @@ void conv2d_generic(
  * Integrator Kernel - Calcula a dinâmica de um único neurônio
  * v_new = v_old + (Input * R)
  */
-template <typename T_DATA, typename T_PARAM>
-void integrator_kernel(T_DATA input, T_PARAM R, T_DATA& v_state) {
+template <typename input_type, typename T_PARAM>
+void integrator_kernel(input_type input, T_PARAM R, input_type& v_state) {
     #pragma HLS INLINE
     v_state = v_state + (input * R);
 }
@@ -339,9 +332,9 @@ void integrator_kernel(T_DATA input, T_PARAM R, T_DATA& v_state) {
 /**
  * Integrate-and-Fire Kernel - Integrador com threshold
  */
-template <typename T_DATA, typename T_PARAM>
-void if_kernel(T_DATA input, T_PARAM R, T_PARAM threshold, T_DATA v_reset, 
-               T_DATA& v_state, bool& spike) {
+template <typename input_type, typename T_PARAM>
+void if_kernel(input_type input, T_PARAM R, T_PARAM threshold, input_type v_reset, 
+               input_type& v_state, bool& spike) {
     #pragma HLS INLINE
     
     // 1. Integração
@@ -360,15 +353,15 @@ void if_kernel(T_DATA input, T_PARAM R, T_PARAM threshold, T_DATA v_reset,
  * Leaky Integrator Kernel - Dinâmica com vazamento
  * tau * dv/dt = (v_leak - v) + R*I
  */
-template <typename T_DATA>
-void li_kernel(T_DATA input, T_DATA tau, T_DATA R, T_DATA v_leak, T_DATA dt,
-               T_DATA& v_state) {
+template <typename input_type>
+void li_kernel(input_type input, input_type tau, input_type R, input_type v_leak, input_type dt,
+               input_type& v_state) {
     #pragma HLS INLINE
     
     // Discretização de Euler: v_new = v_old + (dt/tau) * ((v_leak - v_old) + R*Input)
-    T_DATA leak_current = v_leak - v_state;
-    T_DATA input_current = R * input;
-    T_DATA dv = (dt / tau) * (leak_current + input_current);
+    input_type leak_current = v_leak - v_state;
+    input_type input_current = R * input;
+    input_type dv = (dt / tau) * (leak_current + input_current);
     
     v_state = v_state + dv;
 }
@@ -376,15 +369,15 @@ void li_kernel(T_DATA input, T_DATA tau, T_DATA R, T_DATA v_leak, T_DATA dt,
 /**
  * LIF Kernel - Leaky Integrator com threshold
  */
-template <typename T_DATA>
-void lif_kernel(T_DATA input, T_DATA tau, T_DATA R, T_DATA v_leak, T_DATA dt,
-                T_DATA v_threshold, T_DATA v_reset, T_DATA& v_state, bool& spike) {
+template <typename input_type>
+void lif_kernel(input_type input, input_type tau, input_type R, input_type v_leak, input_type dt,
+                input_type v_threshold, input_type v_reset, input_type& v_state, bool& spike) {
     #pragma HLS INLINE
     
     // 1. Integração com vazamento
-    T_DATA leak_current = v_leak - v_state;
-    T_DATA input_current = R * input;
-    T_DATA dv = (dt / tau) * (leak_current + input_current);
+    input_type leak_current = v_leak - v_state;
+    input_type input_current = R * input;
+    input_type dv = (dt / tau) * (leak_current + input_current);
     
     v_state = v_state + dv;
     
@@ -401,23 +394,23 @@ void lif_kernel(T_DATA input, T_DATA tau, T_DATA R, T_DATA v_leak, T_DATA dt,
  * CubaLI Kernel - Current-Based Leaky Integrator
  * Modelo de dois estágios: sinapse (u) + membrana (v)
  */
-template <typename T_DATA>
-void cuba_li_kernel(T_DATA input, T_DATA tau_syn, T_DATA w_in, T_DATA tau_mem, 
-                    T_DATA R, T_DATA v_leak, T_DATA dt, T_DATA& u_state, T_DATA& v_state) {
+template <typename input_type>
+void cuba_li_kernel(input_type input, input_type tau_syn, input_type w_in, input_type tau_mem, 
+                    input_type R, input_type v_leak, input_type dt, input_type& u_state, input_type& v_state) {
     #pragma HLS INLINE
     
     // ESTÁGIO 1: Dinâmica da Sinapse (u)
     // tau_syn * du/dt = -u + w_in * input
-    T_DATA leak_u = 0 - u_state;  // Sinapse decai para zero
-    T_DATA input_u = w_in * input;
-    T_DATA du = (dt / tau_syn) * (leak_u + input_u);
+    input_type leak_u = 0 - u_state;  // Sinapse decai para zero
+    input_type input_u = w_in * input;
+    input_type du = (dt / tau_syn) * (leak_u + input_u);
     u_state = u_state + du;
     
     // ESTÁGIO 2: Dinâmica da Membrana (v)
     // tau_mem * dv/dt = (v_leak - v) + R * u
-    T_DATA leak_v = v_leak - v_state;
-    T_DATA input_v = R * u_state;
-    T_DATA dv = (dt / tau_mem) * (leak_v + input_v);
+    input_type leak_v = v_leak - v_state;
+    input_type input_v = R * u_state;
+    input_type dv = (dt / tau_mem) * (leak_v + input_v);
     v_state = v_state + dv;
 }
 
@@ -425,22 +418,22 @@ void cuba_li_kernel(T_DATA input, T_DATA tau_syn, T_DATA w_in, T_DATA tau_mem,
  * CubaLIF Kernel - Current-Based LIF
  * CubaLI + threshold e reset na membrana
  */
-template <typename T_DATA, typename W_DATA>
-void cuba_lif_kernel(T_DATA input, W_DATA tau_syn, W_DATA w_in, W_DATA tau_mem,
+template <typename input_type, typename W_DATA>
+void cuba_lif_kernel(input_type input, W_DATA tau_syn, W_DATA w_in, W_DATA tau_mem,
                      W_DATA R, W_DATA v_leak, W_DATA dt, W_DATA v_threshold, W_DATA v_reset,
                      W_DATA& u_state, W_DATA& v_state, bit_t& spike) {
     #pragma HLS INLINE
     
     // ESTÁGIO 1: Dinâmica da Sinapse (u)
-    T_DATA leak_u = 0 - u_state;
-    T_DATA input_u = w_in * input;
-    T_DATA du = (dt / tau_syn) * (leak_u + input_u);
+    input_type leak_u = 0 - u_state;
+    input_type input_u = w_in * input;
+    input_type du = (dt / tau_syn) * (leak_u + input_u);
     u_state = u_state + du;
     
     // ESTÁGIO 2: Dinâmica da Membrana (v)
-    T_DATA leak_v = v_leak - v_state;
-    T_DATA input_v = R * u_state;
-    T_DATA dv = (dt / tau_mem) * (leak_v + input_v);
+    input_type leak_v = v_leak - v_state;
+    input_type input_v = R * u_state;
+    input_type dv = (dt / tau_mem) * (leak_v + input_v);
     v_state = v_state + dv;
     
     // ESTÁGIO 3: Disparo e Reset (apenas na membrana)
@@ -460,13 +453,13 @@ void cuba_lif_kernel(T_DATA input, W_DATA tau_syn, W_DATA w_in, W_DATA tau_mem,
 /**
  * Integrate-and-Fire 1D (Dense/FC Layers)
  */
-template <typename T_DATA, typename T_PARAM, int N>
+template <typename input_type, typename T_PARAM, int N>
 void integrate_and_fire(
-    const T_DATA input[N],
+    const input_type input[N],
     const T_PARAM R[N],
     const T_PARAM threshold[N],
-    const T_DATA v_reset,
-    T_DATA membrane_potential[N],
+    const input_type v_reset,
+    input_type membrane_potential[N],
     bool output_spikes[N]
 ) {
     loop_1d: for(int i = 0; i < N; i++) {
@@ -480,16 +473,16 @@ void integrate_and_fire(
  * Integrate-and-Fire 2D (Conv1D ou Imagens P&B)
  */
 template <
-    typename T_DATA, 
+    typename input_type, 
     typename T_PARAM,
     int H, int W
 >
 void integrate_and_fire(
-    const T_DATA input[H][W],          // Entrada (Corrente)
+    const input_type input[H][W],          // Entrada (Corrente)
     const T_PARAM R[H][W],             // Matriz R (Resistência/Ganho)
     const T_PARAM threshold[H][W],     // Matriz T (Limiares)
-    const T_DATA v_reset,              // Valor de Reset (geralmente 0)
-    T_DATA membrane_potential[H][W],   // ESTADO: Memória da voltagem (Read/Write)
+    const input_type v_reset,              // Valor de Reset (geralmente 0)
+    input_type membrane_potential[H][W],   // ESTADO: Memória da voltagem (Read/Write)
     bool output_spikes[H][W]           // Saída: 1 (Spike) ou 0 (Silêncio)
 ) {
     // Diretivas de Interface para HLS (opcional, mas recomendado)
@@ -507,13 +500,13 @@ void integrate_and_fire(
 /**
  * Integrate-and-Fire 3D (Conv2D com Canais)
  */
-template <typename T_DATA, typename T_PARAM, int CH, int H, int W>
+template <typename input_type, typename T_PARAM, int CH, int H, int W>
 void integrate_and_fire(
-    const T_DATA input[CH][H][W],
+    const input_type input[CH][H][W],
     const T_PARAM R[CH][H][W],
     const T_PARAM threshold[CH][H][W],
-    const T_DATA v_reset,
-    T_DATA membrane_potential[CH][H][W],
+    const input_type v_reset,
+    input_type membrane_potential[CH][H][W],
     bool output_spikes[CH][H][W]
 ) {
     loop_ch: for(int c = 0; c < CH; c++) {
@@ -534,11 +527,11 @@ void integrate_and_fire(
 /**
  * Integrator 1D (Dense/FC Layers)
  */
-template <typename T_DATA, typename T_PARAM, int N>
+template <typename input_type, typename T_PARAM, int N>
 void integrator(
-    const T_DATA input[N],
+    const input_type input[N],
     const T_PARAM R[N],
-    T_DATA voltage_state[N]
+    input_type voltage_state[N]
 ) {
     loop_1d: for(int i = 0; i < N; i++) {
         #pragma HLS PIPELINE II=1
@@ -550,14 +543,14 @@ void integrator(
  * Integrator 2D (Conv1D ou Imagens P&B)
  */
 template <
-    typename T_DATA,
+    typename input_type,
     typename T_PARAM,
     int H, int W
 >
 void integrator(
-    const T_DATA input[H][W],         // Corrente de Entrada (I)
+    const input_type input[H][W],         // Corrente de Entrada (I)
     const T_PARAM R[H][W],            // Resistência (R) - Matriz por elemento
-    T_DATA voltage_state[H][W]        // Estado da Voltagem (v) - Memória (In/Out)
+    input_type voltage_state[H][W]        // Estado da Voltagem (v) - Memória (In/Out)
 ) {
     loop_h: for(int i = 0; i < H; i++) {
         loop_w: for(int j = 0; j < W; j++) {
@@ -570,11 +563,11 @@ void integrator(
 /**
  * Integrator 3D (Conv2D com Canais)
  */
-template <typename T_DATA, typename T_PARAM, int CH, int H, int W>
+template <typename input_type, typename T_PARAM, int CH, int H, int W>
 void integrator(
-    const T_DATA input[CH][H][W],
+    const input_type input[CH][H][W],
     const T_PARAM R[CH][H][W],
-    T_DATA voltage_state[CH][H][W]
+    input_type voltage_state[CH][H][W]
 ) {
     loop_ch: for(int c = 0; c < CH; c++) {
         loop_h: for(int i = 0; i < H; i++) {
@@ -593,14 +586,14 @@ void integrator(
 /**
  * Leaky Integrator 1D (Dense/FC Layers)
  */
-template <typename T_DATA, int N>
+template <typename input_type, int N>
 void leaky_integrator(
-    const T_DATA input[N],
-    const T_DATA tau[N],
-    const T_DATA R[N],
-    const T_DATA v_leak[N],
-    const T_DATA dt,
-    T_DATA v_state[N]
+    const input_type input[N],
+    const input_type tau[N],
+    const input_type R[N],
+    const input_type v_leak[N],
+    const input_type dt,
+    input_type v_state[N]
 ) {
     loop_1d: for(int i = 0; i < N; i++) {
         #pragma HLS PIPELINE II=1
@@ -612,16 +605,16 @@ void leaky_integrator(
  * Leaky Integrator 2D (Conv1D ou Imagens P&B)
  */
 template <
-    typename T_DATA,
+    typename input_type,
     int H, int W
 >
 void leaky_integrator(
-    const T_DATA input[H][W],         // Corrente de Entrada (I)
-    const T_DATA tau[H][W],           // Constante de tempo (tau) [ms]
-    const T_DATA R[H][W],             // Resistência (R) [Ohm]
-    const T_DATA v_leak[H][W],        // Voltagem de Vazamento/Repouso (v_leak) [mV]
-    const T_DATA dt,                  // Passo de tempo da simulação [ms]
-    T_DATA v_state[H][W]              // Estado da Voltagem (v) - Memória In/Out
+    const input_type input[H][W],         // Corrente de Entrada (I)
+    const input_type tau[H][W],           // Constante de tempo (tau) [ms]
+    const input_type R[H][W],             // Resistência (R) [Ohm]
+    const input_type v_leak[H][W],        // Voltagem de Vazamento/Repouso (v_leak) [mV]
+    const input_type dt,                  // Passo de tempo da simulação [ms]
+    input_type v_state[H][W]              // Estado da Voltagem (v) - Memória In/Out
 ) {
     // Diretivas HLS para paralelismo
     // #pragma HLS ARRAY_PARTITION variable=v_state cyclic factor=4 dim=2
@@ -637,14 +630,14 @@ void leaky_integrator(
 /**
  * Leaky Integrator 3D (Conv2D com Canais)
  */
-template <typename T_DATA, int CH, int H, int W>
+template <typename input_type, int CH, int H, int W>
 void leaky_integrator(
-    const T_DATA input[CH][H][W],
-    const T_DATA tau[CH][H][W],
-    const T_DATA R[CH][H][W],
-    const T_DATA v_leak[CH][H][W],
-    const T_DATA dt,
-    T_DATA v_state[CH][H][W]
+    const input_type input[CH][H][W],
+    const input_type tau[CH][H][W],
+    const input_type R[CH][H][W],
+    const input_type v_leak[CH][H][W],
+    const input_type dt,
+    input_type v_state[CH][H][W]
 ) {
     loop_ch: for(int c = 0; c < CH; c++) {
         loop_h: for(int i = 0; i < H; i++) {
@@ -664,16 +657,16 @@ void leaky_integrator(
 /**
  * LIF 1D (Dense/FC Layers)
  */
-template <typename T_DATA, int N>
+template <typename input_type, int N>
 void lif_neuron(
-    const T_DATA input[N],
-    const T_DATA tau[N],
-    const T_DATA R[N],
-    const T_DATA v_leak[N],
-    const T_DATA dt,
-    const T_DATA v_threshold[N],
-    const T_DATA v_reset,
-    T_DATA v_state[N],
+    const input_type input[N],
+    const input_type tau[N],
+    const input_type R[N],
+    const input_type v_leak[N],
+    const input_type dt,
+    const input_type v_threshold[N],
+    const input_type v_reset,
+    input_type v_state[N],
     bool spikes_out[N]
 ) {
     loop_1d: for(int i = 0; i < N; i++) {
@@ -687,23 +680,23 @@ void lif_neuron(
  * LIF 2D (Conv1D ou Imagens P&B)
  */
 template <
-    typename T_DATA,
+    typename input_type,
     int H, int W
 >
 void lif_neuron(
     // Entradas da Dinâmica (passadas para o LI)
-    const T_DATA input[H][W],
-    const T_DATA tau[H][W],
-    const T_DATA R[H][W],
-    const T_DATA v_leak[H][W],
-    const T_DATA dt,
+    const input_type input[H][W],
+    const input_type tau[H][W],
+    const input_type R[H][W],
+    const input_type v_leak[H][W],
+    const input_type dt,
     
     // Parâmetros de Disparo (Novos)
-    const T_DATA v_threshold[H][W],  // Limiar de disparo
-    const T_DATA v_reset,            // Valor para onde a voltagem vai após spike
+    const input_type v_threshold[H][W],  // Limiar de disparo
+    const input_type v_reset,            // Valor para onde a voltagem vai após spike
     
     // Estados (IO)
-    T_DATA v_state[H][W],            // Memória da Voltagem
+    input_type v_state[H][W],            // Memória da Voltagem
     bool spikes_out[H][W]            // Saída de Spikes (1 ou 0)
 ) {
     loop_h: for(int i = 0; i < H; i++) {
@@ -718,16 +711,16 @@ void lif_neuron(
 /**
  * LIF 3D (Conv2D com Canais)
  */
-template <typename T_DATA, int CH, int H, int W>
+template <typename input_type, int CH, int H, int W>
 void lif_neuron(
-    const T_DATA input[CH][H][W],
-    const T_DATA tau[CH][H][W],
-    const T_DATA R[CH][H][W],
-    const T_DATA v_leak[CH][H][W],
-    const T_DATA dt,
-    const T_DATA v_threshold[CH][H][W],
-    const T_DATA v_reset,
-    T_DATA v_state[CH][H][W],
+    const input_type input[CH][H][W],
+    const input_type tau[CH][H][W],
+    const input_type R[CH][H][W],
+    const input_type v_leak[CH][H][W],
+    const input_type dt,
+    const input_type v_threshold[CH][H][W],
+    const input_type v_reset,
+    input_type v_state[CH][H][W],
     bool spikes_out[CH][H][W]
 ) {
     loop_ch: for(int c = 0; c < CH; c++) {
@@ -748,8 +741,8 @@ void lif_neuron(
  * Aplica escala elemento-por-elemento: output[i] = input[i] * weights[i]
  * Usada como estágio inicial em modelos Current-Based.
  */
-template <typename T_DATA, int DIM>
-void linear_scale(const T_DATA input[DIM], const T_DATA weights[DIM], T_DATA output[DIM]) {
+template <typename input_type, int DIM>
+void linear_scale(const input_type input[DIM], const input_type weights[DIM], input_type output[DIM]) {
     #pragma HLS PIPELINE II=1
     scale_loop: for(int i=0; i<DIM; i++) {
         output[i] = input[i] * weights[i];
@@ -763,17 +756,17 @@ void linear_scale(const T_DATA input[DIM], const T_DATA weights[DIM], T_DATA out
 /**
  * CubaLI 1D (Dense/FC Layers)
  */
-template <typename T_DATA, int N>
+template <typename input_type, int N>
 void cuba_li_neuron(
-    const T_DATA input[N],
-    const T_DATA tau_syn[N],
-    const T_DATA w_in[N],
-    const T_DATA tau_mem[N],
-    const T_DATA R[N],
-    const T_DATA v_leak[N],
-    const T_DATA dt,
-    T_DATA u_state[N],
-    T_DATA v_state[N]
+    const input_type input[N],
+    const input_type tau_syn[N],
+    const input_type w_in[N],
+    const input_type tau_mem[N],
+    const input_type R[N],
+    const input_type v_leak[N],
+    const input_type dt,
+    input_type u_state[N],
+    input_type v_state[N]
 ) {
     loop_1d: for(int i = 0; i < N; i++) {
         #pragma HLS PIPELINE II=1
@@ -786,19 +779,19 @@ void cuba_li_neuron(
  * CubaLI 2D (Conv1D ou Imagens P&B)
  */
 template <
-    typename T_DATA,
+    typename input_type,
     int H, int W
 >
 void cuba_li_neuron(
-    const T_DATA input[H][W],
-    const T_DATA tau_syn[H][W],
-    const T_DATA w_in[H][W],
-    const T_DATA tau_mem[H][W],
-    const T_DATA R[H][W],
-    const T_DATA v_leak[H][W],
-    const T_DATA dt,
-    T_DATA u_state[H][W],
-    T_DATA v_state[H][W]
+    const input_type input[H][W],
+    const input_type tau_syn[H][W],
+    const input_type w_in[H][W],
+    const input_type tau_mem[H][W],
+    const input_type R[H][W],
+    const input_type v_leak[H][W],
+    const input_type dt,
+    input_type u_state[H][W],
+    input_type v_state[H][W]
 ) {
     loop_h: for(int i = 0; i < H; i++) {
         loop_w: for(int j = 0; j < W; j++) {
@@ -812,17 +805,17 @@ void cuba_li_neuron(
 /**
  * CubaLI 3D (Conv2D com Canais)
  */
-template <typename T_DATA, int CH, int H, int W>
+template <typename input_type, int CH, int H, int W>
 void cuba_li_neuron(
-    const T_DATA input[CH][H][W],
-    const T_DATA tau_syn[CH][H][W],
-    const T_DATA w_in[CH][H][W],
-    const T_DATA tau_mem[CH][H][W],
-    const T_DATA R[CH][H][W],
-    const T_DATA v_leak[CH][H][W],
-    const T_DATA dt,
-    T_DATA u_state[CH][H][W],
-    T_DATA v_state[CH][H][W]
+    const input_type input[CH][H][W],
+    const input_type tau_syn[CH][H][W],
+    const input_type w_in[CH][H][W],
+    const input_type tau_mem[CH][H][W],
+    const input_type R[CH][H][W],
+    const input_type v_leak[CH][H][W],
+    const input_type dt,
+    input_type u_state[CH][H][W],
+    input_type v_state[CH][H][W]
 ) {
     loop_ch: for(int c = 0; c < CH; c++) {
         loop_h: for(int i = 0; i < H; i++) {
@@ -843,9 +836,9 @@ void cuba_li_neuron(
 /**
  * CubaLIF 1D (Dense/FC Layers)
  */
-template <typename T_DATA, typename W_DATA, int N>
+template <typename input_type, typename W_DATA, int N>
 void CubaLIF(
-    const T_DATA (&input)[N],
+    const input_type (&input)[N],
     bit_t spikes_out[N],
 
     const W_DATA tau_syn[N],
