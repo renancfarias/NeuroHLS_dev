@@ -16,7 +16,7 @@ class LayerConfig:
         self.dependencies.append((name, is_recurrent))
 
     def get_neuron_params(self):
-        raise Exception("LayerConfig.get_neuron_params was not implemented")
+        raise Exception(f"{self.name}.get_neuron_params was not implemented")
 
     def __str__(self):
         s = f"\tIs recurrent: {'YES' if self.is_recurrent else 'NO'}\n"
@@ -143,9 +143,15 @@ class Flatten(LayerConfig):
 
 class Conv1d(LayerConfig):
     
-    def __init__(self, name: str, input_shape: tuple, output_shape: tuple, weight: np.ndarray, 
-                 stride: int, padding: Union[int, str], dilation: int, 
-                 groups: int, bias: np.ndarray):
+    def __init__(self, name: str,
+                 input_shape: tuple,
+                 output_shape: tuple,
+                 weight: np.ndarray, 
+                 stride: int,
+                 padding: Union[int, str],
+                 dilation: int, 
+                 groups: int,
+                 bias: np.ndarray):
         """
         Conv1d layer configuration.
         
@@ -170,7 +176,8 @@ class Conv1d(LayerConfig):
         self.bias = bias
 
     def get_neuron_params(self):
-        return {"weights": self.weight}
+        return {"weights": self.weight,
+                "bias": self.bias}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -186,7 +193,11 @@ class Conv1d(LayerConfig):
 
 class Conv2d(LayerConfig):
     
-    def __init__(self, name: str, input_shape: tuple, output_shape: tuple, weight: np.ndarray,
+    def __init__(self, 
+                 name: str,
+                 input_shape: tuple,
+                 output_shape: tuple,
+                 weight: np.ndarray,
                  stride: Union[int, Tuple[int, int]], 
                  padding: Union[int, Tuple[int, int], str],
                  dilation: Union[int, Tuple[int, int]], 
