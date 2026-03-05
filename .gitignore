@@ -45,3 +45,5 @@ NMNIST/
 exe_cpp
 
 primitive_debug/**/*.txt
+
+*.nir
