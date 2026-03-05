@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <fstream>
 
 using namespace std;
 
@@ -173,8 +174,12 @@ float input[4][5][5] = {
 
 int main()
 {
+    ofstream file("primitive_debug/conv2D/out_cpp.txt");
+
     float result[4][3][3];
     Conv2D<2, 3, 1, 1, 0, 0, 2, 1, 2>(input, result, weight, bias);
+
+    file << "Sample 1:" << endl << endl;;
     
     for (int c = 0; c < 4; c++)
     {
@@ -182,13 +187,13 @@ int main()
         {
             for (int w = 0; w < 3; w++)
             {
-                cout << fixed << setprecision(4) << result[c][h][w] << " ";
+                file << fixed << setprecision(4) << result[c][h][w] << " ";
             }
             
-            cout << endl;
+            file << endl;
         }
         
-        cout << endl;
+        file << endl;
     }
 
     return 0;
