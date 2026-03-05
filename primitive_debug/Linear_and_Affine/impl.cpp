@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -98,23 +99,29 @@ float bias[2] = {0.5, -0.5};
 
 int main()
 {
+    ofstream file("primitive_debug/Linear_and_Affine/out_cpp.txt");
+
     float out[2];
     
-    cout << "Affine" << endl;
+    // cout << "Affine" << endl;
     
+    file << "Sample 1" << endl;
+
     Affine<1>(input_1, out, weights, bias);
-    cout << "out: " << out[0] << " " << out[1] << endl;
+    file << "out: " << out[0] << " " << out[1] << endl << endl;
+    
+    file << "Sample 2" << endl;
     
     Affine<1>(input_2, out, weights, bias);
-    cout << "out: " << out[0] << " " << out[1] << endl;
+    file << "out: " << out[0] << " " << out[1] << endl << endl;
     
-    cout << "Linear" << endl;
+    // cout << "Linear" << endl;
     
-    Linear<1>(input_1, out, weights);
-    cout << "out: " << out[0] << " " << out[1] << endl;
+    // Linear<1>(input_1, out, weights);
+    // cout << "out: " << out[0] << " " << out[1] << endl;
     
-    Linear<1>(input_2, out, weights);
-    cout << "out: " << out[0] << " " << out[1] << endl;
+    // Linear<1>(input_2, out, weights);
+    // cout << "out: " << out[0] << " " << out[1] << endl;
 
     return 0;
 }

@@ -41,3 +41,7 @@ z_mini_tf.npz
 z_mini_torch.npz
 
 NMNIST/
+
+exe_cpp
+
+primitive_debug/**/*.txt
