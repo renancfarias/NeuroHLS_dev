@@ -176,16 +176,16 @@ int main()
 {
     ofstream file("primitive_debug/conv2D/out_cpp.txt");
 
-    float result[4][3][3];
-    Conv2D<2, 3, 1, 1, 0, 0, 2, 1, 2>(input, result, weight, bias);
+    float result[4][5][4];
+    Conv2D<2, 3, 1, 2, 1, 2, 2, 1, 2>(input, result, weight, bias);
 
     file << "Sample 1:" << endl << endl;;
     
     for (int c = 0; c < 4; c++)
     {
-        for (int h = 0; h < 3; h++)
+        for (int h = 0; h < 5; h++)
         {
-            for (int w = 0; w < 3; w++)
+            for (int w = 0; w < 4; w++)
             {
                 file << fixed << setprecision(4) << result[c][h][w] << " ";
             }
