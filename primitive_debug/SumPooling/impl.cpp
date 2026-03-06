@@ -18,16 +18,15 @@ using namespace std;
  * P_W:  Padding Horizontal (Adiciona zeros na Esquerda e Direita)
  */
 template <
-    typename T,
-    int IN_H, int IN_W,
     int K_H,  int K_W,
     int S_H,  int S_W,
-    int P_H,  int P_W
->
-void sum_pooling_custom(
-    const T input[IN_H][IN_W],
-    T output[(IN_H + 2*P_H - K_H) / S_H + 1][(IN_W + 2*P_W - K_W) / S_W + 1]
-) {
+    int P_H,  int P_W,
+    int IN_H, int IN_W,
+    typename input_type>
+void SumPooling(
+    const input_type (&input)[IN_H][IN_W],
+    input_type output[(IN_H + 2*P_H - K_H) / S_H + 1][(IN_W + 2*P_W - K_W) / S_W + 1])
+{
     // Constantes de dimensão de saída
     const int OUT_H = (IN_H + 2 * P_H - K_H) / S_H + 1;
     const int OUT_W = (IN_W + 2 * P_W - K_W) / S_W + 1;
@@ -38,7 +37,7 @@ void sum_pooling_custom(
         // Loop Horizontal da Saída
         for (int j = 0; j < OUT_W; ++j) {
             
-            T sum = 0;
+            input_type sum = 0;
 
             // --- Janela do Kernel (Retangular) ---
             
@@ -65,21 +64,19 @@ void sum_pooling_custom(
 
 // Wrapper para múltiplos canais
 template <
-    typename T,
-    int CHANNELS,
-    int IN_H, int IN_W,
     int K_H,  int K_W,
     int S_H,  int S_W,
-    int P_H,  int P_W
->
-void sum_pooling_multi_channel(
-    const T input[CHANNELS][IN_H][IN_W],
-    T output[CHANNELS][(IN_H + 2*P_H - K_H) / S_H + 1][(IN_W + 2*P_W - K_W) / S_W + 1]
-) {
-    for (int c = 0; c < CHANNELS; ++c) {
-        sum_pooling_custom<T, IN_H, IN_W, K_H, K_W, S_H, S_W, P_H, P_W>(
-            input[c], output[c]
-        );
+    int P_H,  int P_W,
+    int CHANNELS,
+    int IN_H, int IN_W,
+    typename input_type>
+void SumPooling(
+    const input_type (&input)[CHANNELS][IN_H][IN_W],
+    input_type output[CHANNELS][(IN_H + 2*P_H - K_H) / S_H + 1][(IN_W + 2*P_W - K_W) / S_W + 1])
+{
+    for (int c = 0; c < CHANNELS; ++c)
+    {
+        SumPooling<K_H, K_W, S_H, S_W, P_H, P_W>(input[c], output[c]);
     }
 }
 
@@ -123,7 +120,7 @@ int main()
     
     // Output: 2x2
     float test1_output[2][2];
-    sum_pooling_custom<float, 4, 4, 2, 2, 2, 2, 0, 0>(test1_input, test1_output);
+    SumPooling<2, 2, 2, 2, 0, 0>(test1_input, test1_output);
     
     cout << "\nInput:" << endl;
     for (int i = 0; i < 4; i++) {
@@ -161,7 +158,7 @@ int main()
     
     // Output: 2 canais, 2x2
     float test2_output[2][2][2];
-    sum_pooling_multi_channel<float, 2, 3, 3, 2, 2, 1, 1, 0, 0>(test2_input, test2_output);
+    SumPooling<2, 2, 1, 1, 0, 0>(test2_input, test2_output);
     
     cout << "\nCanal 0 Input:" << endl;
     for (int i = 0; i < 3; i++) {
@@ -215,7 +212,7 @@ int main()
     
     // Output: 4x4 (com padding, 3+2*1=5, (5-2)/1+1=4)
     float test3_output[4][4];
-    sum_pooling_custom<float, 3, 3, 2, 2, 1, 1, 1, 1>(test3_input, test3_output);
+    SumPooling<2, 2, 1, 1, 1, 1>(test3_input, test3_output);
     
     cout << "\nInput:" << endl;
     for (int i = 0; i < 3; i++) {

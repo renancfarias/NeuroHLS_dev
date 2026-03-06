@@ -2,8 +2,8 @@ Testar primitivas (implementação paralela):
 - [x] Merge
 - [ ] Merge em rede recorrente
 - [x] Affine
-- [ ] Sum Pooling
-- [x] Avg Pooling
+- [x] Sum Pooling
+- [ ] Avg Pooling
 - [ ] Conv1D
 - [x] Conv2D
 - [ ] Integrate

@@ -154,70 +154,66 @@ void Affine(input_type (&input)[n_inputs],
     multiply_and_accumulate<unroll_factor>(input, result, weights);
 };
 
-/**
- * SumPooling HLS Paramétrico
- * --------------------------------------------
- * T:    Tipo de dado (int, float, ap_fixed)
- * IN_H: Altura da entrada
- * IN_W: Largura da entrada
- * K_H:  Altura do Kernel (Janela)
- * K_W:  Largura do Kernel (Janela)
- * S_H:  Stride Vertical (Passo Y)
- * S_W:  Stride Horizontal (Passo X)
- * P_H:  Padding Vertical (Adiciona zeros em Cima e Embaixo)
- * P_W:  Padding Horizontal (Adiciona zeros na Esquerda e Direita)
- */
 template <
-    typename T,
-    int IN_H, int IN_W,
     int K_H,  int K_W,
     int S_H,  int S_W,
-    int P_H,  int P_W
->
-void sum_pooling_custom(
-    const T input[IN_H][IN_W],
-    // A dimensão de saída é calculada automaticamente pelo compilador C++
-    T output[(IN_H + 2*P_H - K_H) / S_H + 1][(IN_W + 2*P_W - K_W) / S_W + 1]
-) {
-    // #pragma HLS INLINE // Opcional: inline para remover hierarquia
-    
+    int P_H,  int P_W,
+    int IN_H, int IN_W,
+    typename input_type>
+void SumPool1d(
+    const input_type (&input)[IN_H][IN_W],
+    input_type output[(IN_H + 2*P_H - K_H) / S_H + 1][(IN_W + 2*P_W - K_W) / S_W + 1])
+{
     // Constantes de dimensão de saída
     const int OUT_H = (IN_H + 2 * P_H - K_H) / S_H + 1;
     const int OUT_W = (IN_W + 2 * P_W - K_W) / S_W + 1;
 
     // Loop Vertical da Saída
-    row_loop: for (int i = 0; i < OUT_H; ++i) {
+    for (int i = 0; i < OUT_H; ++i) {
         
         // Loop Horizontal da Saída
-        col_loop: for (int j = 0; j < OUT_W; ++j) {
-            #pragma HLS PIPELINE II=1
+        for (int j = 0; j < OUT_W; ++j) {
             
-            T sum = 0;
+            input_type sum = 0;
 
             // --- Janela do Kernel (Retangular) ---
             
             // Loop Vertical do Kernel
-            k_row_loop: for (int ki = 0; ki < K_H; ++ki) {
+            for (int ki = 0; ki < K_H; ++ki) {
                 
                 // Loop Horizontal do Kernel
-                k_col_loop: for (int kj = 0; kj < K_W; ++kj) {
+                for (int kj = 0; kj < K_W; ++kj) {
                     
                     // Lógica de Endereçamento com Padding Virtual
-                    // Fórmula: (Posição Saída * Stride) + Offset Kernel - Padding
                     int r_idx = (i * S_H) + ki - P_H;
                     int c_idx = (j * S_W) + kj - P_W;
 
                     // Verificação de Borda (Boundary Check)
-                    // Se estiver dentro da matriz, soma o valor.
-                    // Se estiver fora (região de padding), soma 0 (ou seja, não faz nada).
                     if (r_idx >= 0 && r_idx < IN_H && c_idx >= 0 && c_idx < IN_W) {
                         sum += input[r_idx][c_idx];
                     }
-                    // else { sum += 0; } // Implícito
                 }
             }
             output[i][j] = sum;
         }
+    }
+}
+
+// Wrapper para múltiplos canais
+template <
+    int K_H,  int K_W,
+    int S_H,  int S_W,
+    int P_H,  int P_W,
+    int CHANNELS,
+    int IN_H, int IN_W,
+    typename input_type>
+void SumPool2d(
+    const input_type (&input)[CHANNELS][IN_H][IN_W],
+    input_type output[CHANNELS][(IN_H + 2*P_H - K_H) / S_H + 1][(IN_W + 2*P_W - K_W) / S_W + 1])
+{
+    for (int c = 0; c < CHANNELS; ++c)
+    {
+        SumPool1d<K_H, K_W, S_H, S_W, P_H, P_W>(input[c], output[c]);
     }
 }
 
