@@ -585,7 +585,9 @@ class SumPool2d(LayerConfig):
         return {}
     
     def get_template_args(self):
-        return {}
+        return {"kernel": self.kernel_size,
+                "stride": self.stride,
+                "padding": self.padding}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
