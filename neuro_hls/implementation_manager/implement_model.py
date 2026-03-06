@@ -77,7 +77,19 @@ def implement_model(model, folder_path):
         if len(neuron_params_call) > 0: 
             neuron_params_call = ", " + neuron_params_call
 
-        model_cpp.add_code(f"\t{type(layer).__name__}({input_accum_name}, {name}{neuron_params_call});\n")
+        template_args_values = []
+
+        for v in layer.get_template_args().values():
+            if isinstance(v, tuple):
+                template_args_values.extend(v)
+            else:
+                template_args_values.append(v)
+
+        template_args = ",".join(str(int(v)) for v in template_args_values)
+        template_args = "<" + template_args + ">" if len(template_args) > 0 else template_args
+
+        func_name = type(layer).__name__
+        model_cpp.add_code(f"\t{func_name}{template_args}({input_accum_name}, {name}{neuron_params_call});\n")
     
     model_cpp.add_code("}\n")
 
