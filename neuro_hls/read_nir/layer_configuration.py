@@ -17,6 +17,9 @@ class LayerConfig:
 
     def get_neuron_params(self):
         raise Exception(f"{self.name}.get_neuron_params was not implemented")
+    
+    def get_template_args(self):
+        raise Exception(f"{self.name}.get_template_params was not implemented")
 
     def __str__(self):
         s = f"\tIs recurrent: {'YES' if self.is_recurrent else 'NO'}\n"
@@ -39,6 +42,9 @@ class Merge(LayerConfig):
 
     def get_neuron_params(self):
         return {}
+    
+    def get_template_args(self):
+        return {}
 
     def __str__(self):
         s = NUM_DASHES * "-" + "\n"
@@ -59,6 +65,9 @@ class Input(LayerConfig):
 
     def get_neuron_params(self):
         return {}
+    
+    def get_template_args(self):
+        return {}
 
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -77,6 +86,9 @@ class Output(LayerConfig):
         self.emits_spike = True
 
     def get_neuron_params(self):
+        return {}
+    
+    def get_template_args(self):
         return {}
 
     def __str__(self):
@@ -99,9 +111,14 @@ class Affine(LayerConfig):
         self.input_shape = np.atleast_1d(weight.shape[1])
         self.output_shape = np.atleast_1d(weight.shape[0])
 
+        self.unroll_factor = 1
+
     def get_neuron_params(self):
         return {"weights": self.weight,
                 "bias": self.bias}
+    
+    def get_template_args(self):
+        return {"unroll_factor": self.unroll_factor}
 
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -130,6 +147,9 @@ class Flatten(LayerConfig):
         self.end_dim = end_dim
 
     def get_neuron_params(self):
+        return {}
+    
+    def get_template_args(self):
         return {}
     
     def __str__(self):
@@ -178,6 +198,10 @@ class Conv1d(LayerConfig):
     def get_neuron_params(self):
         return {"weights": self.weight,
                 "bias": self.bias}
+    
+    # FINALIZAR
+    def get_template_args(self):
+        return {}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -233,6 +257,9 @@ class Conv2d(LayerConfig):
         return {"weights": self.weight,
                 "bias": self.bias}
     
+    def get_template_args(self):
+        return {}
+    
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
         s += f"Conv2d (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
@@ -277,6 +304,9 @@ class CubaLI(LayerConfig):
                 "r": self.r,
                 "v_leak": self.v_leak,
                 "w_in": self.w_in}
+    
+    def get_template_args(self):
+        return {}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -336,6 +366,9 @@ class CubaLIF(LayerConfig):
                 "u_state": np.zeros(self.output_shape),
                 "v_state": np.zeros(self.output_shape)}   # VER COMO ADD PARAMETRO 'dt'
     
+    def get_template_args(self):
+        return {}
+    
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
         s += f"CubaLIF (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
@@ -371,6 +404,9 @@ class I(LayerConfig):
 
     def get_neuron_params(self):
         return {"r": self.r}
+    
+    def get_template_args(self):
+        return {}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -410,6 +446,9 @@ class IF(LayerConfig):
                 "v_threshold": self.v_threshold,
                 "v_reset": self.v_reset}
     
+    def get_template_args(self):
+        return {}
+    
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
         s += f"IF (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
@@ -448,6 +487,9 @@ class LI(LayerConfig):
         return {"tau": self.tau,
                 "r": self.r,
                 "v_leak": self.v_leak}
+    
+    def get_template_args(self):
+        return {}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -496,6 +538,9 @@ class LIF(LayerConfig):
                 "v_threshold": self.v_threshold,
                 "v_reset": self.v_reset}
     
+    def get_template_args(self):
+        return {}
+    
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
         s += f"LIF (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
@@ -539,6 +584,9 @@ class SumPool2d(LayerConfig):
     def get_neuron_params(self):
         return {}
     
+    def get_template_args(self):
+        return {}
+    
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
         s += f"SumPool2d (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
@@ -579,6 +627,9 @@ class AvgPool2d(LayerConfig):
     def get_neuron_params(self):
         return {}
     
+    def get_template_args(self):
+        return {}
+    
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
         s += f"AvgPool2d (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
@@ -609,6 +660,9 @@ class Linear(LayerConfig):
 
     def get_neuron_params(self):
         return {"weights": self.weight}
+    
+    def get_template_args(self):
+        return {}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
