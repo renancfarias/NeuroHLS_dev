@@ -80,7 +80,7 @@ def implement_model(model, folder_path):
         template_args_values = []
 
         for v in layer.get_template_args().values():
-            if isinstance(v, tuple):
+            if isinstance(v, (tuple, np.ndarray)):
                 template_args_values.extend(v)
             else:
                 template_args_values.append(v)

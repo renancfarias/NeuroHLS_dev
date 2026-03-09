@@ -176,10 +176,11 @@ template <
     int S_H,  int S_W,
     int P_H,  int P_W,
     int IN_H, int IN_W,
-    typename input_type>
+    typename input_type,
+    typename result_type>
 void SumPool1d(
     const input_type (&input)[IN_H][IN_W],
-    input_type output[(IN_H + 2*P_H - K_H) / S_H + 1][(IN_W + 2*P_W - K_W) / S_W + 1])
+    result_type output[(IN_H + 2*P_H - K_H) / S_H + 1][(IN_W + 2*P_W - K_W) / S_W + 1])
 {
     // Constantes de dimensão de saída
     const int OUT_H = (IN_H + 2 * P_H - K_H) / S_H + 1;
@@ -191,7 +192,7 @@ void SumPool1d(
         // Loop Horizontal da Saída
         for (int j = 0; j < OUT_W; ++j) {
             
-            input_type sum = 0;
+            result_type sum = 0;
 
             // --- Janela do Kernel (Retangular) ---
             
@@ -218,15 +219,16 @@ void SumPool1d(
 
 // Wrapper para múltiplos canais
 template <
-    int K_H,  int K_W,
-    int S_H,  int S_W,
-    int P_H,  int P_W,
+    int K_H, int K_W,
+    int S_H, int S_W,
+    int P_H, int P_W,
     int CHANNELS,
     int IN_H, int IN_W,
-    typename input_type>
+    typename input_type,
+    typename result_type>
 void SumPool2d(
     const input_type (&input)[CHANNELS][IN_H][IN_W],
-    input_type output[CHANNELS][(IN_H + 2*P_H - K_H) / S_H + 1][(IN_W + 2*P_W - K_W) / S_W + 1])
+    result_type output[CHANNELS][(IN_H + 2*P_H - K_H) / S_H + 1][(IN_W + 2*P_W - K_W) / S_W + 1])
 {
     for (int c = 0; c < CHANNELS; ++c)
     {
@@ -260,7 +262,7 @@ template <
     typename input_type,
     typename result_type,
     typename params_type>
-void Conv2D(
+void Conv2d(
     const input_type (&input)[C_IN][H_IN][W_IN],
     result_type output[C_OUT][(H_IN + 2*P_H - (D_H * (K_H - 1) + 1)) / S_H + 1][(W_IN + 2*P_W - (D_W * (K_W - 1) + 1)) / S_W + 1],
     const params_type weights[C_OUT][C_IN / GROUPS][K_H][K_W],
@@ -337,7 +339,7 @@ void IF(
     const params_type threshold[IN_CHANNELS][IN_H][IN_W],
     const params_type v_reset[IN_CHANNELS][IN_H][IN_W])
 {
-    static input_type membrane_potential[IN_CHANNELS][IN_H][IN_W];
+    static input_type membrane_potential[IN_CHANNELS][IN_H][IN_W] = {};
 
     for (int ch = 0; ch < IN_CHANNELS; ch++)
     {
@@ -357,6 +359,33 @@ void IF(
                     output[ch][h][w] = 0;
                 }
             }
+        }
+    }
+}
+
+template <int NEURONS, typename input_type, typename params_type>
+void IF(
+    const input_type (&input)[NEURONS],
+    bit_t output[NEURONS],
+
+    const params_type R[NEURONS],
+    const params_type threshold[NEURONS],
+    const params_type v_reset[NEURONS])
+{
+    static input_type membrane_potential[NEURONS] = {};
+
+    for (int n = 0; n < NEURONS; n++)
+    {
+        membrane_potential[n] += input[n] * R[n];
+
+        if (membrane_potential[n] >= threshold[n])
+        {
+            output[n] = 1;
+            membrane_potential[n] = v_reset[n];
+        }
+        else
+        {
+            output[n] = 0;
         }
     }
 }
