@@ -65,6 +65,23 @@ template<typename input_type, int channels, int height, int width> void Merge(in
     }
 }
 
+template<int channels, int height, int width, typename input_type>
+void Flatten(input_type (&matrix)[channels][height][width], input_type result[channels * height * width])
+{
+    int idx = 0;
+    for (int ch = 0; ch < channels; ch++)
+    {
+        for (int h = 0; h < height; h++)
+        {
+            for (int w = 0; w < width; w++)
+            {
+                result[idx] = matrix[ch][h][w];
+                idx++;
+            }
+        }
+    }
+}
+
 template<
     int unroll_factor,
     int n_inputs,
@@ -306,6 +323,39 @@ void Conv2D(
                 
                 // Escrita na saída
                 output[oc][oh][ow] = sum;
+            }
+        }
+    }
+}
+
+template <int IN_CHANNELS, int IN_H, int IN_W, typename input_type, typename params_type>
+void IF(
+    const input_type (&input)[IN_CHANNELS][IN_H][IN_W],
+    bit_t output[IN_CHANNELS][IN_H][IN_W],
+
+    const params_type R[IN_CHANNELS][IN_H][IN_W],
+    const params_type threshold[IN_CHANNELS][IN_H][IN_W],
+    const params_type v_reset[IN_CHANNELS][IN_H][IN_W])
+{
+    static input_type membrane_potential[IN_CHANNELS][IN_H][IN_W];
+
+    for (int ch = 0; ch < IN_CHANNELS; ch++)
+    {
+        for (int h = 0; h < IN_H; h++)
+        {
+            for (int w = 0; w < IN_W; w++)
+            {
+                membrane_potential[ch][h][w] += input[ch][h][w] * R[ch][h][w];
+    
+                if (membrane_potential[ch][h][w] >= threshold[ch][h][w])
+                {
+                    output[ch][h][w] = 1;
+                    membrane_potential[ch][h][w] = v_reset[ch][h][w];
+                }
+                else
+                {
+                    output[ch][h][w] = 0;
+                }
             }
         }
     }

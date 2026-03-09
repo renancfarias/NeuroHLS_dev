@@ -3,6 +3,8 @@
 
 using namespace std;
 
+typedef bool bit_t;
+
 /**
  * Integrate-and-Fire Kernel (copiado do dense.h para referência)
  */
@@ -20,6 +22,39 @@ void if_kernel(input_type input, T_PARAM R, T_PARAM threshold, input_type v_rese
         v_state = v_reset;
     } else {
         spike = false;
+    }
+}
+
+template <int IN_CHANNELS, int IN_H, int IN_W, typename input_type, typename params_type>
+void IF(
+    const input_type (&input)[IN_CHANNELS][IN_H][IN_W],
+    bit_t output[IN_CHANNELS][IN_H][IN_W],
+
+    const params_type R[IN_CHANNELS][IN_H][IN_W],
+    const params_type threshold[IN_CHANNELS][IN_H][IN_W],
+    const params_type v_reset[IN_CHANNELS][IN_H][IN_W])
+{
+    static input_type membrane_potential[IN_CHANNELS][IN_H][IN_W];
+
+    for (int ch = 0; ch < IN_CHANNELS; ch++)
+    {
+        for (int h = 0; h < IN_H; h++)
+        {
+            for (int w = 0; w < IN_W; w++)
+            {
+                membrane_potential[ch][h][w] += input[ch][h][w] * R[ch][h][w];
+    
+                if (membrane_potential[ch][h][w] >= threshold[ch][h][w])
+                {
+                    output[ch][h][w] = 1;
+                    membrane_potential[ch][h][w] = v_reset[ch][h][w];
+                }
+                else
+                {
+                    output[ch][h][w] = 0;
+                }
+            }
+        }
     }
 }
 
