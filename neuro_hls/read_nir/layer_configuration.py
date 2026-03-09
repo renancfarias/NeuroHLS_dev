@@ -253,12 +253,18 @@ class Conv2d(LayerConfig):
         self.groups = groups
         self.bias = bias
 
+        self.kernel = (self.weight.shape[2], self.weight.shape[3])
+
     def get_neuron_params(self):
         return {"weights": self.weight,
                 "bias": self.bias}
     
     def get_template_args(self):
-        return {}
+        return {"kernel": self.kernel,
+                "stride": self.stride,
+                "padding": self.padding,
+                "dilation": self.dilation,
+                "groups": self.groups}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
