@@ -33,15 +33,15 @@ class NeuroHls:
         
         return model 
 
-    def implement_model(self, model):
+    def implement_model(self, model, use_float):
 
-        implement_model(model, self._folder_path)
+        implement_model(model, self._folder_path, use_float)
 
     def define_test_dataset(self, dataset_file_path: str, data_is_binary: bool, step_count: int, different_sample_per_step: bool):
         
         self._tb_manager.define_dataset(dataset_file_path, data_is_binary, step_count, different_sample_per_step)
 
-    def create_testbench(self, total_samples: int, batch_size: int):
+    def create_testbench(self, total_samples: int, batch_size: int, debug_mode = False):
 
         if not self._has_parsed_nir:
             print("ERROR: The network architecture must be defined before creating the testbench files.")
@@ -53,7 +53,7 @@ class NeuroHls:
         print(f"Batch size: {used_batch_size}")
         print(f"Total batches: {used_total_samples // used_batch_size}")
         
-        self._tb_manager.create_testbench_file(self._input_shape, self._output_shape[0])
+        self._tb_manager.create_testbench_file(self._input_shape, self._output_shape[0], debug_mode)
         self._has_created_testbench = True
 
         print("Testbench was created.")

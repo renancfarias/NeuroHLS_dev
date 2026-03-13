@@ -85,6 +85,8 @@ int main (int argc, char **argv)
             {
                 batch_total_correct++;
             }
+
+            //<debug_output>
         }
 
         cout << "Batch (" << cur_batch + 1 << " / " << total_batches << "): ";

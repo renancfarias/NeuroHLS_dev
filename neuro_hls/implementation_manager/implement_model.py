@@ -10,7 +10,7 @@ def get_bracket_str(arr):
 
     return ""
 
-def implement_model(model, folder_path):
+def implement_model(model, folder_path, use_float = False):
 
     # (id da camada do NIR, nome a ser usado na impl)
     layer_names = {}
@@ -95,9 +95,14 @@ def implement_model(model, folder_path):
 
     quantization_h.add_include("ap_int.h")
     quantization_h.add_include("neuro_hls_functions/bit_type.h")
-    quantization_h.add_code(f"typedef ap_fixed<{model.input_quantization[0]}, {model.input_quantization[1]}> input_t;\n")
-    quantization_h.add_code(f"typedef ap_fixed<{model.weight_quantization[0]}, {model.weight_quantization[1]}, AP_RND> weight_t;\n")
-    quantization_h.add_code(f"typedef ap_fixed<{model.potential_quantization[0]}, {model.potential_quantization[1]}> potential_t;\n")
+
+    input_quantization = "float" if use_float else f"ap_fixed<{model.input_quantization[0]}, {model.input_quantization[1]}>"
+    weight_quantization = "float" if use_float else f"ap_fixed<{model.weight_quantization[0]}, {model.weight_quantization[1]}, AP_RND>"
+    potential_quantization = "float" if use_float else f"ap_fixed<{model.potential_quantization[0]}, {model.potential_quantization[1]}>"
+
+    quantization_h.add_code(f"typedef {input_quantization} input_t;\n")
+    quantization_h.add_code(f"typedef {weight_quantization} weight_t;\n")
+    quantization_h.add_code(f"typedef {potential_quantization} potential_t;\n")
 
     model_h.add_include("neuro_hls_functions/bit_type.h")
     model_h.add_include("quantization.h")
