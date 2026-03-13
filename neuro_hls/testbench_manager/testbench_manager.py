@@ -77,6 +77,21 @@ class TestbenchManager:
         read_batch.append_line(input_file_read + ";")
         return read_batch.get_text()
     
+    def _get_debug_output_code(self):
+
+        debug_output = IndentationMaker(3, first_line_should_use_indentation=False)
+
+        debug_output.append_line(f'cout << endl << "accum outputs: ";')
+
+        debug_output.append_line("for (int i = 0; i < OUTPUT_SIZE; i++)")
+        debug_output.add_scope()
+        debug_output.append_line('cout << accum_output[i] << " ";')
+        debug_output.close_scope()
+        debug_output.append_line("cout << endl;")
+
+        debug_output.append_line('cout << "pred: " << idx_max << "   target: " << target_data[b] << endl << endl;')
+        return debug_output.get_text()
+    
     def define_dataset(self, dataset_file: str, data_is_binary: bool, step_count: int, different_sample_per_step: bool):
 
         if dataset_file.split('.')[1] == "npz":
@@ -137,7 +152,7 @@ class TestbenchManager:
 
         return (total_samples, batch_size)
 
-    def create_testbench_file(self, input_shape: tuple, output_size: int):
+    def create_testbench_file(self, input_shape: tuple, output_size: int, debug_mode = False):
 
         self._input_shape = input_shape
         self._output_size = output_size
@@ -155,6 +170,10 @@ class TestbenchManager:
 
         # Define constants, such as the number of steps, output size, etc
         tb_cpp = tb_cpp.replace("//<decl_constants>", self._get_decl_constants_code())
+
+        if debug_mode:
+            # Prints the spikes of the output layer and the predicted and correct label
+            tb_cpp = tb_cpp.replace("//<debug_output>", self._get_debug_output_code())
 
         tb_name = f"{self._folder_path}/testbench.cpp"
         with open(tb_name, "w", encoding="utf-8") as f:

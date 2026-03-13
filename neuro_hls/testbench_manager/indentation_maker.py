@@ -22,6 +22,16 @@ class IndentationMaker:
         self._scope_count += 1
         self._tab_count += 1
 
+    def close_scope(self):
+        
+        if self._scope_count == 0:
+            return
+        
+        self._tab_count -= 1
+        self._scope_count -= 1
+
+        self.append_line("}")
+
     def _close_braces(self):
 
         if self._scope_count == 0:
