@@ -52,10 +52,12 @@ class TestbenchManager:
 
         return f"input_t input_data[BATCH_SIZE]{input_dims};"
     
-    def _get_feed_snn_code(self):
+    def _get_feed_snn_code(self, reset_potentials_between_inferences: bool):
 
         step_dimension_string = "[s]" if self._different_sample_per_step else ""
-        return f"snn_to_hls(input_data[b]{step_dimension_string}, output);"
+        reset_potentials_string = "s == 0" if reset_potentials_between_inferences else "false"
+
+        return f"snn_to_hls(input_data[b]{step_dimension_string}, output, {reset_potentials_string});"
     
     def _get_read_batch_code(self):
 
@@ -152,7 +154,7 @@ class TestbenchManager:
 
         return (total_samples, batch_size)
 
-    def create_testbench_file(self, input_shape: tuple, output_size: int, debug_mode = False):
+    def create_testbench_file(self, input_shape: tuple, output_size: int, reset_potentials_between_inferences = False, debug_mode = False):
 
         self._input_shape = input_shape
         self._output_size = output_size
@@ -163,7 +165,7 @@ class TestbenchManager:
         tb_cpp = tb_cpp.replace("//<decl_input_data>", self._get_decl_input_data_code())
 
         # Feed data to the SNN
-        tb_cpp = tb_cpp.replace("//<feed_data_snn>", self._get_feed_snn_code())
+        tb_cpp = tb_cpp.replace("//<feed_data_snn>", self._get_feed_snn_code(reset_potentials_between_inferences))
 
         # Read data from input file
         tb_cpp = tb_cpp.replace("//<read_batch>", self._get_read_batch_code())

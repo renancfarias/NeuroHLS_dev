@@ -334,19 +334,24 @@ template <int IN_CHANNELS, int IN_H, int IN_W, typename input_type, typename par
 void IF(
     const input_type (&input)[IN_CHANNELS][IN_H][IN_W],
     bit_t output[IN_CHANNELS][IN_H][IN_W],
+    input_type membrane_potential[IN_CHANNELS][IN_H][IN_W],
 
     const params_type R[IN_CHANNELS][IN_H][IN_W],
     const params_type threshold[IN_CHANNELS][IN_H][IN_W],
-    const params_type v_reset[IN_CHANNELS][IN_H][IN_W])
+    const params_type v_reset[IN_CHANNELS][IN_H][IN_W],
+    bool reset_potentials)
 {
-    static input_type membrane_potential[IN_CHANNELS][IN_H][IN_W] = {};
-
     for (int ch = 0; ch < IN_CHANNELS; ch++)
     {
         for (int h = 0; h < IN_H; h++)
         {
             for (int w = 0; w < IN_W; w++)
             {
+                if (reset_potentials)
+                {
+                    membrane_potential[ch][h][w] = 0;
+                }
+                
                 membrane_potential[ch][h][w] += input[ch][h][w] * R[ch][h][w];
     
                 if (membrane_potential[ch][h][w] >= threshold[ch][h][w])
@@ -367,15 +372,20 @@ template <int NEURONS, typename input_type, typename params_type>
 void IF(
     const input_type (&input)[NEURONS],
     bit_t output[NEURONS],
+    input_type membrane_potential[NEURONS],
 
     const params_type R[NEURONS],
     const params_type threshold[NEURONS],
-    const params_type v_reset[NEURONS])
+    const params_type v_reset[NEURONS],
+    bool reset_potentials)
 {
-    static input_type membrane_potential[NEURONS] = {};
-
     for (int n = 0; n < NEURONS; n++)
     {
+        if (reset_potentials)
+        {
+            membrane_potential[n] = 0;
+        }
+
         membrane_potential[n] += input[n] * R[n];
 
         if (membrane_potential[n] >= threshold[n])
