@@ -15,7 +15,7 @@ def implement_model(model, folder_path, use_float = False):
     # (id da camada do NIR, nome a ser usado na impl)
     layer_names = {}
 
-    model_prototype = f"void snn_to_hls(input_t (&input){get_bracket_str(model.input_shape)}, bit_t (&output){get_bracket_str(model.output_shape)})"
+    model_prototype = f"void snn_to_hls(input_t (&input){get_bracket_str(model.input_shape)}, bit_t (&output){get_bracket_str(model.output_shape)}, bool reset_potentials)"
 
     model_cpp = CodeCreator(folder_path)
     model_h = CodeCreator(folder_path)
@@ -67,7 +67,7 @@ def implement_model(model, folder_path, use_float = False):
                 name = f"layer_{len(layer_names) + 1}"
                 layer_names[layer.name] = name
                 output_type = "bit_t" if layer.emits_spike else "potential_t"
-                model_cpp.add_code(f"\tstatic {output_type} {name}{get_bracket_str(layer.output_shape)} = {{}};\n")
+                model_cpp.add_code(f"\t{output_type} {name}{get_bracket_str(layer.output_shape)};\n")
         else:
             name = layer_names[layer.name]
 
@@ -89,7 +89,16 @@ def implement_model(model, folder_path, use_float = False):
         template_args = "<" + template_args + ">" if len(template_args) > 0 else template_args
 
         func_name = type(layer).__name__
-        model_cpp.add_code(f"\t{func_name}{template_args}({input_accum_name}, {name}{neuron_params_call});\n")
+
+        if layer.emits_spike: # IF, LIF, CuBa-LIF, etc...
+
+            mem_potentials = f"mem_potentials_{cur_layer_id}"
+
+            model_cpp.add_code(f"\tstatic potential_t {mem_potentials}{get_bracket_str(layer.output_shape)} = {{}};\n")
+            model_cpp.add_code(f"\t{func_name}{template_args}({input_accum_name}, {name}, {mem_potentials}{neuron_params_call}, reset_potentials);\n")
+
+        else:
+            model_cpp.add_code(f"\t{func_name}{template_args}({input_accum_name}, {name}{neuron_params_call});\n")
     
     model_cpp.add_code("}\n")
 
