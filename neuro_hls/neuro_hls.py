@@ -81,11 +81,17 @@ class NeuroHls:
         except Exception:
             print("\n*** Unable to run C-Simulation.")
 
-    def run_synth(self, clk_period_ms: int, part = "xc7z020clg400-1", solution_name = "sol"):
+    def run_synth(self, frequency_MHz: int, part = "xc7z020clg400-1", solution_name = "sol"):
+
+        if frequency_MHz <= 0:
+            print("ERROR: frequency must be greater than 0.\n")
+            return
+
+        clk_period_ns = 1000 / frequency_MHz
 
         try:
             self._create_vitis_project_if_needed()
-            subprocess.run(["vitis_hls", "2_synth.tcl", self._project_name, solution_name, str(clk_period_ms), part], cwd = self._folder_path)
+            subprocess.run(["vitis_hls", "2_synth.tcl", self._project_name, solution_name, str(clk_period_ns), part], cwd = self._folder_path)
         except Exception:
             print("\n*** Unable to run Synthesis.")
         
