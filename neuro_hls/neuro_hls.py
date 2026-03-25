@@ -107,7 +107,7 @@ class NeuroHls:
 
         tree = ET.parse(csynth_file)
         root = tree.getroot()
-        
+
         area = root.find("AreaEstimates")
         resources = area.find("Resources")
 
@@ -120,4 +120,26 @@ class NeuroHls:
         }
 
         return resource_usage
+    
+    def get_synth_performance_estimates(self, solution_name = "sol"):
+
+        import xml.etree.ElementTree as ET
+
+        csynth_file = Path(self._folder_path) / self._project_name / solution_name / "syn" / "report" / "snn_to_hls_csynth.xml"
+
+        if not csynth_file.is_file():
+            print("ERROR: Synth report file does not exist. Try running 'run_synth' before.")
+            return
+
+        tree = ET.parse(csynth_file)
+        root = tree.getroot()
+        
+        performance = root.find("PerformanceEstimates")
+        latency = performance.find("SummaryOfOverallLatency")
+
+        performance_estimates = {
+            "avg_total_cycles": int(latency.find("Average-caseLatency").text)
+        }
+
+        return performance_estimates
         

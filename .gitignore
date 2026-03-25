@@ -43,6 +43,8 @@ z_mini_torch.npz
 
 NMNIST/
 
+comparativo_CONV_2D/
+
 exe_cpp
 
 primitive_debug/**/*.txt
