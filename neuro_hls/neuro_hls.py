@@ -94,4 +94,30 @@ class NeuroHls:
             subprocess.run(["vitis_hls", "2_synth.tcl", self._project_name, solution_name, str(clk_period_ns), part], cwd = self._folder_path)
         except Exception:
             print("\n*** Unable to run Synthesis.")
+
+    def get_synth_resource_usage(self, solution_name = "sol"):
+
+        import xml.etree.ElementTree as ET
+
+        csynth_file = Path(self._folder_path) / self._project_name / solution_name / "syn" / "report" / "snn_to_hls_csynth.xml"
+
+        if not csynth_file.is_file():
+            print("ERROR: Synth report file does not exist. Try running 'run_synth' before.")
+            return
+
+        tree = ET.parse(csynth_file)
+        root = tree.getroot()
+        
+        area = root.find("AreaEstimates")
+        resources = area.find("Resources")
+
+        resource_usage = {
+            "BRAM_18K": int(resources.find("BRAM_18K").text),
+            "DSP": int(resources.find("DSP").text),
+            "FF": int(resources.find("FF").text),
+            "LUT": int(resources.find("LUT").text),
+            "URAM": int(resources.find("URAM").text),
+        }
+
+        return resource_usage
         
