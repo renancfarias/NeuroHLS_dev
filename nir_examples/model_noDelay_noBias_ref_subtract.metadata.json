@@ -1,0 +1,5 @@
+{
+    "model_file": "braille_noDelay_noBias_subtract.nir",
+    "reset_mechanism": "subtract",
+    "reset_by_subtraction": true
+}

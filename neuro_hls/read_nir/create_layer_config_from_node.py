@@ -1,5 +1,12 @@
 from .layer_configuration import *
 
+def _metadata_bool(value):
+
+    if isinstance(value, str):
+        return value.strip().lower() in ("1", "true", "yes", "y")
+
+    return bool(value)
+
 def create_layer_config_from_node(node_name, node):
     """
     Extrai informações de um nó NIR e retorna a instância da classe apropriada.
@@ -72,8 +79,12 @@ def create_layer_config_from_node(node_name, node):
         v_threshold = node.v_threshold
         v_reset = getattr(node, "v_reset", np.zeros_like(v_threshold))
         w_in = node.w_in
+        metadata = getattr(node, "metadata", {}) or {}
+        reset_mechanism = metadata.get("reset_mechanism", getattr(node, "reset_mechanism", None))
+        reset_mechanism = reset_mechanism.strip().lower() if isinstance(reset_mechanism, str) else reset_mechanism
+        reset_by_subtraction = reset_mechanism == "subtract" or _metadata_bool(metadata.get("reset_by_subtraction", False))
         
-        return CubaLIF(node_name, input_shape, output_shape, tau_syn, tau_mem, r, v_leak, v_threshold, v_reset, w_in)
+        return CubaLIF(node_name, input_shape, output_shape, tau_syn, tau_mem, r, v_leak, v_threshold, v_reset, w_in, reset_by_subtraction)
     
     # I (Integrator)
     elif node_type == 'I':

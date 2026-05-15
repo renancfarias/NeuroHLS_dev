@@ -13,7 +13,8 @@ typedef unsigned char bit_t;
 template <typename input_type, typename W_DATA>
 void cuba_lif_kernel(input_type input, W_DATA tau_syn, W_DATA w_in, W_DATA tau_mem,
                      W_DATA R, W_DATA v_leak, W_DATA dt, W_DATA v_threshold, W_DATA v_reset,
-                     W_DATA& u_state, W_DATA& v_state, bit_t& spike) {
+                     W_DATA& u_state, W_DATA& v_state, bit_t& spike,
+                     bool reset_by_subtraction = false) {
     
     // ESTÁGIO 1: Dinâmica da Sinapse (u)
     input_type leak_u = 0 - u_state;
@@ -30,7 +31,11 @@ void cuba_lif_kernel(input_type input, W_DATA tau_syn, W_DATA w_in, W_DATA tau_m
     // ESTÁGIO 3: Disparo e Reset (apenas na membrana)
     if (v_state >= v_threshold) {
         spike = 1;
-        v_state = v_reset;
+        if (reset_by_subtraction) {
+            v_state -= v_threshold;
+        } else {
+            v_state = v_reset;
+        }
         // Nota: u_state NÃO é resetado em modelos CuBa
     } else {
         spike = 0;
@@ -55,12 +60,14 @@ void CubaLIF(
 
     W_DATA u_state[N],
     W_DATA v_state[N],
-    const W_DATA dt
+    const W_DATA dt,
+    bool reset_by_subtraction = false
 ) {
     for(int i = 0; i < N; i++) {
         cuba_lif_kernel(input[i], tau_syn[i], w_in[i], tau_mem[i], R_mem[i],
                         v_leak[i], dt, v_threshold[i], v_reset[i],
-                        u_state[i], v_state[i], spikes_out[i]);
+                        u_state[i], v_state[i], spikes_out[i],
+                        reset_by_subtraction);
     }
 }
 

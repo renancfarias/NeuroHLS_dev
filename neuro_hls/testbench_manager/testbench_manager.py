@@ -50,7 +50,7 @@ class TestbenchManager:
         for i in range(1, len(self._input_shape) + 1):
             input_dims += f"[DIM_{i}]"
 
-        return f"input_t input_data[BATCH_SIZE]{input_dims};"
+        return f"static input_t input_data[BATCH_SIZE]{input_dims};"
     
     def _get_feed_snn_code(self, reset_potentials_between_inferences: bool):
 
@@ -103,7 +103,7 @@ class TestbenchManager:
             labels = dataset["labels"]
 
         else:
-            dataset = torch.load(dataset_file)
+            dataset = torch.load(dataset_file, map_location=torch.device('cpu'))
 
             data, labels = dataset.tensors
 

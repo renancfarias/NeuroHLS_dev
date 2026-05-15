@@ -92,10 +92,14 @@ def implement_model(model, folder_path, use_float = False):
 
         if layer.emits_spike: # IF, LIF, CuBa-LIF, etc...
 
-            mem_potentials = f"mem_potentials_{cur_layer_id}"
+            if isinstance(layer, CubaLIF):
+                reset_by_subtraction = "true" if layer.reset_by_subtraction else "false"
+                model_cpp.add_code(f"\t{func_name}{template_args}({input_accum_name}, {name}{neuron_params_call}, weight_t({layer.dt}), reset_potentials, {reset_by_subtraction});\n")
+            else:
+                mem_potentials = f"mem_potentials_{cur_layer_id}"
 
-            model_cpp.add_code(f"\tstatic potential_t {mem_potentials}{get_bracket_str(layer.output_shape)} = {{}};\n")
-            model_cpp.add_code(f"\t{func_name}{template_args}({input_accum_name}, {name}, {mem_potentials}{neuron_params_call}, reset_potentials);\n")
+                model_cpp.add_code(f"\tstatic potential_t {mem_potentials}{get_bracket_str(layer.output_shape)} = {{}};\n")
+                model_cpp.add_code(f"\t{func_name}{template_args}({input_accum_name}, {name}, {mem_potentials}{neuron_params_call}, reset_potentials);\n")
 
         else:
             model_cpp.add_code(f"\t{func_name}{template_args}({input_accum_name}, {name}{neuron_params_call});\n")
@@ -104,6 +108,12 @@ def implement_model(model, folder_path, use_float = False):
 
     quantization_h.add_include("ap_int.h")
     quantization_h.add_include("neuro_hls_functions/bit_type.h")
+
+    if any(isinstance(layer, CubaLIF) for layer in model.layers):
+        if model.weight_quantization == (16, 8):
+            model.weight_quantization = (24, 8)
+        if model.potential_quantization == (16, 8):
+            model.potential_quantization = (24, 8)
 
     input_quantization = "float" if use_float else f"ap_fixed<{model.input_quantization[0]}, {model.input_quantization[1]}>"
     weight_quantization = "float" if use_float else f"ap_fixed<{model.weight_quantization[0]}, {model.weight_quantization[1]}, AP_RND>"

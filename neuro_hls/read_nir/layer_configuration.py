@@ -334,7 +334,8 @@ class CubaLIF(LayerConfig):
     def __init__(self, name: str, input_shape: tuple, output_shape: tuple,
                  tau_syn: np.ndarray, tau_mem: np.ndarray,
                  r: np.ndarray, v_leak: np.ndarray,
-                 v_threshold: np.ndarray, v_reset: np.ndarray, w_in: np.ndarray):
+                 v_threshold: np.ndarray, v_reset: np.ndarray, w_in: np.ndarray,
+                 reset_by_subtraction: bool = False):
         """
         Current based leaky integrate-and-fire neuron model configuration.
         
@@ -359,6 +360,8 @@ class CubaLIF(LayerConfig):
         self.v_threshold = v_threshold
         self.v_reset = v_reset
         self.w_in = w_in
+        self.dt = 0.0001
+        self.reset_by_subtraction = reset_by_subtraction
         self.emits_spike = True
 
     def get_neuron_params(self):
@@ -665,12 +668,13 @@ class Linear(LayerConfig):
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         self.weight = weight
+        self.unroll_factor = 1
 
     def get_neuron_params(self):
         return {"weights": self.weight}
     
     def get_template_args(self):
-        return {}
+        return {"unroll_factor": self.unroll_factor}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"

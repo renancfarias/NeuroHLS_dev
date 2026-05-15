@@ -1,0 +1,5 @@
+{
+    "model_file": "braille_noDelay_bias_zero.nir",
+    "reset_mechanism": "zero",
+    "reset_by_subtraction": false
+}
