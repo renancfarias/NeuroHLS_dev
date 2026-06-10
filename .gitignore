@@ -50,3 +50,5 @@ exe_cpp
 primitive_debug/**/*.txt
 
 *.nir
+
+event_driven_srnn/
