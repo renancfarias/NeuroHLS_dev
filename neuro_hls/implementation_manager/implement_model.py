@@ -10,7 +10,7 @@ def get_bracket_str(arr):
 
     return ""
 
-def implement_model(model, folder_path, use_float = False):
+def implement_model(model, folder_path, use_float = False, use_event_driven = False):
 
     # (id da camada do NIR, nome a ser usado na impl)
     layer_names = {}
@@ -127,7 +127,10 @@ def implement_model(model, folder_path, use_float = False):
     model_h.add_include("quantization.h")
 
     model_cpp.add_include("neuro_hls_functions/bit_type.h")
-    model_cpp.add_include("neuro_hls_functions/dense.h")
+    if use_event_driven:
+        model_cpp.add_include("neuro_hls_functions/event_driven.h")
+    else:
+        model_cpp.add_include("neuro_hls_functions/dense.h")
     model_cpp.add_include("quantization.h")
     model_cpp.add_include("neuron_params.h")
     model_cpp.add_include("snn_implementation.h")
