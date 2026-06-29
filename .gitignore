@@ -49,4 +49,8 @@ exe_cpp
 
 primitive_debug/**/*.txt
 
+vitis_proj/
+tb_data/
+*.log
+
 *.nir

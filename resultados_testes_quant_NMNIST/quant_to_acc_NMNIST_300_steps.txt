@@ -1,0 +1,3 @@
+Quantization: (16, 8)  ->  Acc: 98.93
+Quantization: (8, 4)  ->  Acc: 1.76
+Quantization: (4, 2)  ->  Acc: 10.94
