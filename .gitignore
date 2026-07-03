@@ -54,3 +54,4 @@ tb_data/
 *.log
 
 *.nir
+event_driven/event_driven/hls/csim/build/nmnist_300_steps_test_sample_lengths.txt

@@ -1,0 +1,58 @@
+# Vitis HLS / Vivado generated output
+build/
+export/
+.Xil/
+.cache/
+cache/
+vitis_proj/
+_ide/
+logs/
+event_driven_scnn/hls/
+event_driven_scnn/logs/
+event_driven_scnn/reports/
+event_driven_scnn/*.hls*_summary
+event_driven_scnn/*.jou
+event_driven_scnn/*.log
+event_driven_scnn/*.backup.jou
+event_driven_scnn/*.backup.log
+event_driven_scnn/*.zip
+event_driven_scnn/power_report*.txt
+
+# Tool temporary files
+.vitisWorkspace.json
+.hls.failed
+.run_*_tmp.tcl
+*.jou
+*.log
+*.backup.jou
+*.backup.log
+*.pb
+*.str
+*.wdb
+*.vcd
+*.saif
+*.lock
+*.o
+*.d
+*.bin
+*.pdi
+
+# Python / notebook local state
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Local datasets, archives and generated analysis artifacts
+Archive/
+Archive.zip
+data/
+nmnist/
+n-mnist_*_txt/
+sinabs_results/
+temp_test/
+*.pdf
+*.svg
+*.zip
+
+# Local Codex state
+.codex

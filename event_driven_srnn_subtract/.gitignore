@@ -1,0 +1,51 @@
+# Build and generated output
+/build/
+/export/
+/logs/
+/hls/
+/sim/
+/syn/
+/impl/
+/.Xil/
+/.ipcache/
+/xsim.dir/
+
+# IDE and local tooling cache
+/.cache/
+/.agents/
+/.codex/
+/_ide/
+compile_commands.json
+.vitisWorkspace.json
+
+# Generated dataset copies. The testbench uses tb_data/*.txt.
+/dataset_data.txt
+/dataset_targets.txt
+
+# Objects, dependency files, and binaries
+*.o
+*.d
+*.so
+*.a
+*.elf
+*.exe
+*.bin
+*.pdi
+*.bit
+*.ltx
+*.wdb
+*.vcd
+*.saif
+
+# Logs and reports
+*.log
+*.jou
+*.str
+*.rpt
+*.xml
+
+# Lock and temporary files
+*.lock
+*.tmp
+*.bak
+*~

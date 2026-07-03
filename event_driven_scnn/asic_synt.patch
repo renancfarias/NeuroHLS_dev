@@ -1,0 +1,21 @@
+diff --git a/rtl/converter_domain.sv b/rtl/converter_domain.sv
+index 6cc704f..a8e98eb 100644
+--- a/rtl/converter_domain.sv
++++ b/rtl/converter_domain.sv
+@@ -16,7 +16,6 @@ import adc_pkg::*;
+ `define N_PAD_ADC 8
+ 
+ // `define OLD_VER;
+-`define ADC_SIM;
+ 
+ // *****************************************************************************
+ module converter_domain #()
+@@ -113,7 +112,7 @@ module converter_domain #()
+ 
+     // ***********************************
+ 
+-    `ifdef ADC_SIM
++    `ifndef ASIC_SYNTHESIS
+         `ifdef OLD_VER
+             // ***********************************
+             // TODO: dummy eocal signal, since calibration

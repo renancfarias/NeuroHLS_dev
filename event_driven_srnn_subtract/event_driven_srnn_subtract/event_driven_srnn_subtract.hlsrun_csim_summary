@@ -1,0 +1,167 @@
+<ENTRY>
+{
+ "thisFile": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract/event_driven_srnn_subtract/event_driven_srnn_subtract.hlsrun_csim_summary",
+ "connectId": "",
+ "serverToken": "",
+ "timestamp": "0"
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_CmdStep",
+ "dateTimestamp": "Mon Jun 29 17:12:23 2026",
+ "timestampMillis": "1782763943198",
+ "buildStep": {
+  "cmdId": "ebe9ef0e-da8c-44b5-9715-4745f62d494f",
+  "name": "vitis-run",
+  "logFile": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract/event_driven_srnn_subtract/logs/event_driven_srnn_subtract.steps.log",
+  "commandLine": "/home/rcarlos/tools/Xilinx/2025.2/Vitis/bin/unwrapped/lnx64.o/vitis-run  --mode hls --csim --config hls_config.cfg --work_dir event_driven_srnn_subtract ",
+  "args": [
+   "--mode",
+   "hls",
+   "--csim",
+   "--config",
+   "hls_config.cfg",
+   "--work_dir",
+   "event_driven_srnn_subtract"
+  ],
+  "iniFiles": [],
+  "cwd": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "Mon Jun 29 17:12:23 2026",
+ "timestampMillis": "1782763943198",
+ "status": {
+  "cmdId": "ebe9ef0e-da8c-44b5-9715-4745f62d494f",
+  "state": "CS_RUNNING"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_FlowMetaData",
+ "dateTimestamp": "Mon Jun 29 17:12:25 2026",
+ "timestampMillis": "1782763945737",
+ "buildSummary": {
+  "hardwarePlatform": "",
+  "hardwareDsa": "",
+  "platformDirectory": "",
+  "runtime": "",
+  "systemConfig": "",
+  "flow": "BF_RUN",
+  "target": "TT_HLS_C_SIM",
+  "kernels": [
+   {
+    "base": {
+     "type": "KERNEL",
+     "name": "snn_to_hls",
+     "file": "",
+     "reports": [],
+     "uuid": ""
+    },
+    "sources": [
+     "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract/snn_implementation.cpp",
+     "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract/affine.h",
+     "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract/ts_efa.h",
+     "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract/quantization.h",
+     "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract/cuba_lif.h",
+     "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract/merge.h",
+     "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract/snn_implementation.h",
+     "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract/types.h",
+     "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract/bit_type.h",
+     "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract/split.h",
+     "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract/neuron_params.h",
+     "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract/linear.h"
+    ],
+    "psSources": [],
+    "cuNames": [],
+    "type": "HLS",
+    "frequency": 0,
+    "freqUnits": ""
+   }
+  ],
+  "toolVersion": "2025.2"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_SubCmdStep",
+ "dateTimestamp": "Mon Jun 29 17:12:25 2026",
+ "timestampMillis": "1782763945738",
+ "buildStep": {
+  "cmdId": "07866a2b-8bb7-4c24-abed-334ed267ce2b",
+  "name": "",
+  "logFile": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract/event_driven_srnn_subtract/hls/hls.log",
+  "commandLine": "",
+  "args": [],
+  "iniFiles": [],
+  "cwd": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/event_driven_srnn_subtract"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "Mon Jun 29 17:12:25 2026",
+ "timestampMillis": "1782763945738",
+ "status": {
+  "cmdId": "07866a2b-8bb7-4c24-abed-334ed267ce2b",
+  "state": "CS_RUNNING"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "Mon Jun 29 17:12:54 2026",
+ "timestampMillis": "1782763974925",
+ "status": {
+  "cmdId": "07866a2b-8bb7-4c24-abed-334ed267ce2b",
+  "state": "CS_PASSED"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "Mon Jun 29 17:12:55 2026",
+ "timestampMillis": "1782763975007",
+ "status": {
+  "cmdId": "ebe9ef0e-da8c-44b5-9715-4745f62d494f",
+  "state": "CS_PASSED"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Mon Jun 29 17:12:55 2026",
+ "timestampMillis": "1782763975007",
+ "report": {
+  "path": "",
+  "name": "",
+  "fileType": "HTML",
+  "reportType": "GLOBAL_RULECHECK_GUIDANCE",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Mon Jun 29 17:12:55 2026",
+ "timestampMillis": "1782763975007",
+ "report": {
+  "path": "",
+  "name": "",
+  "fileType": "BINARY_PROTOBUF",
+  "reportType": "GLOBAL_RULECHECK_GUIDANCE",
+  "cmdId": ""
+ }
+}
+</ENTRY>
