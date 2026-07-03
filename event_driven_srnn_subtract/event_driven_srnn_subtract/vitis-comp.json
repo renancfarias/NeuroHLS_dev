@@ -1,0 +1,9 @@
+{
+  "name": "event_driven_srnn_subtract",
+  "type": "HLS",
+  "configuration": {
+    "componentType": "HLS",
+    "configFiles": ["..\/hls_config.cfg"],
+    "work_dir": "."
+  }
+}

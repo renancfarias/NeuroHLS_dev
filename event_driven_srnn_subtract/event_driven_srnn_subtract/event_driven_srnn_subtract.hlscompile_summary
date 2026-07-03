@@ -1,0 +1,256 @@
+<ENTRY>
+{
+ "thisFile": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/event_driven_srnn_subtract/event_driven_srnn_subtract.hlscompile_summary",
+ "connectId": "",
+ "serverToken": "",
+ "timestamp": "0"
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_CmdStep",
+ "dateTimestamp": "Tue May 26 12:41:40 2026",
+ "timestampMillis": "1779810100007",
+ "buildStep": {
+  "cmdId": "2d0bce1f-1e1f-4251-ac5e-e0e0aab510b2",
+  "name": "v++",
+  "logFile": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/event_driven_srnn_subtract/logs/event_driven_srnn_subtract.steps.log",
+  "commandLine": "/home/rcarlos/tools/Xilinx/2025.2/Vitis/bin/unwrapped/lnx64.o/v++  -c --mode hls --config /home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/hls_config.cfg --work_dir event_driven_srnn_subtract ",
+  "args": [
+   "-c",
+   "--mode",
+   "hls",
+   "--config",
+   "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/hls_config.cfg",
+   "--work_dir",
+   "event_driven_srnn_subtract"
+  ],
+  "iniFiles": [
+   {
+    "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/hls_config.cfg",
+    "content": "part=xcvu9p-flga2104-2-i\n\n[hls]\nflow_target=vivado\npackage.output.format=ip_catalog\npackage.output.syn=false\nclock=200MHz\ntb.file=./testbench.cpp\ntb.file=./tb_data\ncsim.clean=1\nsyn.file=./snn_implementation.cpp\nsyn.file=./affine.h\nsyn.file=./ts_efa.h\nsyn.file=./quantization.h\nsyn.file=./cuba_lif.h\nsyn.file=./merge.h\nsyn.file=./snn_implementation.h\nsyn.file=./types.h\nsyn.file=./bit_type.h\nsyn.file=./split.h\nsyn.file=./neuron_params.h\nsyn.file=./linear.h\nsyn.top=snn_to_hls\ncsim.profile_tripcount=1"
+   }
+  ],
+  "cwd": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "Tue May 26 12:41:40 2026",
+ "timestampMillis": "1779810100007",
+ "status": {
+  "cmdId": "2d0bce1f-1e1f-4251-ac5e-e0e0aab510b2",
+  "state": "CS_RUNNING"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_FlowMetaData",
+ "dateTimestamp": "Tue May 26 12:41:41 2026",
+ "timestampMillis": "1779810101980",
+ "buildSummary": {
+  "hardwarePlatform": "",
+  "hardwareDsa": "",
+  "platformDirectory": "",
+  "runtime": "",
+  "systemConfig": "",
+  "flow": "BF_COMPILE",
+  "target": "TT_HW",
+  "kernels": [
+   {
+    "base": {
+     "type": "KERNEL",
+     "name": "snn_to_hls",
+     "file": "",
+     "reports": [],
+     "uuid": ""
+    },
+    "sources": [
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/snn_implementation.cpp",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/affine.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/ts_efa.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/quantization.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/cuba_lif.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/merge.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/snn_implementation.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/types.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/bit_type.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/split.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/neuron_params.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/linear.h"
+    ],
+    "psSources": [],
+    "cuNames": [],
+    "type": "HLS",
+    "frequency": 0,
+    "freqUnits": ""
+   }
+  ],
+  "toolVersion": "2025.2"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_SubCmdStep",
+ "dateTimestamp": "Tue May 26 12:41:41 2026",
+ "timestampMillis": "1779810101980",
+ "buildStep": {
+  "cmdId": "b3e637a8-0b44-49ef-944c-080bcb73ea3f",
+  "name": "",
+  "logFile": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/event_driven_srnn_subtract/hls/hls.log",
+  "commandLine": "",
+  "args": [],
+  "iniFiles": [],
+  "cwd": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "Tue May 26 12:41:41 2026",
+ "timestampMillis": "1779810101980",
+ "status": {
+  "cmdId": "b3e637a8-0b44-49ef-944c-080bcb73ea3f",
+  "state": "CS_RUNNING"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:41:41 2026",
+ "timestampMillis": "1779810101980",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/event_driven_srnn_subtract/hls/hls_data.json",
+  "name": "",
+  "fileType": "JSON",
+  "reportType": "HLS_SYNTHESIS",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:41:41 2026",
+ "timestampMillis": "1779810101981",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/event_driven_srnn_subtract/hls/syn/report/csynth.rpt",
+  "name": "",
+  "fileType": "TEXT",
+  "reportType": "HLS_SYNTHESIS",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:41:41 2026",
+ "timestampMillis": "1779810101981",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/event_driven_srnn_subtract/hls/syn/report/csynth.xml",
+  "name": "",
+  "fileType": "XML",
+  "reportType": "HLS_SYNTHESIS",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:42:08 2026",
+ "timestampMillis": "1779810128782",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/event_driven_srnn_subtract/hls",
+  "name": "",
+  "fileType": "DIR",
+  "reportType": "HLS_DATAFLOW",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:42:08 2026",
+ "timestampMillis": "1779810128782",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/event_driven_srnn_subtract/hls",
+  "name": "",
+  "fileType": "DIR",
+  "reportType": "HLS_FUNCTION_CALL_GRAPH",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:42:08 2026",
+ "timestampMillis": "1779810128782",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/event_driven_srnn_subtract/hls",
+  "name": "",
+  "fileType": "DIR",
+  "reportType": "HLS_SCHEDULE",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "Tue May 26 12:42:08 2026",
+ "timestampMillis": "1779810128783",
+ "status": {
+  "cmdId": "b3e637a8-0b44-49ef-944c-080bcb73ea3f",
+  "state": "CS_PASSED"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "Tue May 26 12:42:08 2026",
+ "timestampMillis": "1779810128936",
+ "status": {
+  "cmdId": "2d0bce1f-1e1f-4251-ac5e-e0e0aab510b2",
+  "state": "CS_PASSED"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:42:08 2026",
+ "timestampMillis": "1779810128945",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/event_driven_srnn_subtract/reports/v++_compile_event_driven_srnn_subtract_guidance.html",
+  "name": "",
+  "fileType": "HTML",
+  "reportType": "GLOBAL_RULECHECK_GUIDANCE",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:42:08 2026",
+ "timestampMillis": "1779810128945",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn_subtract/event_driven_srnn_subtract/reports/.db/v++_compile_event_driven_srnn_subtract_guidance.pb3",
+  "name": "",
+  "fileType": "BINARY_PROTOBUF",
+  "reportType": "GLOBAL_RULECHECK_GUIDANCE",
+  "cmdId": ""
+ }
+}
+</ENTRY>

@@ -1,0 +1,10 @@
+{
+  "name": "event_driven_scnn",
+  "type": "HLS",
+  "configuration": {
+    "componentType": "HLS",
+    "configFiles": ["..\/hls_config.cfg"],
+    "work_dir": ".",
+    "cosim_args": "--hls.cosim.setup=1"
+  }
+}

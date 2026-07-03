@@ -1,0 +1,255 @@
+<ENTRY>
+{
+ "thisFile": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/event_driven_srnn/event_driven_srnn.hlscompile_summary",
+ "connectId": "",
+ "serverToken": "",
+ "timestamp": "0"
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_CmdStep",
+ "dateTimestamp": "Tue May 26 12:59:19 2026",
+ "timestampMillis": "1779811159436",
+ "buildStep": {
+  "cmdId": "1247e940-76d3-4b1d-9e0d-28b3cc594758",
+  "name": "v++",
+  "logFile": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/event_driven_srnn/logs/event_driven_srnn.steps.log",
+  "commandLine": "/home/rcarlos/tools/Xilinx/2025.2/Vitis/bin/unwrapped/lnx64.o/v++  -c --mode hls --config /home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/hls_config.cfg --work_dir event_driven_srnn ",
+  "args": [
+   "-c",
+   "--mode",
+   "hls",
+   "--config",
+   "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/hls_config.cfg",
+   "--work_dir",
+   "event_driven_srnn"
+  ],
+  "iniFiles": [
+   {
+    "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/hls_config.cfg",
+    "content": "part=xcvu9p-flga2104-2-i\n\n[hls]\nflow_target=vivado\npackage.output.format=ip_catalog\npackage.output.syn=false\nclock=150MHz\ntb.file=./testbench.cpp\ntb.file=./tb_data\ncsim.clean=1\nsyn.file=./snn_implementation.cpp\nsyn.file=./affine.h\nsyn.file=./ts_efa.h\nsyn.file=./quantization.h\nsyn.file=./cuba_lif.h\nsyn.file=./merge.h\nsyn.file=./snn_implementation.h\nsyn.file=./types.h\nsyn.file=./bit_type.h\nsyn.file=./split.h\nsyn.file=./neuron_params.h\nsyn.top=snn_to_hls\ncsim.profile_tripcount=1"
+   }
+  ],
+  "cwd": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "Tue May 26 12:59:19 2026",
+ "timestampMillis": "1779811159436",
+ "status": {
+  "cmdId": "1247e940-76d3-4b1d-9e0d-28b3cc594758",
+  "state": "CS_RUNNING"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_FlowMetaData",
+ "dateTimestamp": "Tue May 26 12:59:21 2026",
+ "timestampMillis": "1779811161416",
+ "buildSummary": {
+  "hardwarePlatform": "",
+  "hardwareDsa": "",
+  "platformDirectory": "",
+  "runtime": "",
+  "systemConfig": "",
+  "flow": "BF_COMPILE",
+  "target": "TT_HW",
+  "kernels": [
+   {
+    "base": {
+     "type": "KERNEL",
+     "name": "snn_to_hls",
+     "file": "",
+     "reports": [],
+     "uuid": ""
+    },
+    "sources": [
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/snn_implementation.cpp",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/affine.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/ts_efa.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/quantization.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/cuba_lif.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/merge.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/snn_implementation.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/types.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/bit_type.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/split.h",
+     "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/neuron_params.h"
+    ],
+    "psSources": [],
+    "cuNames": [],
+    "type": "HLS",
+    "frequency": 0,
+    "freqUnits": ""
+   }
+  ],
+  "toolVersion": "2025.2"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_SubCmdStep",
+ "dateTimestamp": "Tue May 26 12:59:21 2026",
+ "timestampMillis": "1779811161416",
+ "buildStep": {
+  "cmdId": "4c719c7e-c7a4-4614-aedb-da644156a205",
+  "name": "",
+  "logFile": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/event_driven_srnn/hls/hls.log",
+  "commandLine": "",
+  "args": [],
+  "iniFiles": [],
+  "cwd": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "Tue May 26 12:59:21 2026",
+ "timestampMillis": "1779811161416",
+ "status": {
+  "cmdId": "4c719c7e-c7a4-4614-aedb-da644156a205",
+  "state": "CS_RUNNING"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:59:21 2026",
+ "timestampMillis": "1779811161416",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/event_driven_srnn/hls/hls_data.json",
+  "name": "",
+  "fileType": "JSON",
+  "reportType": "HLS_SYNTHESIS",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:59:21 2026",
+ "timestampMillis": "1779811161416",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/event_driven_srnn/hls/syn/report/csynth.rpt",
+  "name": "",
+  "fileType": "TEXT",
+  "reportType": "HLS_SYNTHESIS",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:59:21 2026",
+ "timestampMillis": "1779811161417",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/event_driven_srnn/hls/syn/report/csynth.xml",
+  "name": "",
+  "fileType": "XML",
+  "reportType": "HLS_SYNTHESIS",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:59:47 2026",
+ "timestampMillis": "1779811187126",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/event_driven_srnn/hls",
+  "name": "",
+  "fileType": "DIR",
+  "reportType": "HLS_DATAFLOW",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:59:47 2026",
+ "timestampMillis": "1779811187126",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/event_driven_srnn/hls",
+  "name": "",
+  "fileType": "DIR",
+  "reportType": "HLS_FUNCTION_CALL_GRAPH",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:59:47 2026",
+ "timestampMillis": "1779811187126",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/event_driven_srnn/hls",
+  "name": "",
+  "fileType": "DIR",
+  "reportType": "HLS_SCHEDULE",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "Tue May 26 12:59:47 2026",
+ "timestampMillis": "1779811187126",
+ "status": {
+  "cmdId": "4c719c7e-c7a4-4614-aedb-da644156a205",
+  "state": "CS_PASSED"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Status",
+ "dateTimestamp": "Tue May 26 12:59:47 2026",
+ "timestampMillis": "1779811187262",
+ "status": {
+  "cmdId": "1247e940-76d3-4b1d-9e0d-28b3cc594758",
+  "state": "CS_PASSED"
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:59:47 2026",
+ "timestampMillis": "1779811187277",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/event_driven_srnn/reports/v++_compile_event_driven_srnn_guidance.html",
+  "name": "",
+  "fileType": "HTML",
+  "reportType": "GLOBAL_RULECHECK_GUIDANCE",
+  "cmdId": ""
+ }
+}
+</ENTRY>
+<ENTRY>
+{
+ "type": "ET_Report",
+ "dateTimestamp": "Tue May 26 12:59:47 2026",
+ "timestampMillis": "1779811187277",
+ "report": {
+  "path": "/home/rcarlos/Documentos/SNN/Renan/new_workspace/event_driven_srnn/event_driven_srnn/reports/.db/v++_compile_event_driven_srnn_guidance.pb3",
+  "name": "",
+  "fileType": "BINARY_PROTOBUF",
+  "reportType": "GLOBAL_RULECHECK_GUIDANCE",
+  "cmdId": ""
+ }
+}
+</ENTRY>
