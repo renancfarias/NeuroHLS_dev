@@ -1,0 +1,1531 @@
+{
+    "source": "Braille SRNN, two published CUBA-LIF variants",
+    "parallelism_contract": "percent_parallel_reuse_v1",
+    "note": "p is a model-wide request; each layer resolves its own U from its own W. HLS must still validate resources, II, timing, and numerical behaviour.",
+    "components": [
+        {
+            "name": "hls_time_driven_subtract_p00000",
+            "project": "SRNN_test/hls_time_driven_subtract_p00000",
+            "graph": "subtract",
+            "backend": "time-driven",
+            "requested_parallelism": 0.0,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 480,
+                    "processing_elements": 1,
+                    "reuse_cycles": 480,
+                    "effective_parallelism": 0.0020833333333333333,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 40,
+                    "processing_elements": 1,
+                    "reuse_cycles": 40,
+                    "effective_parallelism": 0.025,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 40,
+                    "processing_elements": 1,
+                    "reuse_cycles": 40,
+                    "effective_parallelism": 0.025,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 1600,
+                    "processing_elements": 1,
+                    "reuse_cycles": 1600,
+                    "effective_parallelism": 0.000625,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 280,
+                    "processing_elements": 1,
+                    "reuse_cycles": 280,
+                    "effective_parallelism": 0.0035714285714285713,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 1,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.14285714285714285,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 2447,
+            "summed_processing_elements": 6
+        },
+        {
+            "name": "hls_time_driven_subtract_p00050",
+            "project": "SRNN_test/hls_time_driven_subtract_p00050",
+            "graph": "subtract",
+            "backend": "time-driven",
+            "requested_parallelism": 0.005,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 480,
+                    "processing_elements": 2,
+                    "reuse_cycles": 240,
+                    "effective_parallelism": 0.004166666666666667,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 40,
+                    "processing_elements": 1,
+                    "reuse_cycles": 40,
+                    "effective_parallelism": 0.025,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 40,
+                    "processing_elements": 1,
+                    "reuse_cycles": 40,
+                    "effective_parallelism": 0.025,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 1600,
+                    "processing_elements": 8,
+                    "reuse_cycles": 200,
+                    "effective_parallelism": 0.005,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 280,
+                    "processing_elements": 1,
+                    "reuse_cycles": 280,
+                    "effective_parallelism": 0.0035714285714285713,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 1,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.14285714285714285,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 807,
+            "summed_processing_elements": 14
+        },
+        {
+            "name": "hls_time_driven_subtract_p00100",
+            "project": "SRNN_test/hls_time_driven_subtract_p00100",
+            "graph": "subtract",
+            "backend": "time-driven",
+            "requested_parallelism": 0.01,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 480,
+                    "processing_elements": 5,
+                    "reuse_cycles": 96,
+                    "effective_parallelism": 0.010416666666666666,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 40,
+                    "processing_elements": 1,
+                    "reuse_cycles": 40,
+                    "effective_parallelism": 0.025,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 40,
+                    "processing_elements": 1,
+                    "reuse_cycles": 40,
+                    "effective_parallelism": 0.025,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 1600,
+                    "processing_elements": 16,
+                    "reuse_cycles": 100,
+                    "effective_parallelism": 0.01,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 280,
+                    "processing_elements": 3,
+                    "reuse_cycles": 94,
+                    "effective_parallelism": 0.010714285714285714,
+                    "idle_slots": 2
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 1,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.14285714285714285,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 377,
+            "summed_processing_elements": 27
+        },
+        {
+            "name": "hls_time_driven_subtract_p00200",
+            "project": "SRNN_test/hls_time_driven_subtract_p00200",
+            "graph": "subtract",
+            "backend": "time-driven",
+            "requested_parallelism": 0.02,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 480,
+                    "processing_elements": 10,
+                    "reuse_cycles": 48,
+                    "effective_parallelism": 0.020833333333333332,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 40,
+                    "processing_elements": 1,
+                    "reuse_cycles": 40,
+                    "effective_parallelism": 0.025,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 40,
+                    "processing_elements": 1,
+                    "reuse_cycles": 40,
+                    "effective_parallelism": 0.025,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 1600,
+                    "processing_elements": 32,
+                    "reuse_cycles": 50,
+                    "effective_parallelism": 0.02,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 280,
+                    "processing_elements": 6,
+                    "reuse_cycles": 47,
+                    "effective_parallelism": 0.02142857142857143,
+                    "idle_slots": 2
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 1,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.14285714285714285,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 232,
+            "summed_processing_elements": 51
+        },
+        {
+            "name": "hls_time_driven_subtract_p00400",
+            "project": "SRNN_test/hls_time_driven_subtract_p00400",
+            "graph": "subtract",
+            "backend": "time-driven",
+            "requested_parallelism": 0.04,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 480,
+                    "processing_elements": 19,
+                    "reuse_cycles": 26,
+                    "effective_parallelism": 0.03958333333333333,
+                    "idle_slots": 14
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 40,
+                    "processing_elements": 2,
+                    "reuse_cycles": 20,
+                    "effective_parallelism": 0.05,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 40,
+                    "processing_elements": 2,
+                    "reuse_cycles": 20,
+                    "effective_parallelism": 0.05,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 1600,
+                    "processing_elements": 64,
+                    "reuse_cycles": 25,
+                    "effective_parallelism": 0.04,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 280,
+                    "processing_elements": 11,
+                    "reuse_cycles": 26,
+                    "effective_parallelism": 0.039285714285714285,
+                    "idle_slots": 6
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 1,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.14285714285714285,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 124,
+            "summed_processing_elements": 99
+        },
+        {
+            "name": "hls_time_driven_subtract_p00800",
+            "project": "SRNN_test/hls_time_driven_subtract_p00800",
+            "graph": "subtract",
+            "backend": "time-driven",
+            "requested_parallelism": 0.08,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 480,
+                    "processing_elements": 38,
+                    "reuse_cycles": 13,
+                    "effective_parallelism": 0.07916666666666666,
+                    "idle_slots": 14
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 40,
+                    "processing_elements": 3,
+                    "reuse_cycles": 14,
+                    "effective_parallelism": 0.075,
+                    "idle_slots": 2
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 40,
+                    "processing_elements": 3,
+                    "reuse_cycles": 14,
+                    "effective_parallelism": 0.075,
+                    "idle_slots": 2
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 1600,
+                    "processing_elements": 128,
+                    "reuse_cycles": 13,
+                    "effective_parallelism": 0.08,
+                    "idle_slots": 64
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 280,
+                    "processing_elements": 22,
+                    "reuse_cycles": 13,
+                    "effective_parallelism": 0.07857142857142857,
+                    "idle_slots": 6
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 1,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.14285714285714285,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 74,
+            "summed_processing_elements": 195
+        },
+        {
+            "name": "hls_time_driven_subtract_p01600",
+            "project": "SRNN_test/hls_time_driven_subtract_p01600",
+            "graph": "subtract",
+            "backend": "time-driven",
+            "requested_parallelism": 0.16,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 480,
+                    "processing_elements": 77,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.16041666666666668,
+                    "idle_slots": 59
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 40,
+                    "processing_elements": 6,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.15,
+                    "idle_slots": 2
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 40,
+                    "processing_elements": 6,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.15,
+                    "idle_slots": 2
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 1600,
+                    "processing_elements": 256,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.16,
+                    "idle_slots": 192
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 280,
+                    "processing_elements": 45,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.16071428571428573,
+                    "idle_slots": 35
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 1,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.14285714285714285,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 42,
+            "summed_processing_elements": 391
+        },
+        {
+            "name": "hls_time_driven_subtract_p03200",
+            "project": "SRNN_test/hls_time_driven_subtract_p03200",
+            "graph": "subtract",
+            "backend": "time-driven",
+            "requested_parallelism": 0.32,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 480,
+                    "processing_elements": 154,
+                    "reuse_cycles": 4,
+                    "effective_parallelism": 0.32083333333333336,
+                    "idle_slots": 136
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 40,
+                    "processing_elements": 13,
+                    "reuse_cycles": 4,
+                    "effective_parallelism": 0.325,
+                    "idle_slots": 12
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 40,
+                    "processing_elements": 13,
+                    "reuse_cycles": 4,
+                    "effective_parallelism": 0.325,
+                    "idle_slots": 12
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 1600,
+                    "processing_elements": 512,
+                    "reuse_cycles": 4,
+                    "effective_parallelism": 0.32,
+                    "idle_slots": 448
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 280,
+                    "processing_elements": 90,
+                    "reuse_cycles": 4,
+                    "effective_parallelism": 0.32142857142857145,
+                    "idle_slots": 80
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 2,
+                    "reuse_cycles": 4,
+                    "effective_parallelism": 0.2857142857142857,
+                    "idle_slots": 1
+                }
+            ],
+            "summed_reuse_cycles": 24,
+            "summed_processing_elements": 784
+        },
+        {
+            "name": "hls_time_driven_subtract_p06400",
+            "project": "SRNN_test/hls_time_driven_subtract_p06400",
+            "graph": "subtract",
+            "backend": "time-driven",
+            "requested_parallelism": 0.64,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 480,
+                    "processing_elements": 307,
+                    "reuse_cycles": 2,
+                    "effective_parallelism": 0.6395833333333333,
+                    "idle_slots": 134
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 40,
+                    "processing_elements": 26,
+                    "reuse_cycles": 2,
+                    "effective_parallelism": 0.65,
+                    "idle_slots": 12
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 40,
+                    "processing_elements": 26,
+                    "reuse_cycles": 2,
+                    "effective_parallelism": 0.65,
+                    "idle_slots": 12
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 1600,
+                    "processing_elements": 1024,
+                    "reuse_cycles": 2,
+                    "effective_parallelism": 0.64,
+                    "idle_slots": 448
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 280,
+                    "processing_elements": 179,
+                    "reuse_cycles": 2,
+                    "effective_parallelism": 0.6392857142857142,
+                    "idle_slots": 78
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 4,
+                    "reuse_cycles": 2,
+                    "effective_parallelism": 0.5714285714285714,
+                    "idle_slots": 1
+                }
+            ],
+            "summed_reuse_cycles": 12,
+            "summed_processing_elements": 1566
+        },
+        {
+            "name": "hls_time_driven_subtract_p10000",
+            "project": "SRNN_test/hls_time_driven_subtract_p10000",
+            "graph": "subtract",
+            "backend": "time-driven",
+            "requested_parallelism": 1.0,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 480,
+                    "processing_elements": 480,
+                    "reuse_cycles": 1,
+                    "effective_parallelism": 1.0,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 40,
+                    "processing_elements": 40,
+                    "reuse_cycles": 1,
+                    "effective_parallelism": 1.0,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 40,
+                    "processing_elements": 40,
+                    "reuse_cycles": 1,
+                    "effective_parallelism": 1.0,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 1600,
+                    "processing_elements": 1600,
+                    "reuse_cycles": 1,
+                    "effective_parallelism": 1.0,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Linear",
+                    "operation_kind": "mac",
+                    "total_work_items": 280,
+                    "processing_elements": 280,
+                    "reuse_cycles": 1,
+                    "effective_parallelism": 1.0,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 7,
+                    "reuse_cycles": 1,
+                    "effective_parallelism": 1.0,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 6,
+            "summed_processing_elements": 2447
+        },
+        {
+            "name": "hls_event_driven_subtract_active_list",
+            "project": "SRNN_test/hls_event_driven_subtract_active_list",
+            "graph": "subtract",
+            "backend": "event-driven",
+            "requested_parallelism": null,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "active_noise_threshold": 1e-06
+        },
+        {
+            "name": "hls_time_driven_zero_p00000",
+            "project": "SRNN_test/hls_time_driven_zero_p00000",
+            "graph": "zero",
+            "backend": "time-driven",
+            "requested_parallelism": 0.0,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 456,
+                    "processing_elements": 1,
+                    "reuse_cycles": 456,
+                    "effective_parallelism": 0.0021929824561403508,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 38,
+                    "processing_elements": 1,
+                    "reuse_cycles": 38,
+                    "effective_parallelism": 0.02631578947368421,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 38,
+                    "processing_elements": 1,
+                    "reuse_cycles": 38,
+                    "effective_parallelism": 0.02631578947368421,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 1444,
+                    "processing_elements": 1,
+                    "reuse_cycles": 1444,
+                    "effective_parallelism": 0.0006925207756232687,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 266,
+                    "processing_elements": 1,
+                    "reuse_cycles": 266,
+                    "effective_parallelism": 0.0037593984962406013,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 1,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.14285714285714285,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 2249,
+            "summed_processing_elements": 6
+        },
+        {
+            "name": "hls_time_driven_zero_p00050",
+            "project": "SRNN_test/hls_time_driven_zero_p00050",
+            "graph": "zero",
+            "backend": "time-driven",
+            "requested_parallelism": 0.005,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 456,
+                    "processing_elements": 2,
+                    "reuse_cycles": 228,
+                    "effective_parallelism": 0.0043859649122807015,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 38,
+                    "processing_elements": 1,
+                    "reuse_cycles": 38,
+                    "effective_parallelism": 0.02631578947368421,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 38,
+                    "processing_elements": 1,
+                    "reuse_cycles": 38,
+                    "effective_parallelism": 0.02631578947368421,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 1444,
+                    "processing_elements": 7,
+                    "reuse_cycles": 207,
+                    "effective_parallelism": 0.004847645429362881,
+                    "idle_slots": 5
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 266,
+                    "processing_elements": 1,
+                    "reuse_cycles": 266,
+                    "effective_parallelism": 0.0037593984962406013,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 1,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.14285714285714285,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 784,
+            "summed_processing_elements": 13
+        },
+        {
+            "name": "hls_time_driven_zero_p00100",
+            "project": "SRNN_test/hls_time_driven_zero_p00100",
+            "graph": "zero",
+            "backend": "time-driven",
+            "requested_parallelism": 0.01,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 456,
+                    "processing_elements": 5,
+                    "reuse_cycles": 92,
+                    "effective_parallelism": 0.010964912280701754,
+                    "idle_slots": 4
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 38,
+                    "processing_elements": 1,
+                    "reuse_cycles": 38,
+                    "effective_parallelism": 0.02631578947368421,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 38,
+                    "processing_elements": 1,
+                    "reuse_cycles": 38,
+                    "effective_parallelism": 0.02631578947368421,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 1444,
+                    "processing_elements": 14,
+                    "reuse_cycles": 104,
+                    "effective_parallelism": 0.009695290858725761,
+                    "idle_slots": 12
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 266,
+                    "processing_elements": 3,
+                    "reuse_cycles": 89,
+                    "effective_parallelism": 0.011278195488721804,
+                    "idle_slots": 1
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 1,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.14285714285714285,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 368,
+            "summed_processing_elements": 25
+        },
+        {
+            "name": "hls_time_driven_zero_p00200",
+            "project": "SRNN_test/hls_time_driven_zero_p00200",
+            "graph": "zero",
+            "backend": "time-driven",
+            "requested_parallelism": 0.02,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 456,
+                    "processing_elements": 9,
+                    "reuse_cycles": 51,
+                    "effective_parallelism": 0.019736842105263157,
+                    "idle_slots": 3
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 38,
+                    "processing_elements": 1,
+                    "reuse_cycles": 38,
+                    "effective_parallelism": 0.02631578947368421,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 38,
+                    "processing_elements": 1,
+                    "reuse_cycles": 38,
+                    "effective_parallelism": 0.02631578947368421,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 1444,
+                    "processing_elements": 29,
+                    "reuse_cycles": 50,
+                    "effective_parallelism": 0.02008310249307479,
+                    "idle_slots": 6
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 266,
+                    "processing_elements": 5,
+                    "reuse_cycles": 54,
+                    "effective_parallelism": 0.018796992481203006,
+                    "idle_slots": 4
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 1,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.14285714285714285,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 238,
+            "summed_processing_elements": 46
+        },
+        {
+            "name": "hls_time_driven_zero_p00400",
+            "project": "SRNN_test/hls_time_driven_zero_p00400",
+            "graph": "zero",
+            "backend": "time-driven",
+            "requested_parallelism": 0.04,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 456,
+                    "processing_elements": 18,
+                    "reuse_cycles": 26,
+                    "effective_parallelism": 0.039473684210526314,
+                    "idle_slots": 12
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 38,
+                    "processing_elements": 2,
+                    "reuse_cycles": 19,
+                    "effective_parallelism": 0.05263157894736842,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 38,
+                    "processing_elements": 2,
+                    "reuse_cycles": 19,
+                    "effective_parallelism": 0.05263157894736842,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 1444,
+                    "processing_elements": 58,
+                    "reuse_cycles": 25,
+                    "effective_parallelism": 0.04016620498614958,
+                    "idle_slots": 6
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 266,
+                    "processing_elements": 11,
+                    "reuse_cycles": 25,
+                    "effective_parallelism": 0.041353383458646614,
+                    "idle_slots": 9
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 1,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.14285714285714285,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 121,
+            "summed_processing_elements": 92
+        },
+        {
+            "name": "hls_time_driven_zero_p00800",
+            "project": "SRNN_test/hls_time_driven_zero_p00800",
+            "graph": "zero",
+            "backend": "time-driven",
+            "requested_parallelism": 0.08,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 456,
+                    "processing_elements": 36,
+                    "reuse_cycles": 13,
+                    "effective_parallelism": 0.07894736842105263,
+                    "idle_slots": 12
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 38,
+                    "processing_elements": 3,
+                    "reuse_cycles": 13,
+                    "effective_parallelism": 0.07894736842105263,
+                    "idle_slots": 1
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 38,
+                    "processing_elements": 3,
+                    "reuse_cycles": 13,
+                    "effective_parallelism": 0.07894736842105263,
+                    "idle_slots": 1
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 1444,
+                    "processing_elements": 116,
+                    "reuse_cycles": 13,
+                    "effective_parallelism": 0.08033240997229917,
+                    "idle_slots": 64
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 266,
+                    "processing_elements": 21,
+                    "reuse_cycles": 13,
+                    "effective_parallelism": 0.07894736842105263,
+                    "idle_slots": 7
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 1,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.14285714285714285,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 72,
+            "summed_processing_elements": 180
+        },
+        {
+            "name": "hls_time_driven_zero_p01600",
+            "project": "SRNN_test/hls_time_driven_zero_p01600",
+            "graph": "zero",
+            "backend": "time-driven",
+            "requested_parallelism": 0.16,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 456,
+                    "processing_elements": 73,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.1600877192982456,
+                    "idle_slots": 55
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 38,
+                    "processing_elements": 6,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.15789473684210525,
+                    "idle_slots": 4
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 38,
+                    "processing_elements": 6,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.15789473684210525,
+                    "idle_slots": 4
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 1444,
+                    "processing_elements": 231,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.15997229916897507,
+                    "idle_slots": 173
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 266,
+                    "processing_elements": 43,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.16165413533834586,
+                    "idle_slots": 35
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 1,
+                    "reuse_cycles": 7,
+                    "effective_parallelism": 0.14285714285714285,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 42,
+            "summed_processing_elements": 360
+        },
+        {
+            "name": "hls_time_driven_zero_p03200",
+            "project": "SRNN_test/hls_time_driven_zero_p03200",
+            "graph": "zero",
+            "backend": "time-driven",
+            "requested_parallelism": 0.32,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 456,
+                    "processing_elements": 146,
+                    "reuse_cycles": 4,
+                    "effective_parallelism": 0.3201754385964912,
+                    "idle_slots": 128
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 38,
+                    "processing_elements": 12,
+                    "reuse_cycles": 4,
+                    "effective_parallelism": 0.3157894736842105,
+                    "idle_slots": 10
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 38,
+                    "processing_elements": 12,
+                    "reuse_cycles": 4,
+                    "effective_parallelism": 0.3157894736842105,
+                    "idle_slots": 10
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 1444,
+                    "processing_elements": 462,
+                    "reuse_cycles": 4,
+                    "effective_parallelism": 0.31994459833795014,
+                    "idle_slots": 404
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 266,
+                    "processing_elements": 85,
+                    "reuse_cycles": 4,
+                    "effective_parallelism": 0.31954887218045114,
+                    "idle_slots": 74
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 2,
+                    "reuse_cycles": 4,
+                    "effective_parallelism": 0.2857142857142857,
+                    "idle_slots": 1
+                }
+            ],
+            "summed_reuse_cycles": 24,
+            "summed_processing_elements": 719
+        },
+        {
+            "name": "hls_time_driven_zero_p06400",
+            "project": "SRNN_test/hls_time_driven_zero_p06400",
+            "graph": "zero",
+            "backend": "time-driven",
+            "requested_parallelism": 0.64,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 456,
+                    "processing_elements": 292,
+                    "reuse_cycles": 2,
+                    "effective_parallelism": 0.6403508771929824,
+                    "idle_slots": 128
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 38,
+                    "processing_elements": 24,
+                    "reuse_cycles": 2,
+                    "effective_parallelism": 0.631578947368421,
+                    "idle_slots": 10
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 38,
+                    "processing_elements": 24,
+                    "reuse_cycles": 2,
+                    "effective_parallelism": 0.631578947368421,
+                    "idle_slots": 10
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 1444,
+                    "processing_elements": 924,
+                    "reuse_cycles": 2,
+                    "effective_parallelism": 0.6398891966759003,
+                    "idle_slots": 404
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 266,
+                    "processing_elements": 170,
+                    "reuse_cycles": 2,
+                    "effective_parallelism": 0.6390977443609023,
+                    "idle_slots": 74
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 4,
+                    "reuse_cycles": 2,
+                    "effective_parallelism": 0.5714285714285714,
+                    "idle_slots": 1
+                }
+            ],
+            "summed_reuse_cycles": 12,
+            "summed_processing_elements": 1438
+        },
+        {
+            "name": "hls_time_driven_zero_p10000",
+            "project": "SRNN_test/hls_time_driven_zero_p10000",
+            "graph": "zero",
+            "backend": "time-driven",
+            "requested_parallelism": 1.0,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "plans": [
+                {
+                    "layer": "fc1",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 456,
+                    "processing_elements": 456,
+                    "reuse_cycles": 1,
+                    "effective_parallelism": 1.0,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "merge_1",
+                    "type": "Merge",
+                    "operation_kind": "elementwise",
+                    "total_work_items": 38,
+                    "processing_elements": 38,
+                    "reuse_cycles": 1,
+                    "effective_parallelism": 1.0,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.lif",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 38,
+                    "processing_elements": 38,
+                    "reuse_cycles": 1,
+                    "effective_parallelism": 1.0,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif1.w_rec",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 1444,
+                    "processing_elements": 1444,
+                    "reuse_cycles": 1,
+                    "effective_parallelism": 1.0,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "fc2",
+                    "type": "Affine",
+                    "operation_kind": "mac",
+                    "total_work_items": 266,
+                    "processing_elements": 266,
+                    "reuse_cycles": 1,
+                    "effective_parallelism": 1.0,
+                    "idle_slots": 0
+                },
+                {
+                    "layer": "lif2",
+                    "type": "CubaLIF",
+                    "operation_kind": "neuron_update",
+                    "total_work_items": 7,
+                    "processing_elements": 7,
+                    "reuse_cycles": 1,
+                    "effective_parallelism": 1.0,
+                    "idle_slots": 0
+                }
+            ],
+            "summed_reuse_cycles": 6,
+            "summed_processing_elements": 2249
+        },
+        {
+            "name": "hls_event_driven_zero_active_list",
+            "project": "SRNN_test/hls_event_driven_zero_active_list",
+            "graph": "zero",
+            "backend": "event-driven",
+            "requested_parallelism": null,
+            "samples_all_stages": 7,
+            "batch_size_all_stages": 7,
+            "steps_per_sample": 256,
+            "dataset": "samples/rnn_test_medoids.pt",
+            "active_noise_threshold": 1e-06
+        }
+    ]
+}

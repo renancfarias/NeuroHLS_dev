@@ -1,0 +1,579 @@
+{
+    "source_nir": "MLP_test/trained_snn_n-mnist.nir",
+    "metadata": "MLP_test/trained_snn_n-mnist.metadata.json",
+    "parallelism_contract": "percent_parallel_reuse_v1",
+    "warning": "Requested p is a percentage of static time-driven work; HLS must still validate resources, II, timing, and numerical behaviour.",
+    "components": [
+        {
+            "name": "hls_time_driven_percent_p0000",
+            "project": "MLP_test/hls_time_driven_percent_p0000",
+            "backend": "time-driven",
+            "requested_parallelism": 0.0,
+            "plans": [
+                {
+                    "layer": "linear_0",
+                    "type": "Linear",
+                    "requested_parallelism": 0.0,
+                    "total_work_items": 100352,
+                    "processing_elements": 1,
+                    "reuse_cycles": 100352,
+                    "effective_parallelism": 9.964923469387754e-06,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_0",
+                    "type": "LIF",
+                    "requested_parallelism": 0.0,
+                    "total_work_items": 128,
+                    "processing_elements": 1,
+                    "reuse_cycles": 128,
+                    "effective_parallelism": 0.0078125,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                },
+                {
+                    "layer": "linear_1",
+                    "type": "Linear",
+                    "requested_parallelism": 0.0,
+                    "total_work_items": 1280,
+                    "processing_elements": 1,
+                    "reuse_cycles": 1280,
+                    "effective_parallelism": 0.00078125,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_1",
+                    "type": "LIF",
+                    "requested_parallelism": 0.0,
+                    "total_work_items": 10,
+                    "processing_elements": 1,
+                    "reuse_cycles": 10,
+                    "effective_parallelism": 0.1,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                }
+            ],
+            "samples_all_stages": 10,
+            "batch_size_all_stages": 10,
+            "steps_per_sample": 32,
+            "dataset": "MLP_test/n-mnist-32-steps-medoids.pt"
+        },
+        {
+            "name": "hls_time_driven_percent_w0001",
+            "project": "MLP_test/hls_time_driven_percent_w0001",
+            "backend": "time-driven",
+            "requested_parallelism": 9.964923469387754e-06,
+            "plans": [
+                {
+                    "layer": "linear_0",
+                    "type": "Linear",
+                    "requested_parallelism": 9.964923469387754e-06,
+                    "total_work_items": 100352,
+                    "processing_elements": 1,
+                    "reuse_cycles": 100352,
+                    "effective_parallelism": 9.964923469387754e-06,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_0",
+                    "type": "LIF",
+                    "requested_parallelism": 9.964923469387754e-06,
+                    "total_work_items": 128,
+                    "processing_elements": 1,
+                    "reuse_cycles": 128,
+                    "effective_parallelism": 0.0078125,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                },
+                {
+                    "layer": "linear_1",
+                    "type": "Linear",
+                    "requested_parallelism": 9.964923469387754e-06,
+                    "total_work_items": 1280,
+                    "processing_elements": 1,
+                    "reuse_cycles": 1280,
+                    "effective_parallelism": 0.00078125,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_1",
+                    "type": "LIF",
+                    "requested_parallelism": 9.964923469387754e-06,
+                    "total_work_items": 10,
+                    "processing_elements": 1,
+                    "reuse_cycles": 10,
+                    "effective_parallelism": 0.1,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                }
+            ],
+            "samples_all_stages": 10,
+            "batch_size_all_stages": 10,
+            "steps_per_sample": 32,
+            "dataset": "MLP_test/n-mnist-32-steps-medoids.pt"
+        },
+        {
+            "name": "hls_time_driven_percent_w0002",
+            "project": "MLP_test/hls_time_driven_percent_w0002",
+            "backend": "time-driven",
+            "requested_parallelism": 1.992984693877551e-05,
+            "plans": [
+                {
+                    "layer": "linear_0",
+                    "type": "Linear",
+                    "requested_parallelism": 1.992984693877551e-05,
+                    "total_work_items": 100352,
+                    "processing_elements": 2,
+                    "reuse_cycles": 50176,
+                    "effective_parallelism": 1.992984693877551e-05,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_0",
+                    "type": "LIF",
+                    "requested_parallelism": 1.992984693877551e-05,
+                    "total_work_items": 128,
+                    "processing_elements": 1,
+                    "reuse_cycles": 128,
+                    "effective_parallelism": 0.0078125,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                },
+                {
+                    "layer": "linear_1",
+                    "type": "Linear",
+                    "requested_parallelism": 1.992984693877551e-05,
+                    "total_work_items": 1280,
+                    "processing_elements": 1,
+                    "reuse_cycles": 1280,
+                    "effective_parallelism": 0.00078125,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_1",
+                    "type": "LIF",
+                    "requested_parallelism": 1.992984693877551e-05,
+                    "total_work_items": 10,
+                    "processing_elements": 1,
+                    "reuse_cycles": 10,
+                    "effective_parallelism": 0.1,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                }
+            ],
+            "samples_all_stages": 10,
+            "batch_size_all_stages": 10,
+            "steps_per_sample": 32,
+            "dataset": "MLP_test/n-mnist-32-steps-medoids.pt"
+        },
+        {
+            "name": "hls_time_driven_percent_w0004",
+            "project": "MLP_test/hls_time_driven_percent_w0004",
+            "backend": "time-driven",
+            "requested_parallelism": 3.985969387755102e-05,
+            "plans": [
+                {
+                    "layer": "linear_0",
+                    "type": "Linear",
+                    "requested_parallelism": 3.985969387755102e-05,
+                    "total_work_items": 100352,
+                    "processing_elements": 4,
+                    "reuse_cycles": 25088,
+                    "effective_parallelism": 3.985969387755102e-05,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_0",
+                    "type": "LIF",
+                    "requested_parallelism": 3.985969387755102e-05,
+                    "total_work_items": 128,
+                    "processing_elements": 1,
+                    "reuse_cycles": 128,
+                    "effective_parallelism": 0.0078125,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                },
+                {
+                    "layer": "linear_1",
+                    "type": "Linear",
+                    "requested_parallelism": 3.985969387755102e-05,
+                    "total_work_items": 1280,
+                    "processing_elements": 1,
+                    "reuse_cycles": 1280,
+                    "effective_parallelism": 0.00078125,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_1",
+                    "type": "LIF",
+                    "requested_parallelism": 3.985969387755102e-05,
+                    "total_work_items": 10,
+                    "processing_elements": 1,
+                    "reuse_cycles": 10,
+                    "effective_parallelism": 0.1,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                }
+            ],
+            "samples_all_stages": 10,
+            "batch_size_all_stages": 10,
+            "steps_per_sample": 32,
+            "dataset": "MLP_test/n-mnist-32-steps-medoids.pt"
+        },
+        {
+            "name": "hls_time_driven_percent_w0008",
+            "project": "MLP_test/hls_time_driven_percent_w0008",
+            "backend": "time-driven",
+            "requested_parallelism": 7.971938775510203e-05,
+            "plans": [
+                {
+                    "layer": "linear_0",
+                    "type": "Linear",
+                    "requested_parallelism": 7.971938775510203e-05,
+                    "total_work_items": 100352,
+                    "processing_elements": 8,
+                    "reuse_cycles": 12544,
+                    "effective_parallelism": 7.971938775510203e-05,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_0",
+                    "type": "LIF",
+                    "requested_parallelism": 7.971938775510203e-05,
+                    "total_work_items": 128,
+                    "processing_elements": 1,
+                    "reuse_cycles": 128,
+                    "effective_parallelism": 0.0078125,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                },
+                {
+                    "layer": "linear_1",
+                    "type": "Linear",
+                    "requested_parallelism": 7.971938775510203e-05,
+                    "total_work_items": 1280,
+                    "processing_elements": 1,
+                    "reuse_cycles": 1280,
+                    "effective_parallelism": 0.00078125,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_1",
+                    "type": "LIF",
+                    "requested_parallelism": 7.971938775510203e-05,
+                    "total_work_items": 10,
+                    "processing_elements": 1,
+                    "reuse_cycles": 10,
+                    "effective_parallelism": 0.1,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                }
+            ],
+            "samples_all_stages": 10,
+            "batch_size_all_stages": 10,
+            "steps_per_sample": 32,
+            "dataset": "MLP_test/n-mnist-32-steps-medoids.pt"
+        },
+        {
+            "name": "hls_time_driven_percent_w0016",
+            "project": "MLP_test/hls_time_driven_percent_w0016",
+            "backend": "time-driven",
+            "requested_parallelism": 0.00015943877551020407,
+            "plans": [
+                {
+                    "layer": "linear_0",
+                    "type": "Linear",
+                    "requested_parallelism": 0.00015943877551020407,
+                    "total_work_items": 100352,
+                    "processing_elements": 16,
+                    "reuse_cycles": 6272,
+                    "effective_parallelism": 0.00015943877551020407,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_0",
+                    "type": "LIF",
+                    "requested_parallelism": 0.00015943877551020407,
+                    "total_work_items": 128,
+                    "processing_elements": 1,
+                    "reuse_cycles": 128,
+                    "effective_parallelism": 0.0078125,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                },
+                {
+                    "layer": "linear_1",
+                    "type": "Linear",
+                    "requested_parallelism": 0.00015943877551020407,
+                    "total_work_items": 1280,
+                    "processing_elements": 1,
+                    "reuse_cycles": 1280,
+                    "effective_parallelism": 0.00078125,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_1",
+                    "type": "LIF",
+                    "requested_parallelism": 0.00015943877551020407,
+                    "total_work_items": 10,
+                    "processing_elements": 1,
+                    "reuse_cycles": 10,
+                    "effective_parallelism": 0.1,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                }
+            ],
+            "samples_all_stages": 10,
+            "batch_size_all_stages": 10,
+            "steps_per_sample": 32,
+            "dataset": "MLP_test/n-mnist-32-steps-medoids.pt"
+        },
+        {
+            "name": "hls_time_driven_percent_w0032",
+            "project": "MLP_test/hls_time_driven_percent_w0032",
+            "backend": "time-driven",
+            "requested_parallelism": 0.00031887755102040814,
+            "plans": [
+                {
+                    "layer": "linear_0",
+                    "type": "Linear",
+                    "requested_parallelism": 0.00031887755102040814,
+                    "total_work_items": 100352,
+                    "processing_elements": 32,
+                    "reuse_cycles": 3136,
+                    "effective_parallelism": 0.00031887755102040814,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_0",
+                    "type": "LIF",
+                    "requested_parallelism": 0.00031887755102040814,
+                    "total_work_items": 128,
+                    "processing_elements": 1,
+                    "reuse_cycles": 128,
+                    "effective_parallelism": 0.0078125,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                },
+                {
+                    "layer": "linear_1",
+                    "type": "Linear",
+                    "requested_parallelism": 0.00031887755102040814,
+                    "total_work_items": 1280,
+                    "processing_elements": 1,
+                    "reuse_cycles": 1280,
+                    "effective_parallelism": 0.00078125,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_1",
+                    "type": "LIF",
+                    "requested_parallelism": 0.00031887755102040814,
+                    "total_work_items": 10,
+                    "processing_elements": 1,
+                    "reuse_cycles": 10,
+                    "effective_parallelism": 0.1,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                }
+            ],
+            "samples_all_stages": 10,
+            "batch_size_all_stages": 10,
+            "steps_per_sample": 32,
+            "dataset": "MLP_test/n-mnist-32-steps-medoids.pt"
+        },
+        {
+            "name": "hls_time_driven_percent_w0064",
+            "project": "MLP_test/hls_time_driven_percent_w0064",
+            "backend": "time-driven",
+            "requested_parallelism": 0.0006377551020408163,
+            "plans": [
+                {
+                    "layer": "linear_0",
+                    "type": "Linear",
+                    "requested_parallelism": 0.0006377551020408163,
+                    "total_work_items": 100352,
+                    "processing_elements": 64,
+                    "reuse_cycles": 1568,
+                    "effective_parallelism": 0.0006377551020408163,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_0",
+                    "type": "LIF",
+                    "requested_parallelism": 0.0006377551020408163,
+                    "total_work_items": 128,
+                    "processing_elements": 1,
+                    "reuse_cycles": 128,
+                    "effective_parallelism": 0.0078125,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                },
+                {
+                    "layer": "linear_1",
+                    "type": "Linear",
+                    "requested_parallelism": 0.0006377551020408163,
+                    "total_work_items": 1280,
+                    "processing_elements": 1,
+                    "reuse_cycles": 1280,
+                    "effective_parallelism": 0.00078125,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_1",
+                    "type": "LIF",
+                    "requested_parallelism": 0.0006377551020408163,
+                    "total_work_items": 10,
+                    "processing_elements": 1,
+                    "reuse_cycles": 10,
+                    "effective_parallelism": 0.1,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                }
+            ],
+            "samples_all_stages": 10,
+            "batch_size_all_stages": 10,
+            "steps_per_sample": 32,
+            "dataset": "MLP_test/n-mnist-32-steps-medoids.pt"
+        },
+        {
+            "name": "hls_time_driven_percent_w0128",
+            "project": "MLP_test/hls_time_driven_percent_w0128",
+            "backend": "time-driven",
+            "requested_parallelism": 0.0012755102040816326,
+            "plans": [
+                {
+                    "layer": "linear_0",
+                    "type": "Linear",
+                    "requested_parallelism": 0.0012755102040816326,
+                    "total_work_items": 100352,
+                    "processing_elements": 128,
+                    "reuse_cycles": 784,
+                    "effective_parallelism": 0.0012755102040816326,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_0",
+                    "type": "LIF",
+                    "requested_parallelism": 0.0012755102040816326,
+                    "total_work_items": 128,
+                    "processing_elements": 1,
+                    "reuse_cycles": 128,
+                    "effective_parallelism": 0.0078125,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                },
+                {
+                    "layer": "linear_1",
+                    "type": "Linear",
+                    "requested_parallelism": 0.0012755102040816326,
+                    "total_work_items": 1280,
+                    "processing_elements": 2,
+                    "reuse_cycles": 640,
+                    "effective_parallelism": 0.0015625,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_1",
+                    "type": "LIF",
+                    "requested_parallelism": 0.0012755102040816326,
+                    "total_work_items": 10,
+                    "processing_elements": 1,
+                    "reuse_cycles": 10,
+                    "effective_parallelism": 0.1,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                }
+            ],
+            "samples_all_stages": 10,
+            "batch_size_all_stages": 10,
+            "steps_per_sample": 32,
+            "dataset": "MLP_test/n-mnist-32-steps-medoids.pt"
+        },
+        {
+            "name": "hls_time_driven_percent_w0256",
+            "project": "MLP_test/hls_time_driven_percent_w0256",
+            "backend": "time-driven",
+            "requested_parallelism": 0.002551020408163265,
+            "plans": [
+                {
+                    "layer": "linear_0",
+                    "type": "Linear",
+                    "requested_parallelism": 0.002551020408163265,
+                    "total_work_items": 100352,
+                    "processing_elements": 256,
+                    "reuse_cycles": 392,
+                    "effective_parallelism": 0.002551020408163265,
+                    "idle_slots": 0,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_0",
+                    "type": "LIF",
+                    "requested_parallelism": 0.002551020408163265,
+                    "total_work_items": 128,
+                    "processing_elements": 1,
+                    "reuse_cycles": 128,
+                    "effective_parallelism": 0.0078125,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                },
+                {
+                    "layer": "linear_1",
+                    "type": "Linear",
+                    "requested_parallelism": 0.002551020408163265,
+                    "total_work_items": 1280,
+                    "processing_elements": 3,
+                    "reuse_cycles": 427,
+                    "effective_parallelism": 0.00234375,
+                    "idle_slots": 1,
+                    "operation_kind": "mac"
+                },
+                {
+                    "layer": "lif_1",
+                    "type": "LIF",
+                    "requested_parallelism": 0.002551020408163265,
+                    "total_work_items": 10,
+                    "processing_elements": 1,
+                    "reuse_cycles": 10,
+                    "effective_parallelism": 0.1,
+                    "idle_slots": 0,
+                    "operation_kind": "neuron_update"
+                }
+            ],
+            "samples_all_stages": 10,
+            "batch_size_all_stages": 10,
+            "steps_per_sample": 32,
+            "dataset": "MLP_test/n-mnist-32-steps-medoids.pt"
+        },
+        {
+            "name": "hls_event_driven_scalar",
+            "project": "MLP_test/hls_event_driven_scalar",
+            "backend": "event-driven",
+            "requested_parallelism": null,
+            "plans": [],
+            "samples_all_stages": 10,
+            "batch_size_all_stages": 10,
+            "steps_per_sample": 32,
+            "dataset": "MLP_test/n-mnist-32-steps-medoids.pt"
+        }
+    ]
+}

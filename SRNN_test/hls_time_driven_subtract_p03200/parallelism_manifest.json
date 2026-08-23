@@ -1,0 +1,72 @@
+{
+  "backend": "time-driven",
+  "layers": [
+    {
+      "effective_parallelism": 0.32083333333333336,
+      "idle_slots": 136,
+      "name": "fc1",
+      "operation_kind": "mac",
+      "operator": "Linear",
+      "processing_elements": 154,
+      "requested_parallelism": 0.32,
+      "reuse_cycles": 4,
+      "total_work_items": 480
+    },
+    {
+      "effective_parallelism": 0.325,
+      "idle_slots": 12,
+      "name": "merge_1",
+      "operation_kind": "elementwise",
+      "operator": "Merge",
+      "processing_elements": 13,
+      "requested_parallelism": 0.32,
+      "reuse_cycles": 4,
+      "total_work_items": 40
+    },
+    {
+      "effective_parallelism": 0.325,
+      "idle_slots": 12,
+      "name": "lif1.lif",
+      "operation_kind": "neuron_update",
+      "operator": "CubaLIF",
+      "processing_elements": 13,
+      "requested_parallelism": 0.32,
+      "reuse_cycles": 4,
+      "total_work_items": 40
+    },
+    {
+      "effective_parallelism": 0.32,
+      "idle_slots": 448,
+      "name": "lif1.w_rec",
+      "operation_kind": "mac",
+      "operator": "Linear",
+      "processing_elements": 512,
+      "requested_parallelism": 0.32,
+      "reuse_cycles": 4,
+      "total_work_items": 1600
+    },
+    {
+      "effective_parallelism": 0.32142857142857145,
+      "idle_slots": 80,
+      "name": "fc2",
+      "operation_kind": "mac",
+      "operator": "Linear",
+      "processing_elements": 90,
+      "requested_parallelism": 0.32,
+      "reuse_cycles": 4,
+      "total_work_items": 280
+    },
+    {
+      "effective_parallelism": 0.2857142857142857,
+      "idle_slots": 1,
+      "name": "lif2",
+      "operation_kind": "neuron_update",
+      "operator": "CubaLIF",
+      "processing_elements": 2,
+      "requested_parallelism": 0.32,
+      "reuse_cycles": 4,
+      "total_work_items": 7
+    }
+  ],
+  "parallelism_contract": "percent_parallel_reuse_v1"
+}

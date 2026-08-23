@@ -57,7 +57,69 @@ class TestbenchManager:
         step_dimension_string = "[s]" if self._different_sample_per_step else ""
         reset_potentials_string = "s == 0" if reset_potentials_between_inferences else "false"
 
-        return f"snn_to_hls(input_data[b]{step_dimension_string}, output, {reset_potentials_string});"
+        if not self._use_event_driven:
+            return f"snn_to_hls(input_data[b]{step_dimension_string}, output, {reset_potentials_string});"
+
+        lines = ["{", "    ed_spike_t event = {};", ""]
+        # Flattened dataset values are mapped to event coordinates.  Zero
+        # values are intentionally omitted from the event stream.
+        for coord in np.ndindex(tuple(self._input_shape)):
+            access = "input_data[b]" + step_dimension_string + "".join(f"[{d}]" for d in coord)
+            if len(coord) == 1:
+                channel, height, width = "0", "0", str(coord[0])
+            elif len(coord) == 2:
+                channel, height, width = "0", str(coord[0]), str(coord[1])
+            else:
+                channel, height, width = str(coord[-3]), str(coord[-2]), str(coord[-1])
+            lines.extend([
+                f"    if ({access} != input_t(0)) {{",
+                "        event = {};",
+                "        event.type = ED_TYPE_SPIKE;",
+                f"        event.amplitude = {access};",
+                f"        event.timestamp = (ed_time_step_t)(s * NEURO_HLS_EVENT_DT);",
+                "        event.time_step = s;",
+                f"        event.channel_idx = {channel};",
+                f"        event.height_idx = {height};",
+                f"        event.width_idx = {width};",
+                "        input_stream.write(event);",
+                "    }",
+            ])
+        lines.extend([
+            "    event = {};",
+            "    event.type = s == STEP_COUNT - 1 ? ED_TYPE_END_SAMPLE : ED_TYPE_END_STEP;",
+            "    event.timestamp = (ed_time_step_t)((s + 1) * NEURO_HLS_EVENT_DT);",
+            "    event.time_step = s;",
+            "    input_stream.write(event);",
+            f"    snn_to_hls(input_stream, output_stream, {reset_potentials_string});",
+            "}",
+        ])
+        return "\n".join(lines)
+
+    def _get_event_decl_code(self):
+        return "hls::stream<ed_spike_t> input_stream;\n            hls::stream<ed_spike_t> output_stream;" if self._use_event_driven else ""
+
+    def _get_event_output_code(self):
+        if not self._use_event_driven:
+            return ""
+        return """while (true) {
+                    ed_spike_t event = output_stream.read();
+                    if (event.type == ED_TYPE_SPIKE && event.width_idx < OUTPUT_SIZE)
+                        accum_output[event.width_idx]++;
+                    if (event.type != ED_TYPE_SPIKE) break;
+                }"""
+
+    def _get_output_decl_code(self):
+        if self._use_event_driven:
+            return ""
+        return "bit_t output[OUTPUT_SIZE];"
+
+    def _get_dense_output_accumulation_code(self):
+        if self._use_event_driven:
+            return ""
+        return """for (int i = 0; i < OUTPUT_SIZE; i++)
+                {
+                    accum_output[i] += output[i];
+                }"""
     
     def _get_read_batch_code(self):
 
@@ -94,7 +156,9 @@ class TestbenchManager:
         debug_output.append_line('cout << "pred: " << idx_max << "   target: " << target_data[b] << endl << endl;')
         return debug_output.get_text()
     
-    def define_dataset(self, dataset_file: str, data_is_binary: bool, step_count: int, different_sample_per_step: bool):
+    def define_dataset(self, dataset_file: str, data_is_binary: bool,
+                       step_count: int, different_sample_per_step: bool,
+                       max_samples: int = None):
 
         if dataset_file.split('.')[1] == "npz":
             dataset = np.load(dataset_file)
@@ -109,6 +173,11 @@ class TestbenchManager:
 
             data = data.cpu()
             labels = labels.cpu()
+
+        if max_samples is not None:
+            max_samples = max(1, int(max_samples))
+            data = data[:max_samples]
+            labels = labels[:max_samples]
 
         total_samples = data.shape[0]
         total_labels = labels.shape[0]
@@ -154,10 +223,11 @@ class TestbenchManager:
 
         return (total_samples, batch_size)
 
-    def create_testbench_file(self, input_shape: tuple, output_size: int, reset_potentials_between_inferences = False, debug_mode = False):
+    def create_testbench_file(self, input_shape: tuple, output_size: int, reset_potentials_between_inferences = False, debug_mode = False, use_event_driven = False):
 
         self._input_shape = input_shape
         self._output_size = output_size
+        self._use_event_driven = use_event_driven
         
         tb_cpp = get_testbench_content()
 
@@ -166,6 +236,10 @@ class TestbenchManager:
 
         # Feed data to the SNN
         tb_cpp = tb_cpp.replace("//<feed_data_snn>", self._get_feed_snn_code(reset_potentials_between_inferences))
+        tb_cpp = tb_cpp.replace("//<decl_event_streams>", self._get_event_decl_code())
+        tb_cpp = tb_cpp.replace("//<read_event_output>", self._get_event_output_code())
+        tb_cpp = tb_cpp.replace("//<decl_output>", self._get_output_decl_code())
+        tb_cpp = tb_cpp.replace("//<accumulate_dense_output>", self._get_dense_output_accumulation_code())
 
         # Read data from input file
         tb_cpp = tb_cpp.replace("//<read_batch>", self._get_read_batch_code())

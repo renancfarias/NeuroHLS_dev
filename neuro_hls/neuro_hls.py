@@ -22,6 +22,7 @@ class NeuroHls:
 
         self._has_parsed_nir = False
         self._has_created_testbench = False
+        self._use_event_driven = False
 
         self._tb_manager = TestbenchManager(folder_path)
 
@@ -37,13 +38,23 @@ class NeuroHls:
         
         return model 
 
-    def implement_model(self, model, use_float, use_event_driven = False):
+    def implement_model(
+        self, model, use_float, use_event_driven=False, backend=None
+    ):
 
-        implement_model(model, self._folder_path, use_float, use_event_driven)
+        self._use_event_driven = use_event_driven or (backend is not None and str(backend).lower().replace('_', '-') == 'event-driven')
 
-    def define_test_dataset(self, dataset_file_path: str, data_is_binary: bool, step_count: int, different_sample_per_step: bool):
-        
-        self._tb_manager.define_dataset(dataset_file_path, data_is_binary, step_count, different_sample_per_step)
+        implement_model(
+            model, self._folder_path, use_float, use_event_driven, backend
+        )
+
+    def define_test_dataset(self, dataset_file_path: str, data_is_binary: bool,
+                            step_count: int, different_sample_per_step: bool,
+                            max_samples: int = None):
+        self._tb_manager.define_dataset(
+            dataset_file_path, data_is_binary, step_count,
+            different_sample_per_step, max_samples=max_samples
+        )
 
     def create_testbench(self, total_samples: int, batch_size: int, reset_potentials = False, debug_mode = False):
 
@@ -57,7 +68,7 @@ class NeuroHls:
         print(f"Batch size: {used_batch_size}")
         print(f"Total batches: {used_total_samples // used_batch_size}")
         
-        self._tb_manager.create_testbench_file(self._input_shape, self._output_shape[0], reset_potentials, debug_mode)
+        self._tb_manager.create_testbench_file(self._input_shape, self._output_shape[0], reset_potentials, debug_mode, self._use_event_driven)
         self._has_created_testbench = True
 
         print("Testbench was created.")

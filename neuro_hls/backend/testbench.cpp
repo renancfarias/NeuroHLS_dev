@@ -55,19 +55,18 @@ int main (int argc, char **argv)
 
         int batch_total_correct = 0;
 
-        for (int b = 0; b < BATCH_SIZE; b++)
-        {
+    for (int b = 0; b < BATCH_SIZE; b++)
+    {
             int accum_output[OUTPUT_SIZE] = {};
-            bit_t output[OUTPUT_SIZE];
+            //<decl_output>
+            //<decl_event_streams>
 
             for (int s = 0; s < STEP_COUNT; s++)
             {
                 //<feed_data_snn>
 
-                for (int i = 0; i < OUTPUT_SIZE; i++)
-                {
-                    accum_output[i] += output[i];
-                }
+                //<read_event_output>
+                //<accumulate_dense_output>
             }
 
             int max_v = -1;

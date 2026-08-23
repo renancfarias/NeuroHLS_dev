@@ -114,8 +114,12 @@ def create_layer_config_from_node(node_name, node):
         v_leak = node.v_leak
         v_threshold = node.v_threshold
         v_reset = getattr(node, "v_reset", np.zeros_like(v_threshold))
+        metadata = getattr(node, "metadata", {}) or {}
+        reset_mechanism = metadata.get("reset_mechanism", getattr(node, "reset_mechanism", None))
+        reset_mechanism = reset_mechanism.strip().lower() if isinstance(reset_mechanism, str) else reset_mechanism
+        reset_by_subtraction = reset_mechanism == "subtract" or _metadata_bool(metadata.get("reset_by_subtraction", False))
         
-        return LIF(node_name, input_shape, output_shape, tau, r, v_leak, v_threshold, v_reset)
+        return LIF(node_name, input_shape, output_shape, tau, r, v_leak, v_threshold, v_reset, reset_by_subtraction)
     
     # SumPool2d
     elif node_type == 'SumPool2d':
@@ -136,6 +140,9 @@ def create_layer_config_from_node(node_name, node):
         padding = getattr(node, 'padding', 0)
         
         return AvgPool2d(node_name, input_shape, output_shape, kernel_size, stride, padding)
+
+    elif node_type == 'Scale':
+        return Scale(node_name, input_shape, output_shape, node.scale)
     
     # Linear (sem bias)
     elif node_type == 'Linear':

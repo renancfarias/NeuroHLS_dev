@@ -1,4 +1,4 @@
-def extract_neuron_param_code(mat, num_tabs = 0):
+def extract_neuron_param_code(mat, num_tabs = 0, value_format = ".10f"):
 
     if len(mat.shape) == 1:
 
@@ -6,7 +6,7 @@ def extract_neuron_param_code(mat, num_tabs = 0):
 
         for i in range(mat.shape[0]):
             
-            s += f"{mat[i]:.10f}"
+            s += format(mat[i], value_format)
 
             if i < mat.shape[0] - 1:
                 s += ", "
@@ -17,7 +17,9 @@ def extract_neuron_param_code(mat, num_tabs = 0):
 
     for i in range(mat.shape[0]):
 
-        s += "\n" + extract_neuron_param_code(mat[i], num_tabs + 1)
+        s += "\n" + extract_neuron_param_code(
+            mat[i], num_tabs + 1, value_format
+        )
 
         if i < mat.shape[0] - 1:
             s += ",\n"

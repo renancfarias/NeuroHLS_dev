@@ -117,6 +117,23 @@ def get_node_info(graph, dependencies, nodes, cur_node):
     input_shape = node_info.input_type['input']
     output_shape = node_info.output_type['output']
 
+    # NIR represents a scalar Scale with shape (1,), but its scalar is allowed
+    # to broadcast over the statically known tensor supplied by the graph.
+    if type(node_info).__name__ == "Scale" and np.asarray(node_info.scale).size == 1:
+        adjacent_shape = None
+        for dep in dependencies[cur_node]:
+            adjacent_shape = nodes[dep].output_type['output']
+            if adjacent_shape is not None:
+                break
+        if adjacent_shape is None:
+            for next_node in graph[cur_node]:
+                adjacent_shape = nodes[next_node].input_type['input']
+                if adjacent_shape is not None:
+                    break
+        if adjacent_shape is not None:
+            input_shape = adjacent_shape
+            output_shape = adjacent_shape
+
     if input_shape is None:
 
         # input shape must be inferred
@@ -169,6 +186,7 @@ def get_model_config_from_nir(nir_file_path: str, metadata_file_path: str = None
         dependencies[e[1]].append(e[0])
 
     visited = set()
+    discovered = {"input"}
     queue = deque()
 
     model_config = ModelConfig()
@@ -182,9 +200,11 @@ def get_model_config_from_nir(nir_file_path: str, metadata_file_path: str = None
         node_info = get_node_info(graph, dependencies, nodes, cur)
         node_info = _apply_external_metadata(cur, node_info, model_metadata)
         cur_layer = create_layer_config_from_node(cur, node_info)
+        model_config.graph_layers[cur] = cur_layer
 
         for node in graph[cur]:
-            if node not in visited:
+            if node not in discovered:
+                discovered.add(node)
                 queue.append(node)
 
         ### Checking if layer is recurrent
@@ -201,5 +221,6 @@ def get_model_config_from_nir(nir_file_path: str, metadata_file_path: str = None
             cur_layer.add_dependency(dep, is_dep_recurrent)
 
         model_config.add_layer(cur_layer)
-    
+
+    model_config.graph_edges = list(edges)
     return model_config

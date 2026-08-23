@@ -1,0 +1,53 @@
+schema_version: 1
+
+tools:
+  vitis_run: vitis-run
+  vivado: vivado
+  xelab: xelab
+  xsim: xsim
+  # Em Linux, deixe null quando as ferramentas já estiverem no PATH.
+  settings_script: null
+
+target:
+  # Ajuste para o FPGA usado pela sua rede/placa.
+  part: xcu250-figd2104-2L-e
+  clock:
+    name: ap_clk
+    frequency_mhz: 150
+    uncertainty_ns: 0.2
+
+execution:
+  jobs: 1
+  timeout_minutes: 40
+  reuse_cache: true
+  keep_intermediates: true
+
+simulation:
+  profile: post-synth
+  verify_outputs: true
+  # A referencia event-driven reporta latencia dependente dos dados, entao a
+  # sintese nao da um numero utilizavel: so a co-simulacao mede seu ciclo por
+  # passo logico.
+  run_cosim: false
+  activity:
+    warmup_samples: 0
+    measured_samples: all_remaining
+    capture_scope: dut
+
+power:
+  process: typical
+  ambient_temperature_c: 25
+  # vectorless: usa as taxas de transição padrão e dispensa a simulação
+  # pós-síntese, que custa horas por design.
+  # saif: anota a atividade medida; exige as etapas cosim-setup e
+  # post-synth-sim.
+  activity_source: vectorless
+  default_toggle_rate_percent: 12.5
+  default_static_probability: 0.5
+  # Aplicam-se somente a activity_source: saif.
+  saif_min_match_percent: 50
+  fail_on_low_confidence: true
+
+hls:
+  project_name: vitis_proj
+  solution_name: sol

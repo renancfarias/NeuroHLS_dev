@@ -1,7 +1,150 @@
-from typing import List, Union, Tuple
+from numbers import Real
+from typing import List, NamedTuple, Union, Tuple
+import warnings
 import numpy as np
 
 NUM_DASHES = 55
+
+
+class TimeDrivenParallelismPlan(NamedTuple):
+    """Static reuse architecture selected for one time-driven primitive.
+
+    ``processing_elements`` is the number of arithmetic work items made
+    available in a reuse group.  ``reuse_cycles`` is the number of groups
+    needed to cover the primitive's static work domain.  The values are
+    deliberately recorded together so experiment metadata can distinguish a
+    requested percentage from the integer architecture actually generated.
+    """
+
+    requested_parallelism: float
+    total_work_items: int
+    processing_elements: int
+    reuse_cycles: int
+    effective_parallelism: float
+    idle_slots: int
+    operation_kind: str
+
+    @property
+    def parallelism(self):
+        """Compatibility spelling for reports written before this contract."""
+        return self.requested_parallelism
+
+
+def _validate_time_driven_parallelism(parallelism, name="parallelism"):
+    if (
+        isinstance(parallelism, (bool, np.bool_))
+        or not isinstance(parallelism, Real)
+    ):
+        raise ValueError(
+            f"{name} must be a real number in [0, 1], got {parallelism!r}"
+        )
+
+    value = float(parallelism)
+
+    if not np.isfinite(value) or value < 0.0 or value > 1.0:
+        raise ValueError(
+            f"{name} must be a finite real number in [0, 1], "
+            f"got {parallelism!r}"
+        )
+    return value
+
+
+def _shape_tuple(shape, name):
+    values = tuple(int(value) for value in np.atleast_1d(shape))
+    if not values or any(value <= 0 for value in values):
+        raise ValueError(f"{name} must contain only positive dimensions, got {values}")
+    return values
+
+
+def _positive_tuple(value, dimensions, name):
+    if isinstance(value, (int, np.integer)):
+        values = (int(value),) * dimensions
+    else:
+        values = tuple(int(item) for item in np.atleast_1d(value))
+
+    if len(values) != dimensions or any(item <= 0 for item in values):
+        raise ValueError(
+            f"{name} must have {dimensions} positive value(s), got {values}"
+        )
+    return values
+
+
+def _resolve_padding(padding, input_spatial, output_spatial, kernel, stride, dilation):
+    dimensions = len(input_spatial)
+
+    if isinstance(padding, str):
+        mode = padding.strip().lower()
+        if mode == "valid":
+            return (0,) * dimensions
+        if mode != "same":
+            raise ValueError(f"padding must be 'same', 'valid', or integer values, got {padding!r}")
+
+        resolved = []
+        for in_size, out_size, kernel_size, step, spacing in zip(
+            input_spatial, output_spatial, kernel, stride, dilation
+        ):
+            effective_kernel = spacing * (kernel_size - 1) + 1
+            total_padding = (out_size - 1) * step + effective_kernel - in_size
+            if total_padding < 0 or total_padding % 2:
+                raise ValueError(
+                    "padding='same' requires asymmetric padding for this shape; "
+                    "the HLS backend only supports symmetric static padding"
+                )
+            resolved.append(total_padding // 2)
+        return tuple(resolved)
+
+    if isinstance(padding, (int, np.integer)):
+        values = (int(padding),) * dimensions
+    else:
+        values = tuple(int(item) for item in np.atleast_1d(padding))
+
+    if len(values) != dimensions or any(item < 0 for item in values):
+        raise ValueError(
+            f"padding must have {dimensions} non-negative value(s), got {values}"
+        )
+    return values
+
+
+def _validate_convolution_shapes(
+    input_shape, output_shape, weight, bias, kernel, stride, padding, dilation, groups
+):
+    input_shape = _shape_tuple(input_shape, "input_shape")
+    output_shape = _shape_tuple(output_shape, "output_shape")
+    dimensions = len(kernel)
+
+    if len(input_shape) != dimensions + 1 or len(output_shape) != dimensions + 1:
+        raise ValueError(
+            f"convolution expects channel plus {dimensions} spatial dimension(s)"
+        )
+    if groups <= 0:
+        raise ValueError(f"groups must be positive, got {groups}")
+
+    input_channels = input_shape[0]
+    output_channels = output_shape[0]
+    if input_channels % groups or output_channels % groups:
+        raise ValueError("input and output channels must both be divisible by groups")
+
+    expected_weight_shape = (output_channels, input_channels // groups, *kernel)
+    if tuple(weight.shape) != expected_weight_shape:
+        raise ValueError(
+            f"weight shape must be {expected_weight_shape}, got {tuple(weight.shape)}"
+        )
+    if bias is not None and tuple(np.asarray(bias).shape) != (output_channels,):
+        raise ValueError(
+            f"bias shape must be {(output_channels,)}, got {tuple(np.asarray(bias).shape)}"
+        )
+
+    calculated_output = []
+    for in_size, kernel_size, step, pad, spacing in zip(
+        input_shape[1:], kernel, stride, padding, dilation
+    ):
+        effective_kernel = spacing * (kernel_size - 1) + 1
+        calculated_output.append((in_size + 2 * pad - effective_kernel) // step + 1)
+    if tuple(calculated_output) != output_shape[1:]:
+        raise ValueError(
+            f"declared output spatial shape {output_shape[1:]} does not match "
+            f"convolution result {tuple(calculated_output)}"
+        )
 
 class LayerConfig:
 
@@ -11,9 +154,38 @@ class LayerConfig:
         self.dependencies = []
         self.name = name
         self.emits_spike = False
+        # ``None`` inherits the model-wide time-driven setting.
+        self.time_driven_parallelism = None
 
     def add_dependency(self, name: str, is_recurrent: bool):
         self.dependencies.append((name, is_recurrent))
+
+    def define_time_driven_parallelism(self, parallelism):
+        self.time_driven_parallelism = _validate_time_driven_parallelism(
+            parallelism, f"time-driven parallelism for layer {self.name!r}"
+        )
+
+    def define_event_driven_parallelism(self, parallelism):
+        """Temporary migration shim for the removed event-driven setting.
+
+        The event-driven backend has a scalar stream ABI.  Its previous
+        internal actor-lane setting increased hardware cost without a useful
+        performance benefit, so a non-zero value is now rejected instead of
+        being ignored silently.
+        """
+        value = _validate_time_driven_parallelism(
+            parallelism, f"event-driven parallelism for layer {self.name!r}"
+        )
+        if value != 0.0:
+            raise ValueError(
+                "event-driven parallelism was removed; use the scalar "
+                "event-driven backend without a p setting"
+            )
+        warnings.warn(
+            "event-driven parallelism is retired and p=0 has no effect",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     def get_neuron_params(self):
         raise Exception(f"{self.name}.get_neuron_params was not implemented")
@@ -111,14 +283,13 @@ class Affine(LayerConfig):
         self.input_shape = np.atleast_1d(weight.shape[1])
         self.output_shape = np.atleast_1d(weight.shape[0])
 
-        self.unroll_factor = 1
-
     def get_neuron_params(self):
         return {"weights": self.weight,
                 "bias": self.bias}
     
     def get_template_args(self):
-        return {"unroll_factor": self.unroll_factor}
+        # Parallelism is resolved centrally from the time-driven `p` contract.
+        return {}
 
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -186,22 +357,41 @@ class Conv1d(LayerConfig):
             bias: Bias array of shape (C_out,)
         """
         super().__init__(name)
-        self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
-        self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
-        self.weight = weight
-        self.stride = stride
-        self.padding = padding
-        self.dilation = dilation
-        self.groups = groups
-        self.bias = bias
+        self.input_shape = np.asarray(input_shape)
+        self.output_shape = np.asarray(output_shape)
+
+        self.weight = np.asarray(weight)
+        self.stride = _positive_tuple(stride, 1, "stride")
+        self.dilation = _positive_tuple(dilation, 1, "dilation")
+        self.kernel = (int(self.weight.shape[2]),)
+        self.padding = _resolve_padding(
+            padding,
+            _shape_tuple(self.input_shape, "input_shape")[1:],
+            _shape_tuple(self.output_shape, "output_shape")[1:],
+            self.kernel,
+            self.stride,
+            self.dilation,
+        )
+        self.groups = int(groups)
+        self.bias = None if bias is None else np.asarray(bias)
+
+        _validate_convolution_shapes(
+            self.input_shape, self.output_shape, self.weight, self.bias,
+            self.kernel, self.stride, self.padding, self.dilation, self.groups
+        )
 
     def get_neuron_params(self):
-        return {"weights": self.weight,
-                "bias": self.bias}
+        params = {"weights": self.weight}
+        if self.bias is not None:
+            params["bias"] = self.bias
+        return params
     
-    # FINALIZAR
     def get_template_args(self):
-        return {}
+        return {"kernel": self.kernel,
+                "stride": self.stride,
+                "padding": self.padding,
+                "dilation": self.dilation,
+                "groups": self.groups}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -241,23 +431,37 @@ class Conv2d(LayerConfig):
             bias: Bias array of shape (C_out,)
         """
         super().__init__(name)
-        self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
-        self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
-        self.weight = weight
+        self.input_shape = np.asarray(input_shape)
+        self.output_shape = np.asarray(output_shape)
+        self.weight = np.asarray(weight)
         
         # Normalize stride, padding, dilation to tuples if they are ints
-        self.stride = (stride, stride) if isinstance(stride, int) else stride
-        self.padding = (padding, padding) if isinstance(padding, int) and not isinstance(padding, str) else padding
-        self.dilation = (dilation, dilation) if isinstance(dilation, int) else dilation
+        self.stride = _positive_tuple(stride, 2, "stride")
+        self.dilation = _positive_tuple(dilation, 2, "dilation")
         
-        self.groups = groups
-        self.bias = bias
+        self.groups = int(groups)
+        self.bias = None if bias is None else np.asarray(bias)
 
         self.kernel = (self.weight.shape[2], self.weight.shape[3])
+        self.padding = _resolve_padding(
+            padding,
+            _shape_tuple(self.input_shape, "input_shape")[1:],
+            _shape_tuple(self.output_shape, "output_shape")[1:],
+            self.kernel,
+            self.stride,
+            self.dilation,
+        )
+
+        _validate_convolution_shapes(
+            self.input_shape, self.output_shape, self.weight, self.bias,
+            self.kernel, self.stride, self.padding, self.dilation, self.groups
+        )
 
     def get_neuron_params(self):
-        return {"weights": self.weight,
-                "bias": self.bias}
+        params = {"weights": self.weight}
+        if self.bias is not None:
+            params["bias"] = self.bias
+        return params
     
     def get_template_args(self):
         return {"kernel": self.kernel,
@@ -517,7 +721,8 @@ class LIF(LayerConfig):
     
     def __init__(self, name: str, input_shape: tuple, output_shape: tuple,
                  tau: np.ndarray, r: np.ndarray, v_leak: np.ndarray,
-                 v_threshold: np.ndarray, v_reset: np.ndarray):
+                 v_threshold: np.ndarray, v_reset: np.ndarray,
+                 reset_by_subtraction: bool = False):
         """
         Leaky integrate-and-fire neuron model configuration.
         
@@ -529,6 +734,8 @@ class LIF(LayerConfig):
             v_leak: Leak voltage array
             v_threshold: Firing threshold array
             v_reset: Reset potential array
+            reset_by_subtraction: Subtract v_threshold on spike instead of
+                assigning v_reset, matching the NIR reference semantics
         """
         super().__init__(name)
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
@@ -538,6 +745,7 @@ class LIF(LayerConfig):
         self.v_leak = v_leak
         self.v_threshold = v_threshold
         self.v_reset = v_reset
+        self.reset_by_subtraction = reset_by_subtraction
         self.emits_spike = True
 
     def get_neuron_params(self):
@@ -627,19 +835,43 @@ class AvgPool2d(LayerConfig):
             padding: Padding (Height, Width)
         """
         super().__init__(name)
-        self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
-        self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
+        self.input_shape = np.asarray(input_shape)
+        self.output_shape = np.asarray(output_shape)
+
+        if self.input_shape.ndim != 1 or self.output_shape.ndim != 1 or len(self.input_shape) != 3 or len(self.output_shape) != 3:
+            raise ValueError("AvgPool2d expects shapes (channels, height, width)")
         
         # Normalize to tuples if they are ints
-        self.kernel_size = (kernel_size, kernel_size) if isinstance(kernel_size, int) else tuple(kernel_size)
-        self.stride = (stride, stride) if isinstance(stride, int) else tuple(stride)
-        self.padding = (padding, padding) if isinstance(padding, int) else tuple(padding)
+        self.kernel_size = _positive_tuple(kernel_size, 2, "kernel_size")
+        self.stride = _positive_tuple(stride, 2, "stride")
+        self.padding = _resolve_padding(
+            padding,
+            _shape_tuple(self.input_shape, "input_shape")[1:],
+            _shape_tuple(self.output_shape, "output_shape")[1:],
+            self.kernel_size,
+            self.stride,
+            (1, 1),
+        )
+
+        calculated_output = tuple(
+            (int(size) + 2 * pad - kernel) // step + 1
+            for size, pad, kernel, step in zip(
+                self.input_shape[1:], self.padding, self.kernel_size, self.stride
+            )
+        )
+        if self.input_shape[0] != self.output_shape[0] or calculated_output != tuple(self.output_shape[1:]):
+            raise ValueError(
+                f"AvgPool2d output shape {tuple(self.output_shape)} does not match "
+                f"expected {(int(self.input_shape[0]), *calculated_output)}"
+            )
 
     def get_neuron_params(self):
         return {}
     
     def get_template_args(self):
-        return {}
+        return {"kernel": self.kernel_size,
+                "stride": self.stride,
+                "padding": self.padding}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -652,6 +884,50 @@ class AvgPool2d(LayerConfig):
         
         s += super().__str__()
         return s
+
+
+class Scale(LayerConfig):
+
+    def __init__(self, name: str, input_shape: tuple, output_shape: tuple, scale: np.ndarray):
+        super().__init__(name)
+        self.input_shape = np.asarray(input_shape)
+        self.output_shape = np.asarray(output_shape)
+        raw_scale = np.asarray(scale)
+
+        input_dims = _shape_tuple(self.input_shape, "input_shape")
+        output_dims = _shape_tuple(self.output_shape, "output_shape")
+        if input_dims != output_dims:
+            raise ValueError(
+                f"Scale must preserve shape, got input {input_dims} and output {output_dims}"
+            )
+        if len(input_dims) not in (1, 2, 3):
+            raise ValueError("Scale supports only 1D, 2D, or 3D tensors")
+        if raw_scale.size != 1 and tuple(raw_scale.shape) != input_dims:
+            raise ValueError(
+                f"Scale parameter must be scalar or have shape {input_dims}, "
+                f"got {tuple(raw_scale.shape)}"
+            )
+
+        self.scalar_broadcast = raw_scale.size == 1
+        self.scale = (
+            np.full(input_dims, raw_scale.reshape(-1)[0], dtype=raw_scale.dtype)
+            if self.scalar_broadcast
+            else raw_scale
+        )
+
+    def get_neuron_params(self):
+        return {"scale": self.scale}
+
+    def get_template_args(self):
+        return {}
+
+    def __str__(self):
+        s = "-" * NUM_DASHES + "\n"
+        s += f"Scale (input: {self.input_shape}, output: {self.output_shape}) - layer name: '{self.name}'\n"
+        s += "-" * NUM_DASHES + "\n"
+        s += f"\tScale shape: {self.scale.shape}\n"
+        s += f"\tScalar broadcast: {'YES' if self.scalar_broadcast else 'NO'}\n"
+        return s + super().__str__()
 
 class Linear(LayerConfig):
     
@@ -668,13 +944,12 @@ class Linear(LayerConfig):
         self.input_shape = np.array(input_shape) if not isinstance(input_shape, np.ndarray) else input_shape
         self.output_shape = np.array(output_shape) if not isinstance(output_shape, np.ndarray) else output_shape
         self.weight = weight
-        self.unroll_factor = 1
-
     def get_neuron_params(self):
         return {"weights": self.weight}
     
     def get_template_args(self):
-        return {"unroll_factor": self.unroll_factor}
+        # Parallelism is resolved centrally from the time-driven `p` contract.
+        return {}
     
     def __str__(self):
         s = "-" * NUM_DASHES + "\n"
@@ -685,7 +960,97 @@ class Linear(LayerConfig):
         
         s += super().__str__()
         return s
-    
+
+
+def _time_driven_work_domain(layer):
+    """Return the number and category of statically scheduled operations.
+
+    The count deliberately includes padded kernel positions.  Those slots may
+    be guarded at run time, but they are part of the fixed loop nest and hence
+    of the architecture selected by ``p``.
+    """
+    supported_types = (
+        Linear, Affine, Conv1d, Conv2d, SumPool2d, AvgPool2d,
+        Merge, Flatten, Scale, IF, LIF, CubaLIF,
+    )
+    if not isinstance(layer, supported_types):
+        raise ValueError(
+            f"time-driven parallelism is not supported for "
+            f"{type(layer).__name__} layer {layer.name!r}"
+        )
+
+    input_shape = _shape_tuple(layer.input_shape, "input_shape")
+    output_shape = _shape_tuple(layer.output_shape, "output_shape")
+    if isinstance(layer, (Merge, Flatten, Scale, IF, LIF, CubaLIF)):
+        if len(input_shape) not in (1, 2, 3):
+            raise ValueError(
+                f"time-driven {type(layer).__name__} supports only 1D, "
+                f"2D, or 3D tensors, got rank {len(input_shape)}"
+            )
+
+    if isinstance(layer, Flatten):
+        expected_output = (int(np.prod(input_shape)),)
+        if output_shape != expected_output:
+            raise ValueError(
+                f"time-driven Flatten expects output shape "
+                f"{expected_output}, got {output_shape}"
+            )
+
+    output_elements = int(np.prod(output_shape))
+    if isinstance(layer, (Linear, Affine)):
+        return output_elements * int(np.prod(input_shape)), "mac"
+    if isinstance(layer, Conv1d):
+        terms = (int(layer.input_shape[0]) // int(layer.groups)) * int(layer.kernel[0])
+        return output_elements * terms, "conv1d_mac"
+    if isinstance(layer, Conv2d):
+        terms = (
+            (int(layer.input_shape[0]) // int(layer.groups))
+            * int(layer.kernel[0])
+            * int(layer.kernel[1])
+        )
+        return output_elements * terms, "conv2d_mac"
+    if isinstance(layer, (SumPool2d, AvgPool2d)):
+        terms = int(layer.kernel_size[0]) * int(layer.kernel_size[1])
+        return output_elements * terms, "pool_accumulate"
+    if isinstance(layer, (IF, LIF, CubaLIF)):
+        return output_elements, "neuron_update"
+    return output_elements, "elementwise"
+
+
+def resolve_time_driven_parallelism_plan(layer, parallelism):
+    """Resolve normalized ``p`` to a static percent-parallel reuse plan.
+
+    ``p=0`` is the explicit serial sentinel.  For positive values, rounding is
+    half-up so that the generated architecture is stable across Python versions
+    and does not inherit bankers' rounding from :func:`round`.
+    """
+    value = _validate_time_driven_parallelism(parallelism)
+    work_items, operation_kind = _time_driven_work_domain(layer)
+    if work_items <= 0:
+        raise ValueError(
+            f"time-driven work domain for layer {layer.name!r} must be positive"
+        )
+
+    if value == 0.0:
+        processing_elements = 1
+    else:
+        processing_elements = min(
+            work_items, max(1, int(np.floor(value * work_items + 0.5)))
+        )
+    reuse_cycles = (work_items + processing_elements - 1) // processing_elements
+    idle_slots = reuse_cycles * processing_elements - work_items
+
+    return TimeDrivenParallelismPlan(
+        requested_parallelism=value,
+        total_work_items=work_items,
+        processing_elements=processing_elements,
+        reuse_cycles=reuse_cycles,
+        effective_parallelism=processing_elements / work_items,
+        idle_slots=idle_slots,
+        operation_kind=operation_kind,
+    )
+
+
 class ModelConfig:
     
     def __init__(self):
@@ -700,6 +1065,29 @@ class ModelConfig:
         self.input_quantization = (16, 8)
         self.weight_quantization = (16, 8)
         self.potential_quantization = (16, 8)
+
+        # Architecture controls for the time-driven backend.  A layer-level
+        # value of ``None`` inherits this model-wide setting.
+        self.time_driven_parallelism = 0.0
+
+        # Physical duration (seconds) of an event-driven input step.  When
+        # unset, the generator infers it from CubaLIF layers and otherwise
+        # falls back to the project convention of 100 us.
+        self.event_dt = None
+        # PWL is the sole supported event-driven decay approximation.
+        self.event_decay_approximation = "piecewise_linear"
+        # ``discrete_compatible`` treats one input bin as a finite Euler
+        # step: the generator converts w_in into the effective current jump
+        # (dt / tau_syn) * w_in and keeps at most one spike per logical step.
+        self.event_cuba_lif_mode = "discrete_compatible"
+        # Active-list execution updates only active neurons on the
+        # END_STEP/END_SAMPLE lightweight tick.
+        self.event_cuba_lif_strategy = "active_list"
+        self.event_active_noise_threshold = 1e-6
+
+        # Original NIR graph, retained for graph-level backend rewrites.
+        self.graph_edges = []
+        self.graph_layers = {}
 
     def __str__(self):
         
@@ -758,6 +1146,140 @@ class ModelConfig:
 
     def define_potential_quantization(self, total_bits, int_bits):
         self.potential_quantization = (total_bits, int_bits)
+
+    def define_time_driven_parallelism(self, parallelism):
+        self.time_driven_parallelism = _validate_time_driven_parallelism(
+            parallelism, "time-driven parallelism"
+        )
+
+    def define_time_driven_layer_parallelism(self, layer_name, parallelism):
+        self._find_layer_by_name(layer_name).define_time_driven_parallelism(
+            parallelism
+        )
+
+    def define_event_driven_parallelism(self, parallelism):
+        """Migration shim for code written before event lanes were retired."""
+        value = _validate_time_driven_parallelism(
+            parallelism, "event-driven parallelism"
+        )
+        if value != 0.0:
+            raise ValueError(
+                "event-driven parallelism was removed; configure p only for "
+                "the time-driven backend"
+            )
+        warnings.warn(
+            "event-driven parallelism is retired and p=0 has no effect",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+    def define_layer_parallelism(self, layer_name, parallelism):
+        warnings.warn(
+            "define_layer_parallelism is deprecated; use "
+            "define_time_driven_layer_parallelism",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        self.define_time_driven_layer_parallelism(layer_name, parallelism)
+
+    def _find_layer_by_name(self, layer_name):
+        candidates = list(self.layers)
+        for layer in (self.graph_layers or {}).values():
+            if all(layer is not existing for existing in candidates):
+                candidates.append(layer)
+        matches = [layer for layer in candidates if layer.name == layer_name]
+        if not matches:
+            raise ValueError(f"could not find layer {layer_name!r}")
+        if len(matches) > 1:
+            raise ValueError(f"layer name {layer_name!r} is ambiguous")
+        return matches[0]
+
+    def define_event_layer_parallelism(self, layer_name, parallelism):
+        """Migration shim that rejects removed non-scalar event lanes."""
+        value = _validate_time_driven_parallelism(
+            parallelism, "event-driven parallelism"
+        )
+        if value != 0.0:
+            raise ValueError(
+                "event-driven parallelism was removed; configure p only for "
+                "the time-driven backend"
+            )
+        warnings.warn(
+            "event-driven parallelism is retired and p=0 has no effect",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
+    def resolve_time_driven_parallelism(self, layer):
+        if isinstance(layer, str):
+            layer = self._find_layer_by_name(layer)
+
+        override = getattr(layer, "time_driven_parallelism", None)
+        parallelism = (
+            self.time_driven_parallelism if override is None else override
+        )
+        return resolve_time_driven_parallelism_plan(
+            layer,
+            parallelism,
+        )
+
+    def define_event_dt(self, dt):
+        event_dt = float(dt)
+        if not np.isfinite(event_dt) or event_dt <= 0:
+            raise ValueError(f"event_dt must be finite and greater than zero, got {dt!r}")
+        self.event_dt = event_dt
+
+    def define_event_decay_approximation(self, approximation):
+        normalized = str(approximation).strip().lower().replace("-", "_")
+        aliases = {
+            "pwl": "piecewise_linear",
+            "piecewise": "piecewise_linear",
+            "piecewise_linear": "piecewise_linear",
+        }
+        if normalized not in aliases:
+            raise ValueError(
+                "only the 'piecewise_linear' event decay approximation is "
+                f"supported; got {approximation!r}"
+            )
+        self.event_decay_approximation = aliases[normalized]
+
+    def define_event_cuba_lif_mode(self, mode):
+        normalized = str(mode).strip().lower().replace("-", "_")
+        aliases = {
+            "discrete": "discrete_compatible",
+            "step": "discrete_compatible",
+            "discrete_compatible": "discrete_compatible",
+        }
+        if normalized not in aliases:
+            raise ValueError(
+                "only the 'discrete_compatible' event CubaLIF mode is "
+                f"supported; got {mode!r}"
+            )
+        self.event_cuba_lif_mode = aliases[normalized]
+
+    def define_event_cuba_lif_strategy(self, strategy):
+        normalized = str(strategy).strip().lower().replace("-", "_")
+        aliases = {
+            "active": "active_list",
+            "active_list": "active_list",
+            "hybrid": "active_list",
+            "lightweight_ticks": "active_list",
+        }
+        if normalized not in aliases:
+            raise ValueError(
+                "only the 'active_list' event CubaLIF strategy is "
+                f"supported; got {strategy!r}"
+            )
+        self.event_cuba_lif_strategy = aliases[normalized]
+
+    def define_event_active_noise_threshold(self, threshold):
+        threshold = float(threshold)
+        if not np.isfinite(threshold) or threshold <= 0:
+            raise ValueError(
+                "event active-list noise threshold must be finite and "
+                f"greater than zero, got {threshold!r}"
+            )
+        self.event_active_noise_threshold = threshold
 
 def layer_emits_spike(layer_name, layers):
 
