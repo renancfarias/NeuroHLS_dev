@@ -159,67 +159,74 @@ void DenseReuseImpl(
             ? result_type(bias[output_index]) : result_type(0);
     }
 
-    // Os itens de um mesmo grupo devem atingir saidas distintas.  Com
-    // input_index variando mais rapido, os U PEs desenrolados acumulariam
-    // todos em result[output_index] -- o mesmo banco -- e o HLS serializa a
-    // leitura-modificacao-escrita, elevando o II para U+2 e anulando o
-    // paralelismo.  Enumerar com o indice de saida variando mais rapido nao
-    // basta: o banco de um PE e output_index % OUTPUT_BANKS, e com
-    // output_index = operation % N_OUTPUTS esse valor so fica constante por PE
-    // quando PROCESSING_ELEMENTS divide N_OUTPUTS.  Isso vale na MLP
-    // (128 saidas, U potencia de dois) e falha no grafo recorrente (38 saidas,
-    // U=7), onde o HLS passa a construir um mux entre todos os bancos e o
-    // conflito de recurso volta.  Percorrendo a dimensao de saida arredondada
-    // para cima ate um multiplo de PROCESSING_ELEMENTS, output_index %
-    // OUTPUT_BANKS == pe por construcao, e as posicoes de preenchimento caem
-    // no mesmo guarda que ja tratava a cauda.  Quando U divide N_OUTPUTS o
-    // passo e igual a N_OUTPUTS e a enumeracao fica identica a anterior.
-    // Cada PE fica com uma faixa fixa de saidas e acumula em registrador.
-    // Enumerar o dominio achatado com o indice de saida variando mais rapido
-    // nao basta: o banco de um PE e output_index % OUTPUT_BANKS, e o mesmo
-    // acumulador volta a ser tocado a cada ceil(N_OUTPUTS/U) iteracoes.  Na
-    // MLP essa distancia e 2 e o HLS a absorve; no laco recorrente (38 saidas,
-    // U=7) ela e 6 contra uma profundidade de 17, uma recorrencia real que
-    // eleva o II para 4.  Com o acumulador em registrador a recorrencia passa
-    // a ser a soma de um ciclo, e o resultado volta a memoria uma vez por
-    // faixa.
+    // Cada PE precisa acertar sempre o mesmo banco de `result`, senao o HLS
+    // constroi um mux entre todos os bancos e o conflito de recurso eleva o
+    // II.  Dar a cada lane uma faixa fixa de saidas e acumular em registrador
+    // resolve as duas coisas: o banco fica constante por construcao e a
+    // recorrencia sobre o acumulador passa a ser uma soma de um ciclo, em vez
+    // de uma posicao de memoria revisitada a cada ceil(N_OUTPUTS/U)
+    // iteracoes.
+    //
+    // O paralelismo pedido vai primeiro para a dimensao de saida.  Ela
+    // satura em N_OUTPUTS -- alem disso, lanes adicionais ficariam com a
+    // guarda falsa e ocupariam area sem trabalho -- e o excedente passa a
+    // somar varias entradas por ciclo.  Enquanto U cabe na dimensao de saida
+    // ha uma unica lane de reducao e o laco e identico ao que existiria sem
+    // esta divisao, o que mantem os pontos com U <= N_OUTPUTS inalterados.
+    const int OUTPUT_LANES = PROCESSING_ELEMENTS < N_OUTPUTS
+        ? PROCESSING_ELEMENTS : N_OUTPUTS;
+    const int REDUCTION_QUOTIENT = PROCESSING_ELEMENTS / OUTPUT_LANES;
+    const int REDUCTION_LANES = REDUCTION_QUOTIENT < N_INPUTS
+        ? (REDUCTION_QUOTIENT > 0 ? REDUCTION_QUOTIENT : 1) : N_INPUTS;
     const int OUTPUT_TILES =
-        (N_OUTPUTS + PROCESSING_ELEMENTS - 1) / PROCESSING_ELEMENTS;
+        (N_OUTPUTS + OUTPUT_LANES - 1) / OUTPUT_LANES;
+
     dense_reuse_tiles:
     for (int tile = 0; tile < OUTPUT_TILES; ++tile) {
-        result_type accumulators[PROCESSING_ELEMENTS];
+        result_type accumulators[OUTPUT_LANES];
         #pragma HLS ARRAY_PARTITION variable=accumulators complete dim=1
 
         dense_reuse_load:
-        for (int pe = 0; pe < PROCESSING_ELEMENTS; ++pe) {
+        for (int lane = 0; lane < OUTPUT_LANES; ++lane) {
             #pragma HLS UNROLL
-            const int output_index = tile * PROCESSING_ELEMENTS + pe;
-            accumulators[pe] = output_index < N_OUTPUTS
+            const int output_index = tile * OUTPUT_LANES + lane;
+            accumulators[lane] = output_index < N_OUTPUTS
                 ? result[output_index]
                 : result_type(0);
         }
 
         dense_reuse_groups:
-        for (int input_index = 0; input_index < N_INPUTS; ++input_index) {
+        for (int input_base = 0; input_base < N_INPUTS;
+             input_base += REDUCTION_LANES) {
             #pragma HLS PIPELINE II=1
             dense_reuse_processing_elements:
-            for (int pe = 0; pe < PROCESSING_ELEMENTS; ++pe) {
+            for (int lane = 0; lane < OUTPUT_LANES; ++lane) {
                 #pragma HLS UNROLL
-                const int output_index = tile * PROCESSING_ELEMENTS + pe;
+                const int output_index = tile * OUTPUT_LANES + lane;
                 if (output_index < N_OUTPUTS) {
-                    accumulators[pe] += result_type(
-                        weights[output_index][input_index] * input[input_index]
-                    );
+                    result_type partial = result_type(0);
+                    dense_reuse_reduction:
+                    for (int red = 0; red < REDUCTION_LANES; ++red) {
+                        #pragma HLS UNROLL
+                        const int input_index = input_base + red;
+                        if (input_index < N_INPUTS) {
+                            partial += result_type(
+                                weights[output_index][input_index]
+                                * input[input_index]
+                            );
+                        }
+                    }
+                    accumulators[lane] += partial;
                 }
             }
         }
 
         dense_reuse_store:
-        for (int pe = 0; pe < PROCESSING_ELEMENTS; ++pe) {
+        for (int lane = 0; lane < OUTPUT_LANES; ++lane) {
             #pragma HLS UNROLL
-            const int output_index = tile * PROCESSING_ELEMENTS + pe;
+            const int output_index = tile * OUTPUT_LANES + lane;
             if (output_index < N_OUTPUTS) {
-                result[output_index] = accumulators[pe];
+                result[output_index] = accumulators[lane];
             }
         }
     }

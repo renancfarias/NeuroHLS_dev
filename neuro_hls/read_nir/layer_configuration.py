@@ -1078,7 +1078,7 @@ class ModelConfig:
         self.event_decay_approximation = "piecewise_linear"
         # ``discrete_compatible`` treats one input bin as a finite Euler
         # step: the generator converts w_in into the effective current jump
-        # (dt / tau_syn) * w_in and keeps at most one spike per logical step.
+        # (dt / tau_syn) * w_in and keeps at most one spike per time step.
         self.event_cuba_lif_mode = "discrete_compatible"
         # Active-list execution updates only active neurons on the
         # END_STEP/END_SAMPLE lightweight tick.

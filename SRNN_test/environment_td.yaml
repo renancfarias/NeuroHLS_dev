@@ -18,7 +18,7 @@ target:
 
 execution:
   jobs: 1
-  timeout_minutes: 40
+  timeout_minutes: 150
   reuse_cache: true
   keep_intermediates: true
 

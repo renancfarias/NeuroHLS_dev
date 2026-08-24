@@ -4,7 +4,7 @@ NeuroHLS translates a supported static NIR spiking-neural-network graph into
 synthesizable C++ for FPGA high-level synthesis (HLS).  It provides two
 lowerings of the same source graph:
 
-- **time-driven** evaluates statically shaped tensors once per logical step;
+- **time-driven** evaluates statically shaped tensors once per time step;
 - **event-driven** uses scalar event streams, FIFOs, watermarks, and HLS
   `DATAFLOW` between actors.
 

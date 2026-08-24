@@ -36,7 +36,7 @@ def latest(name: str) -> dict | None:
 
 
 def metrics(summary: dict) -> dict | None:
-    """Cycles per logical step, resources and power, with the latency source.
+    """Cycles per time step, resources and power, with the latency source.
 
     Co-simulation is the only source for the event-driven reference: its
     dataflow actors report a data-dependent latency, so synthesis has no
@@ -121,7 +121,7 @@ def main() -> int:
     lines = [
         "# Braille SRNN percent-parallel sweep",
         "",
-        "Seven medoid sequences, 256 steps each: 1,792 logical steps per design. "
+        "Seven medoid sequences, 256 steps each: 1,792 time steps per design. "
         "Power is a vectorless estimate under default switching activity; every "
         "energy figure is therefore an estimate, not an activity-annotated "
         "measurement.",

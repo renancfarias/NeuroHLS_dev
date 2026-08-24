@@ -34,8 +34,8 @@ GRID_COLOUR = "#d1d5db"
 # resources are the price.  A report may draw them together or as two figures,
 # whichever matches how its surrounding text reads them.
 OUTCOME_PANELS = (
-    ("cycles", "Cycles per logical step", "cycles"),
-    ("energy_uj", "Energy per logical step", "µJ"),
+    ("cycles", "Cycles per time step", "cycles"),
+    ("energy_uj", "Energy per time step", "µJ"),
 )
 RESOURCE_PANELS = (
     ("lut", "LUT", "LUTs"),

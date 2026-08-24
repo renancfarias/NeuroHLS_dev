@@ -8,9 +8,9 @@ event-driven component is listed once as a scalar reference.
 
 Examples
 --------
-python3 MLP_test/gerar_relatorio_percent_parallelism.py
-python3 MLP_test/gerar_relatorio_percent_parallelism.py --output /tmp/report.md
-python3 MLP_test/gerar_relatorio_percent_parallelism.py --charts-dir MLP_test/figures
+python3 SCNN_test/gerar_relatorio_percent_parallelism.py
+python3 SCNN_test/gerar_relatorio_percent_parallelism.py --output /tmp/report.md
+python3 SCNN_test/gerar_relatorio_percent_parallelism.py --charts-dir SCNN_test/figures
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ from estilo_sweep import (  # noqa: E402
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_COMPONENTS_DIR = ROOT / "MLP_test"
+DEFAULT_COMPONENTS_DIR = ROOT / "SCNN_test"
 DEFAULT_RUNS_ROOT = ROOT / "sim" / "runs"
 DEFAULT_REPORT = DEFAULT_COMPONENTS_DIR / "relatorio_percent_parallelism.md"
 RESOURCE_ORDER = ("lut", "ff", "bram", "dsp", "uram")
@@ -211,7 +211,7 @@ def time_driven_projects(components_dir: Path) -> list[Path]:
     """
     return sorted(
         path
-        for path in components_dir.glob("hls_time_driven_percent_*")
+        for path in components_dir.glob("hls_time_driven_scnn_*")
         if (path / "parallelism_manifest.json").is_file()
         and requested_parallelism(path) != 0.0
     )
