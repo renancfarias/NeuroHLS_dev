@@ -55,3 +55,30 @@ tb_data/
 
 *.nir
 event_driven/event_driven/hls/csim/build/nmnist_300_steps_test_sample_lengths.txt
+
+# ---------------------------------------------------------------------------
+# Credenciais.  Nunca versionar.
+token_git_overleaf
+
+# Projetos HLS gerados para os sweeps de paralelismo.  Os scripts que os
+# produzem e os relatorios derivados continuam versionados em MLP_test/.
+MLP_test/hls_*/
+vitis_workspace/
+
+# Datasets e pesos.  Os quatro .pt/.npz ja' versionados continuam rastreados;
+# este padrao vale para os novos, que devem entrar com "git add -f" se
+# houver motivo.
+*.pt
+*.npz
+
+# Artefatos e despejos das ferramentas (Vitis, Vivado, XSim, JVM).
+.hls.failed
+dfx_runtime.txt
+hs_err_pid*.dmp
+xelab.pb
+*.jou
+*.str
+.Xil/
+
+# Capturas de tela deixadas na raiz durante o trabalho.
+Captura de tela*.png
