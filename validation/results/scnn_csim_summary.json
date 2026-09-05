@@ -1,0 +1,103 @@
+{
+  "activity": null,
+  "artifacts": {
+    "project_copy": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/validation/runs/scnn_numbers_10_float_probe/20260819T012626Z-1f03c6fb80b2/project"
+  },
+  "configuration": {
+    "ambient_temperature_c": 25.0,
+    "capture_scope": "dut",
+    "clock_name": "ap_clk",
+    "clock_period_ns": 6.666666666666667,
+    "clock_uncertainty_ns": 0.2,
+    "fail_on_low_confidence": true,
+    "frequency_mhz": 150.0,
+    "hls_project_name": "vitis_proj",
+    "hls_solution_name": "sol",
+    "jobs": 1,
+    "keep_intermediates": true,
+    "measured_samples": "all_remaining",
+    "part": "xcu250-figd2104-2L-e",
+    "process": "typical",
+    "profile": "post-synth",
+    "reuse_cache": true,
+    "saif_min_match_percent": 50.0,
+    "settings_script": null,
+    "timeout_minutes": 420,
+    "verify_outputs": true,
+    "vitis_run": "vitis-run",
+    "vivado": "vivado",
+    "warmup_samples": 0,
+    "xelab": "xelab",
+    "xsim": "xsim"
+  },
+  "csim": {
+    "accuracy_percent": 100.0,
+    "available": true,
+    "log": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/validation/runs/scnn_numbers_10_float_probe/20260819T012626Z-1f03c6fb80b2/logs/csim.log"
+  },
+  "derived_metrics": {
+    "energy_definition": "average_power_times_full_saif_window",
+    "latency_definition": "full_saif_window_amortized"
+  },
+  "execution_scope": {
+    "from_stage": "prepare",
+    "to_stage": "csim"
+  },
+  "hls": {
+    "available": false,
+    "report": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/validation/runs/scnn_numbers_10_float_probe/20260819T012626Z-1f03c6fb80b2/project/vitis_proj/sol/syn/report/snn_to_hls_csynth.xml"
+  },
+  "power": null,
+  "project": {
+    "identifier": "scnn_numbers_10_float_probe",
+    "project_hash": "1f03c6fb80b29f4b64934a50b5c7c9d365520baf9f957c627bb9f2fa41874baa",
+    "required_files": [
+      "0_create_project.tcl",
+      "1_csim.tcl",
+      "2_synth.tcl",
+      "3_cosim.tcl",
+      "snn_implementation.cpp",
+      "snn_implementation.h",
+      "testbench.cpp",
+      "neuron_params.h",
+      "quantization.h",
+      "tb_data/data.txt",
+      "tb_data/targets.txt"
+    ],
+    "source_root": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/validation/build/scnn_numbers_10_float_probe",
+    "top": "snn_to_hls"
+  },
+  "run_id": "20260819T012626Z-1f03c6fb80b2",
+  "stages": {
+    "csim": {
+      "finished_at": "2026-08-19T01:27:21+00:00",
+      "started_at": "2026-08-19T01:26:29+00:00",
+      "state": "success",
+      "updated_at": "2026-08-19T01:27:21+00:00"
+    },
+    "prepare": {
+      "finished_at": "2026-08-19T01:26:26+00:00",
+      "started_at": "2026-08-19T01:26:26+00:00",
+      "state": "success",
+      "updated_at": "2026-08-19T01:26:26+00:00"
+    },
+    "vitis-project": {
+      "finished_at": "2026-08-19T01:26:29+00:00",
+      "started_at": "2026-08-19T01:26:26+00:00",
+      "state": "success",
+      "updated_at": "2026-08-19T01:26:29+00:00"
+    }
+  },
+  "state": "success",
+  "vivado_utilization": null,
+  "workload": {
+    "batch_count": 10,
+    "batch_size": 1,
+    "declared_samples": 10,
+    "executed_samples": 10,
+    "ignored_samples": 0,
+    "source": "project/testbench.cpp",
+    "steps_per_sample": 300,
+    "total_logical_steps": 3000
+  }
+}

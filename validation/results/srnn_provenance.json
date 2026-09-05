@@ -1,0 +1,50 @@
+{
+  "configuration": {
+    "arithmetic": "float",
+    "backend": "time-driven",
+    "note": "The two variants differ in reset, bias, hidden width, and weights.",
+    "parallelism_p": 0.0,
+    "runs": {
+      "subtract_no_bias": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/validation/runs/srnn_subtract_no_bias_140_float_probe/20260819T021225Z-1b4a415e23c1",
+      "zero_bias": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/validation/runs/srnn_zero_bias_140_float_probe/20260819T021217Z-4ea96e390e52"
+    },
+    "samples": 140,
+    "steps": 256
+  },
+  "created_at": "2026-08-19T02:12:36.276679+00:00",
+  "inputs": {
+    "dataset": {
+      "path": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/nir_examples/rnn_test.pt",
+      "sha256": "1beaa818f646dccdca0ca26da613f8753c383c10ec902c9710418d14c20de75e"
+    },
+    "subtract_no_bias_metadata": {
+      "path": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/nir_examples/model_noDelay_noBias_ref_subtract.metadata.json",
+      "sha256": "b533f81f90242578ce0af996e4320b7692ac15aa414643586e9aa8cdce49f160"
+    },
+    "subtract_no_bias_nir": {
+      "path": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/nir_examples/braille_noDelay_noBias_subtract.nir",
+      "sha256": "14f59e0903d76437be3cb23d7e4be6b4e08ea476e482f7478dbb4592b29377d3"
+    },
+    "zero_bias_metadata": {
+      "path": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/nir_examples/model_noDelay_bias_ref_zero.metadata.json",
+      "sha256": "b822a1e77a9d43472c1e02cfb455c6055865ce1eda904829d883a5f821c4ecf6"
+    },
+    "zero_bias_nir": {
+      "path": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/nir_examples/braille_noDelay_bias_zero.nir",
+      "sha256": "f1aab3ce74024e7feac508a03b04c58d483ee3a01e293dba4b53d0b519b8650e"
+    }
+  },
+  "neurohls": {
+    "commit": "8c4b4caba36fa636486bc05e6892e021522752a9",
+    "dirty": true
+  },
+  "paper": {
+    "commit": "8f9177e9f74374de7bd72e49b42217a24df716ec",
+    "doi": "10.1038/s41467-024-52259-9",
+    "repository": "https://github.com/neuromorphs/NIR",
+    "tag": "v1.0.4",
+    "url": "https://www.nature.com/articles/s41467-024-52259-9"
+  },
+  "python": "3.13.7 (main, Feb  5 2026, 12:37:37) [GCC 11.5.0 20240719 (Red Hat 11.5.0-11)]",
+  "vitis": "****** vitis-run v2025.2 (64-bit)"
+}

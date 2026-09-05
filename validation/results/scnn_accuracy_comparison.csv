@@ -1,0 +1,10 @@
+experiment,variant,library,accuracy_percent,n_samples,scope,source,directly_comparable_to_published_full_test
+SCNN,N-MNIST,Lava/Loihi 2,98.15071,10000,official full N-MNIST test set,NIR v1.0.4 artefact,True
+SCNN,N-MNIST,Nengo,98.11,10000,official full N-MNIST test set,NIR v1.0.4 artefact,True
+SCNN,N-MNIST,Norse,98.11,10000,official full N-MNIST test set,NIR v1.0.4 artefact,True
+SCNN,N-MNIST,Sinabs,98.470002,10000,official full N-MNIST test set,NIR v1.0.4 artefact,True
+SCNN,N-MNIST,snnTorch,97.854036,10000,official full N-MNIST test set,NIR v1.0.4 artefact,True
+SCNN,N-MNIST,Spyx,97.12223,10000,official full N-MNIST test set,NIR v1.0.4 artefact,True
+SCNN,N-MNIST,Speck,95.4,10000,official full N-MNIST test set,NIR v1.0.4 artefact,True
+SCNN,N-MNIST,SpiNNaker2,98.2,10000,official full N-MNIST test set,NIR v1.0.4 artefact,True
+SCNN,N-MNIST,NeuroHLS,98.11,10000,"official N-MNIST test set: 10000 of 10000 samples, same partition and 1 ms time-window framing as the reference libraries (314 zero-padded steps)",/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/validation/results/scnn_accuracy_csim_summary.json,True

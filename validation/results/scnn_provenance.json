@@ -1,0 +1,36 @@
+{
+  "configuration": {
+    "arithmetic": "float",
+    "backend": "time-driven",
+    "dataset_scope": "paper activity set: one example per digit, 300 fixed steps",
+    "parallelism_p": 0.0,
+    "probe": "first IF output",
+    "run_dir": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/validation/runs/scnn_numbers_10_float_probe/20260819T012626Z-1f03c6fb80b2",
+    "samples": 10,
+    "steps": 300
+  },
+  "created_at": "2026-08-19T01:27:21.891332+00:00",
+  "inputs": {
+    "dataset": {
+      "path": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/validation/build/datasets/scnn_numbers_10.npz",
+      "sha256": "9d5dea65af2b6c924f95e5d263478e752a8d5e67785f0e515bfbf9c036d874f6"
+    },
+    "nir": {
+      "path": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/nir_examples/cnn_sinabs.nir",
+      "sha256": "e2fa55bda7aab5a772485e1b690358bcb825b303eca7dc426e3973937fcb5bcb"
+    }
+  },
+  "neurohls": {
+    "commit": "8c4b4caba36fa636486bc05e6892e021522752a9",
+    "dirty": true
+  },
+  "paper": {
+    "commit": "8f9177e9f74374de7bd72e49b42217a24df716ec",
+    "doi": "10.1038/s41467-024-52259-9",
+    "repository": "https://github.com/neuromorphs/NIR",
+    "tag": "v1.0.4",
+    "url": "https://www.nature.com/articles/s41467-024-52259-9"
+  },
+  "python": "3.13.7 (main, Feb  5 2026, 12:37:37) [GCC 11.5.0 20240719 (Red Hat 11.5.0-11)]",
+  "vitis": "****** vitis-run v2025.2 (64-bit)"
+}

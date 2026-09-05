@@ -1,0 +1,35 @@
+{
+  "configuration": {
+    "arithmetic": "float",
+    "backend": "time-driven",
+    "dt_seconds": 0.0001,
+    "parallelism_p": 0.0,
+    "reset_note": "NeuroHLS LIF uses subtractive reset matching the NIR reference",
+    "run_dir": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/validation/runs/lif_float_subtract_probe/20260819T030713Z-7aa08276d470",
+    "steps": 1000
+  },
+  "created_at": "2026-08-19T03:07:20.430897+00:00",
+  "inputs": {
+    "dataset": {
+      "path": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/validation/build/datasets/lif_official.npz",
+      "sha256": "19b301cdc34eda212f20aff1303df26902d1b8322f66b57402282b6742be47be"
+    },
+    "nir": {
+      "path": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/nir_examples/lif_norse.nir",
+      "sha256": "0dd9143ef624892d4a6461f474d93653a337b3490a62e23ec9ec5d18fde9b7b6"
+    }
+  },
+  "neurohls": {
+    "commit": "8c4b4caba36fa636486bc05e6892e021522752a9",
+    "dirty": true
+  },
+  "paper": {
+    "commit": "8f9177e9f74374de7bd72e49b42217a24df716ec",
+    "doi": "10.1038/s41467-024-52259-9",
+    "repository": "https://github.com/neuromorphs/NIR",
+    "tag": "v1.0.4",
+    "url": "https://www.nature.com/articles/s41467-024-52259-9"
+  },
+  "python": "3.13.7 (main, Feb  5 2026, 12:37:37) [GCC 11.5.0 20240719 (Red Hat 11.5.0-11)]",
+  "vitis": "****** vitis-run v2025.2 (64-bit)"
+}

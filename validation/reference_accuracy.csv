@@ -1,0 +1,23 @@
+experiment,variant,library,accuracy_percent,n_samples,scope,source
+SCNN,N-MNIST,Lava/Loihi 2,98.15071,10000,official full N-MNIST test set,NIR v1.0.4 artefact
+SCNN,N-MNIST,Nengo,98.11,10000,official full N-MNIST test set,NIR v1.0.4 artefact
+SCNN,N-MNIST,Norse,98.11,10000,official full N-MNIST test set,NIR v1.0.4 artefact
+SCNN,N-MNIST,Sinabs,98.470002,10000,official full N-MNIST test set,NIR v1.0.4 artefact
+SCNN,N-MNIST,snnTorch,97.854036,10000,official full N-MNIST test set,NIR v1.0.4 artefact
+SCNN,N-MNIST,Spyx,97.12223,10000,official full N-MNIST test set,NIR v1.0.4 artefact
+SCNN,N-MNIST,Speck,95.4,10000,official full N-MNIST test set,NIR v1.0.4 artefact
+SCNN,N-MNIST,SpiNNaker2,98.2,10000,official full N-MNIST test set,NIR v1.0.4 artefact
+SRNN,zero_bias,Nengo,55.714286,140,official Braille test set,NIR v1.0.4 artefact
+SRNN,zero_bias,Norse,94.29,140,official Braille test set,NIR v1.0.4 artefact
+SRNN,zero_bias,snnTorch,95.0,140,official Braille test set,NIR v1.0.4 artefact
+SRNN,zero_bias,Spyx,84.28571,140,official Braille test set,NIR v1.0.4 artefact
+SRNN,zero_bias,Lava/Loihi 2,48.571429,140,official Braille test set,NIR v1.0.4 artefact
+SRNN,zero_bias,SpiNNaker2,85.0,140,official Braille test set,NIR v1.0.4 artefact
+SRNN,subtract_no_bias,Nengo,78.571429,140,official Braille test set,NIR v1.0.4 artefact
+SRNN,subtract_no_bias,Norse,93.57,140,official Braille test set,NIR v1.0.4 artefact
+SRNN,subtract_no_bias,Rockpool,71.428571,140,official Braille test set,NIR v1.0.4 artefact
+SRNN,subtract_no_bias,snnTorch,92.142857,140,official Braille test set,NIR v1.0.4 artefact
+SRNN,subtract_no_bias,Spyx,92.142856,140,official Braille test set,NIR v1.0.4 artefact
+SRNN,subtract_no_bias,SpiNNaker2,93.57,140,official Braille test set,NIR v1.0.4 artefact
+SRNN,subtract_no_bias,Xylo,85.714286,140,official Braille test set,NIR v1.0.4 artefact
+

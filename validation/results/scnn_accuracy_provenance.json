@@ -1,0 +1,38 @@
+{
+  "configuration": {
+    "arithmetic": "float",
+    "backend": "time-driven",
+    "batch_size": 100,
+    "batches": 100,
+    "dataset_scope": "official N-MNIST test set: 10000 of 10000 samples, same partition and 1 ms time-window framing as the reference libraries (314 zero-padded steps)",
+    "parallelism_p": 0.0,
+    "probe": "full accuracy",
+    "run_dir": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/validation/results/scnn_accuracy_csim_summary.json",
+    "samples": 10000,
+    "steps": 314
+  },
+  "created_at": "2026-08-19T00:59:58.002127+00:00",
+  "inputs": {
+    "dataset": {
+      "path": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/nir_examples/n-mnist-314-steps-10000-1ms.npz",
+      "sha256": "ff33b1e300c5d9d7b90bd25ba2ee94ebaaea31c1a91b95c23df6498d8e9af756"
+    },
+    "nir": {
+      "path": "/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/nir_examples/cnn_sinabs.nir",
+      "sha256": "e2fa55bda7aab5a772485e1b690358bcb825b303eca7dc426e3973937fcb5bcb"
+    }
+  },
+  "neurohls": {
+    "commit": "8c4b4caba36fa636486bc05e6892e021522752a9",
+    "dirty": true
+  },
+  "paper": {
+    "commit": "8f9177e9f74374de7bd72e49b42217a24df716ec",
+    "doi": "10.1038/s41467-024-52259-9",
+    "repository": "https://github.com/neuromorphs/NIR",
+    "tag": "v1.0.4",
+    "url": "https://www.nature.com/articles/s41467-024-52259-9"
+  },
+  "python": "3.13.7 (main, Feb  5 2026, 12:37:37) [GCC 11.5.0 20240719 (Red Hat 11.5.0-11)]",
+  "vitis": "****** vitis-run v2025.2 (64-bit)"
+}

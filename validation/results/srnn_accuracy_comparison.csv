@@ -1,0 +1,16 @@
+experiment,variant,library,accuracy_percent,n_samples,scope,source,directly_comparable_full_test
+SRNN,zero_bias,Nengo,55.714286,140,official Braille test set,NIR v1.0.4 artefact,True
+SRNN,zero_bias,Norse,94.29,140,official Braille test set,NIR v1.0.4 artefact,True
+SRNN,zero_bias,snnTorch,95.0,140,official Braille test set,NIR v1.0.4 artefact,True
+SRNN,zero_bias,Spyx,84.28571,140,official Braille test set,NIR v1.0.4 artefact,True
+SRNN,zero_bias,Lava/Loihi 2,48.571429,140,official Braille test set,NIR v1.0.4 artefact,True
+SRNN,zero_bias,SpiNNaker2,85.0,140,official Braille test set,NIR v1.0.4 artefact,True
+SRNN,subtract_no_bias,Nengo,78.571429,140,official Braille test set,NIR v1.0.4 artefact,True
+SRNN,subtract_no_bias,Norse,93.57,140,official Braille test set,NIR v1.0.4 artefact,True
+SRNN,subtract_no_bias,Rockpool,71.428571,140,official Braille test set,NIR v1.0.4 artefact,True
+SRNN,subtract_no_bias,snnTorch,92.142857,140,official Braille test set,NIR v1.0.4 artefact,True
+SRNN,subtract_no_bias,Spyx,92.142856,140,official Braille test set,NIR v1.0.4 artefact,True
+SRNN,subtract_no_bias,SpiNNaker2,93.57,140,official Braille test set,NIR v1.0.4 artefact,True
+SRNN,subtract_no_bias,Xylo,85.714286,140,official Braille test set,NIR v1.0.4 artefact,True
+SRNN,zero_bias,NeuroHLS,94.29,140,official Braille test set,/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/validation/runs/srnn_zero_bias_140_float_probe/20260819T021217Z-4ea96e390e52,True
+SRNN,subtract_no_bias,NeuroHLS,93.57,140,official Braille test set,/home/rcarlos/Documentos/SNN/Renan/NeuroHLS_dev/validation/runs/srnn_subtract_no_bias_140_float_probe/20260819T021225Z-1b4a415e23c1,True

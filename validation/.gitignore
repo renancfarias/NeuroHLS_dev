@@ -1,0 +1,9 @@
+build/
+runs/
+.cache/
+__pycache__/
+*.pyc
+results/*_driver.log
+
+# Keep the compact, derived validation artefacts.  Large Vitis projects and
+# reference arrays are regenerated/downloaded by the notebooks.
